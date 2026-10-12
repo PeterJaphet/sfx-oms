@@ -1,0 +1,36 @@
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+
+@layer base {
+  :root {
+    /* docs/DESIGN.md: RGB channels allow Tailwind opacity modifiers. */
+    --brand: 215 38 61;
+    --brand-strong: 176 30 49;
+    --brand-deep: 140 23 39;
+    --brand-soft: 251 227 230;
+    --amber: 244 163 0;
+    --amber-soft: 255 241 209;
+    --amber-ink: 122 75 0;
+    --ink: 28 22 21;
+    --ink-2: 74 64 60;
+    --muted: 107 96 92;
+    --line: 237 230 225;
+    --line-strong: 226 216 210;
+    --chip: 243 237 233;
+    --ground: 251 247 244;
+    --card: 255 255 255;
+    --ok: 31 107 69;
+    --ok-soft: 227 243 234;
+    --chart-operational: 201 133 0;
+    --radius: 0.75rem;
+    color-scheme: light;
+  }
+
+  * { @apply border-line; }
+  body { @apply m-0 min-w-[320px] bg-ground font-sans text-base text-ink antialiased; }
+  h1, h2, h3 { @apply font-heading; }
+  button, input, textarea, select { font: inherit; }
+  a { @apply text-brand-strong; }
+  a:hover { @apply text-brand-deep; }
+  :focus-visible { @apply outline outline-2 outline-offset-4 outline-brand-strong; }
+}

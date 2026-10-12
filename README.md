@@ -34,11 +34,100 @@ The agent reads `CLAUDE.md` for its rules.
    `select record_debt('we_owe', 'Metro Market', 'Unpaid supplies', 4200, 'TRY', '2026-10-20', true);`
 6. Set the Naira rate before the first Naira payment: `select set_fx_rate('NGN', 0.027);`
 
-## Front end
+## Front end — M0
 
-Built by the AI agent in milestone M0 (see `docs/BUILD_PLAN.md`): React + TypeScript + Vite, Tailwind,
-shadcn/ui, TanStack Query, supabase-js. `.env` holds only `VITE_SUPABASE_URL` and
-`VITE_SUPABASE_ANON_KEY`. Hosted on Cloudflare Pages (free tier allows business use).
+React 18 + TypeScript + Vite, Tailwind CSS 4 + shadcn/ui, TanStack Query, React Router 7,
+supabase-js v2, React Hook Form + Zod, Vitest and ESLint. Vite 6 and the pinned Supabase
+client support the project's Node 20 runtime. The root page is the M0 brand and currency
+display preview; sign-in and role navigation begin in M1.
+
+From the repository root, with Node.js 20.17+ and npm installed:
+
+```bash
+npm ci
+cp .env.example .env
+npm run dev
+```
+
+Fill in `.env` locally with the project URL and **public anon key** from the Supabase
+dashboard. The only frontend environment variables are:
+
+```dotenv
+VITE_SUPABASE_URL=https://lnolchqycicixjikolfi.supabase.co
+VITE_SUPABASE_ANON_KEY=<your public anon key>
+```
+
+Restart the dev server after editing `.env`. The brand page also works before these
+values are set; the Supabase client remains unavailable until both are configured.
+`.env`, `.env.*`, dependency folders and build output are git-ignored; `.env.example`
+contains no credentials. Never put a service-role key in a `VITE_` variable or in `src/`.
+
+Vite listens on port 5173. Open `http://localhost:5173` on the computer. For the phone
+check, connect the phone to the same Wi-Fi and open the Network URL printed by Vite.
+
+### Load the Supabase database by hand
+
+In project `lnolchqycicixjikolfi`, open **SQL Editor**. For each step, create a new query,
+paste the entire file's contents and click **Run**. Run these once, in this order:
+
+1. `supabase/schema.sql` — tables, RLS, ledger, RPCs and report views.
+2. `supabase/seed.sql` — menu, linked standalone extras, accounts, categories and settings.
+3. `supabase/storage.sql` — private receipts bucket and upload/read policies.
+
+These are initial installation scripts, not scripts to rerun on a populated project.
+If already loaded, verify the counts instead of rerunning them. No database changes
+or migrations are needed for M0. Leave opening balances and go-live debts for M7.
+
+Under **Authentication → Providers → Email**, turn off **Confirm email**, as specified
+by the build plan. The first admin and staff logins are configured in M1.
+
+In Table Editor, verify **7 accounts**, **8 addons**, and **18 products**: 10 dishes
+with `addon_id` empty, plus 8 standalone extras linked by `addon_id`. There are 18
+Regular variants. The seed sets the USD default rate; the NGN rate is set later.
+
+Optional read-only verification in SQL Editor:
+
+```sql
+select count(*) filter (where addon_id is null) as dishes,
+       count(*) filter (where addon_id is not null) as standalone_extras
+from public.products;
+select count(*) as extras from public.addons;
+select count(*) as accounts from public.accounts;
+```
+
+### Database types
+
+After loading the database, log in to the Supabase CLI locally and regenerate types
+from this project's public schema. Keep the login token local; it never belongs in
+the frontend or Git.
+
+```bash
+npx supabase login
+npx supabase gen types typescript --project-id lnolchqycicixjikolfi --schema public > /tmp/sfx-db.types.ts
+```
+
+Only after the generator exits successfully and the output contains the `Database`
+type, copy `/tmp/sfx-db.types.ts` to `src/lib/db.types.ts`. Using a temporary file
+prevents a failed login or network request from emptying the last generated types.
+
+### Checks
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+PGURL=postgres://postgres@localhost:5432/postgres ./scripts/db-test.sh
+npm run build
+```
+
+`npm test` runs Vitest once; `npm run test:watch` is available for development.
+Database tests require a local PostgreSQL server where the test role can create
+and drop a throwaway database. **Never use the live Supabase project's URL.**
+
+The user-approved display rule supersedes the older formatting text in the build
+kit: **all currencies omit decimals for whole amounts and show two for fractions**.
+Examples: `₺1,220`, `$85`, `₦15,000`, `₺1,220.50`, `$85.50`, `₦15,000.50`.
+`formatMoney` is a display helper; saved money totals remain database-owned.
 
 ## How the app talks to the database
 
