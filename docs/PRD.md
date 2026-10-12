@@ -1,0 +1,353 @@
+# SFx Burger OMS — Product Requirements
+
+Exported 12 Oct 2026 from the shared PRD. The PRD in Claude is the master copy; re-export when it changes.
+
+## Overview
+
+SFx Burger OMS is a web app where staff record every order, every lira taken out and every supply bought, so sales, revenue, spending and profit come out as reports instead of manual book reviews.
+
+**Problems today**
+
+| Problem | Effect |
+| --- | --- |
+| No item-level sales records | We cannot say how many chicken meals (or any item) sold last week or this year |
+| No revenue view | Monthly gross revenue and net profit need a manual pass through the books |
+| No spending view | Spend on foodstuff and supplies is unknown without a deep book review |
+| No live balances | We cannot see what each payment account (Cash, İşbank, Koop, SFx, etc.) holds right now |
+
+**Goals for version 1**
+
+- Every order is entered at the point of sale, with items, channel and payment account.
+- Every withdrawal states its purpose and reduces the balance of the account it came from.
+- Every supply purchase is logged with amount, category and a receipt photo.
+- Daily, weekly and monthly reports are generated automatically: items sold, revenue, expenses, gross and net profit, account balances.
+
+**Success measures (first 60 days live)**
+
+- 100% of orders entered: the daily close shows a cash difference under ₺100 on at least 90% of days.
+- Every withdrawal of the month is fully accounted for (receipts plus change returned) by month end.
+- The monthly report is produced in under 1 minute, with no manual calculation.
+
+**Out of scope for version 1:** ingredient-level stock and recipe costing, kitchen display screen, table service, customer accounts and loyalty, delivery-app integrations.
+
+## Users, roles and permissions
+
+Three roles; each staff member has one login and one role, and every action is stamped with who did it.
+
+| Capability | Operations | Logistics | Admin |
+| --- | --- | --- | --- |
+| Add and edit menu products and prices | Yes (logged, Admin notified) | No | Yes |
+| Take orders, update order status | Yes | No | Yes |
+| Mark order picked up / delivered | No | Yes | Yes |
+| View orders that are ready | Yes | Yes | Yes |
+| Cancel an unpaid order | Yes, with reason | No | Yes |
+| Void or refund a paid order | No | No | Yes |
+| Withdraw money from an account (with purpose) | Yes (over ₺2,000 needs approval) | No | Yes |
+| Log supplies bought (amount, category, receipt), incl. on credit | No | Yes | Yes |
+| Return change from an advance | No | Yes | Yes |
+| Pay or collect a debt | Yes (payments over ₺2,000 need Admin) | No | Yes |
+| View debts | Yes | No | Yes |
+| Daily close (count cash) | Yes | No | Yes |
+| View reports | Yes | Own purchases only | Yes |
+| View logistics activity | Yes | Own only | Yes |
+| Opening balances, record debts, transfers, adjustments | No | No | Yes |
+| Manage users, accounts, categories, settings | No | No | Yes |
+| View activity log | No | No | Yes |
+
+**Guardrails on Operations' wider powers.** You chose to let Operations both set prices and withdraw money. The system supports that, with three controls:
+
+- Every price change is kept as history and appears in Admin's activity feed; old orders keep the price they were sold at.
+- Every withdrawal needs a purpose and category; it cannot be edited after saving, only reversed by Admin.
+- Approval limit is on at launch at ₺2,000 (Admin can change it). Withdrawals and debt payments by Operations above it wait for Admin; the account must still hold the money.
+
+**Suggested addition:** Logistics can mark ready orders as picked up and delivered, so the order record shows when food left the kitchen and when it arrived.
+
+## Money model
+
+Each payment method is an account with its own currency and a running balance; every lira in or out is one ledger entry, so balances are never typed by hand.
+
+**Accounts**
+
+| Account | Currency | Notes |
+| --- | --- | --- |
+| Cash | TRY | Till cash; counted at daily close |
+| İşbank | TRY | Bank transfer / card |
+| Koop | TRY | Bank transfer / card |
+| SFx | USD | SFx Money App wallet |
+| RedotPay | USD |  |
+| Crypto | USD | Stablecoins, tracked in dollars |
+| Naira | NGN | Nigerian account, received into and spent from; always needs a rate |
+
+**Ledger entry types**
+
+| Type | Direction | Created by | Counts as expense? |
+| --- | --- | --- | --- |
+| Order payment | In | Order taker | No (revenue) |
+| Refund | Out | Admin | Reduces revenue |
+| Advance (cash out to a staff member to buy supplies) | Out | Operations, Admin | No, until spent |
+| Direct expense (gas, transport, rent, payroll, etc.) | Out | Operations, Admin | Yes |
+| Change returned from an advance | In | Logistics, Admin | No |
+| Transfer between accounts (e.g. Cash deposited to İşbank, Naira converted) | Out of one, into another | Admin | No |
+| Debt paid (we owe) or loan given | Out | Operations (up to the limit), Admin | No |
+| Debt collected (owed to us) or loan received | In | Operations, Admin | No |
+| Opening balance (once per account), adjustment | In or out | Admin, reason required | No |
+
+**Rules**
+
+1. Every withdrawal (advance or direct expense) records: source account, amount, purpose in words, category, who took it, and optional receipt photo.
+2. Balance of an account = sum of its ledger entries in that account's currency. A withdrawal larger than the balance is blocked.
+3. Supplies bought are logged by Logistics against an open advance (or paid straight from an account). Each purchase becomes an expense when logged.
+4. An advance is closed when purchases + change returned = amount advanced. Its open balance shows on the dashboard until then. If purchases exceed the advance, the difference shows as owed to that staff member.
+5. Nothing is deleted. Mistakes are reversed by an opposite entry with a reason, visible in the activity log.
+
+Money flow: Customers pay into accounts. Withdrawals leave as a direct expense (counted as expense) or as an advance to staff (not an expense). Advances are spent on supplies (counted as expense when logged) or returned as change into an account.
+
+Only the two highlighted boxes reduce profit; advances and returned change just move money between accounts and staff.
+
+**Currencies and exchange rates**
+
+- Reports are in TRY. Every entry stores its amount in the account's currency plus the TRY value and the rate used.
+- For non-TRY payments, the order taker confirms the rate at payment time; the form pre-fills the last rate used for that currency, and Admin can update default rates daily.
+- Dollar (SFx, RedotPay, Crypto) and Naira balances are shown in their own currency, with a TRY estimate at today's default rate. The starting dollar rate is 47.90 ₺/$, taken from the Weekly P&L tab.
+
+**Go-live: start fresh, carry over balances and debts**
+
+- No past sales or expenses are entered. On go-live day Admin enters one opening balance per account (each account accepts only one; later corrections are adjustments with a reason).
+- Every outstanding debt is entered as an opening debt: who, what for, amount, currency, due date. Opening debts move no money and never count as revenue or expense.
+- Paying or collecting a debt moves money between an account and the outside world, but is not an expense or revenue. That keeps the P&L clean: the cost of supplies bought before go-live belongs to the old books.
+- After go-live, debts arise three ways: supplies bought on credit (the expense counts on the day of purchase; the supplier is owed), money borrowed (e.g. from a partner or staff member; the money lands in an account), or money lent.
+
+## Functional requirements
+
+Eight modules; each requirement has an ID so tickets can reference it.
+
+### 1. Products (menu)
+
+- **P-1** Create a product: name, category (Rice & Soup, Burgers, Shawarma, Extras), price in TRY, photo (optional), active/inactive.
+- **P-2** Variants per product (e.g. Single / Double, Regular / Large), each with its own price.
+- **P-3** Extras with prices (Fish, Turkey, Chicken, Shaki, Ponmo, Salad, Egg, Swallow), each allowed only on the dishes it is set up for, and also sold on its own from the Extras tab at the same price.
+- **P-4** Price history kept on every change (old price, new price, who, when).
+- **P-5** Products are never deleted, only deactivated, so past orders still report correctly.
+- **P-6** Bulk import from CSV for the first menu upload.
+
+### 2. Orders
+
+- **O-1** New order screen built for speed: product grid by category, tap to add, quantity stepper, variants and add-ons in one sheet. Target: a 3-item order in under 15 seconds.
+- **O-2** Order fields: channel (Walk-in, WhatsApp, Instagram, Phone, Delivery app, Event), order type (Pickup, Delivery, Dine-in), customer name and phone (optional), delivery address (if delivery), note.
+- **O-3** Discount per order (amount or %), reason required.
+- **O-4** Payment: one or more payments per order (split), each with account, amount and, for non-TRY accounts, the rate. Order is Paid when payments = total. Pay-later allowed (Unpaid until settled).
+- **O-5** Status flow: New → Preparing → Ready → Picked up (delivery only) → Completed. Cancelled with reason at any point before Completed.
+- **O-6** Orders list: today by default, filter by status, channel, account, date range; search by order number or customer.
+- **O-7** Each order stores item prices at time of sale (snapshot).
+- **O-8** Daily order numbers restart at #001 each day; a permanent ID is kept internally.
+- **O-9** Shareable receipt (WhatsApp text or image) per order.
+
+### 3. Logistics
+
+- **L-1** Ready board: orders with status Ready, oldest first, with type, address, phone and payment status.
+- **L-2** Mark Picked up and Delivered (timestamps recorded).
+- **L-3** My advances: open advances assigned to me, with amount, spent, change returned, remaining.
+- **L-4** Log a purchase: supplier (free text, remembered), items (description, quantity, unit, line amount), category (the costing sheet's split: ingredient and packaging categories, then operational costs such as gas, electricity, transport and cleaning), total, funding (an open advance, an account, or on credit with a due date), receipt photo.
+- **L-5** Return change to an account, closing the advance when fully accounted.
+
+### 4. Money
+
+- **M-1** Accounts screen: balance per account in its currency, TRY estimate, last 20 entries.
+- **M-2** Withdraw: type (Advance or Direct expense), account, amount, purpose (required), category, recipient (for advances), receipt photo (optional). Approval limit as in Roles.
+- **M-3** Transfers between accounts with rate when currencies differ (Admin).
+- **M-4** Opening balances (once per account, at go-live) and adjustments with reason (Admin).
+- **M-5** Default exchange rates per currency, editable by Admin, dated.
+
+### 5. Daily close
+
+- **C-1** End of day: system shows expected Cash (opening + cash payments + change returned − cash withdrawals − cash refunds).
+- **C-2** Staff enters counted cash; difference is saved with a note. Optional check of other account balances against bank apps.
+- **C-3** Unpaid orders and open advances are listed before close can be submitted.
+- **C-4** Closed days are locked; changes after close need Admin and are logged.
+
+### 6. Reports
+
+- **R-1** Dashboard with Today, This week, This month, and custom range.
+- **R-2** Report types defined in the next section; all exportable to CSV and PDF.
+- **R-3** Logistics activity: purchases, advances and deliveries by staff member.
+
+### 7. Users and audit
+
+- **U-1** Admin creates users with name, phone, role and PIN or password. Users can be deactivated.
+- **U-2** Fast login on shared devices: 6-digit PIN after the device is signed in by Admin.
+- **U-3** Activity log: every create, change, cancel, reversal, price change and login, with user and time.
+
+### 8. Debts and go-live setup
+
+- **D-1** Go-live screen (Admin): enter the opening balance for each of the 7 accounts in its own currency, then add each outstanding debt.
+- **D-2** A debt records direction (we owe / owed to us), who, description, amount, currency (₺, $ or ₦) and an optional due date.
+- **D-3** Pay or collect part or all of a debt from any account; when the account's currency differs from the debt's, staff enter how much of the debt the payment clears.
+- **D-4** Loans: recording money borrowed or lent moves the money into or out of the chosen account at the same time.
+- **D-5** Supplies bought on credit (L-4) create a debt to the supplier automatically.
+- **D-6** Debts list: open debts first, overdue ones flagged, totals for "we owe" and "owed to us" in TRY. Admin can cancel a debt with a reason (write-off or correction).
+- **D-7** Customer orders left unpaid stay on the order (balance due) and are listed alongside debts owed to us.
+
+## Reports and formulas
+
+Every report runs for any date range and uses TRY values; the default is the current week (Monday to Sunday), matching the costing sheet, since ingredients are bought weekly. Cancelled orders are excluded everywhere.
+
+| Report | Answers | Contents |
+| --- | --- | --- |
+| Sales summary | How much did we sell? | Order count, gross sales, discounts, net revenue, average order value |
+| Items sold | How many BBQ Burgers sold last week / this year? | Quantity and revenue per menu item, ranked; category totals; compare to previous period |
+| Revenue by account | Where did the money land? | Payments per account, in account currency and TRY |
+| Revenue by channel and hour | Where and when do orders come from? | Orders and revenue by channel, by order type, by hour of day, by weekday |
+| Expenses | What did we spend on? | Spend by category (cost of goods, operational, fixed), by supplier, by staff member |
+| Weekly P&L | Did we make money this week? | Same layout as the costing sheet's Weekly P&L: revenue, cost of goods, gross profit, operational costs, fixed overheads, net profit and margins, using actual numbers |
+| Accounts | What do we hold? | Opening balance, in, out, closing balance per account |
+| Debts | Who do we owe, who owes us? | Open debts by person, due dates, overdue flags, totals each way, unpaid customer orders |
+| Advances | Is all cash out accounted for? | Open advances per staff member, age in days, amount still to account for |
+| Daily closes | Is cash leaking? | Expected vs counted cash per day, differences, notes |
+| Logistics activity | What did logistics do? | Purchases logged, advances, change returned, deliveries and delivery times |
+
+**Formulas**
+
+- Gross sales = sum of order totals before discount (paid and unpaid, not cancelled)
+- Net revenue = gross sales − discounts (voided orders are already excluded)
+- Cost of goods = ingredients + packaging bought in the period (including on credit)
+- Gross profit = net revenue − cost of goods; gross margin = gross profit ÷ net revenue
+- Operational costs = electricity, water, gas, transport (market runs and deliveries), cleaning supplies
+- Fixed overheads = rent, payroll, marketing, phone and internet, equipment maintenance, licences, bank fees, miscellaneous
+- Net profit = gross profit − operational costs − fixed overheads
+- Debt payments, collections, loans, advances and transfers never enter the P&L
+
+**Caveat:** cost of goods is "bought in the period", not "used in the period". A big stock-up in one week makes that week look worse. Ingredient-level stock tracking (phase 4) fixes this; until then, read monthly figures rather than daily ones for profit.
+
+**Scheduled reports:** a daily summary sent to Admin each night at 23:00 and a weekly summary each Monday at 08:00 (WhatsApp or email).
+
+## Menu and the costing sheet
+
+The app launches with the printed SFx Burger menu: 10 dishes in 3 categories, plus 8 extras that can be added to rice and soup plates. Where the costing sheet has a matching recipe, its full cost per plate is shown for comparison.
+
+| Item | Category | Menu price (₺) | Sheet cost per plate or unit (₺) | Margin after full cost |
+| --- | --- | --- | --- | --- |
+| Native Rice + Chicken | Rice & Soup | 450 | 163.5 (Village Rice) | 63.7% |
+| Jollof Rice + Chicken | Rice & Soup | 420 | 148.2 | 64.7% |
+| Vegetable Soup | Rice & Soup | 350 | 159.5 | 54.4% |
+| Classic Burger | Burgers | 400 | 197.3 | 50.7% |
+| BBQ Burger | Burgers | 400 | 198.8 | 50.3% |
+| Zinger Burger | Burgers | 400 | 182.3 | 54.4% |
+| Chips | Burgers | 50 | not costed | — |
+| Classic Shawarma | Shawarma | 370 | 179.0 | 51.6% |
+| Suya Shawarma | Shawarma | 400 | 195.5 | 51.1% |
+| Congolese Shawarma | Shawarma | 400 | not costed | — |
+
+| Extra | Price (₺) |
+| --- | --- |
+| Turkey | 300 |
+| Fish | 180 |
+| Chicken | 150 |
+| Shaki | 70 |
+| Ponmo | 70 |
+| Salad | 70 |
+| Egg | 50 |
+| Swallow | 50 |
+
+Sheet cost is the full batch cost (ingredients, packaging, overhead) divided by plates or units per batch; margin = (menu price − sheet cost) ÷ menu price. Extras can be added to rice and soup dishes (priced into the plate) or sold on their own from an Extras tab; both share one price, and the extras report counts them together and separately ("how many Swallow did we sell?"). Fried Rice and Egusi Soup are in the sheet but not on the menu, so they are not loaded; Admin can add them any time.
+
+**How the app uses the sheet**
+
+- Expense categories follow the sheet's split: cost of goods (ingredients + packaging), operational costs, fixed weekly overheads. The weekly P&L report uses the same layout, with actual figures in place of planned ones.
+- Rent ($550) and payroll ($700) per month are billed in dollars. They are recorded as fixed overheads when paid, at that day's rate, so the lira risk shown in the sheet's section 6 appears in the real P&L.
+- The recipes (ingredient lists per batch) are the starting point for ingredient-level stock tracking in phase 4.
+
+**Things in the sheet to check**
+
+- **The rice plates may be under-costed.** The sheet budgets ₺60 of chicken per batch of 5 Jollof plates (₺12 a plate), yet the menu sells extra chicken at ₺150 and the photos show a full piece on every plate. If each plate gets a piece, the real cost is well above ₺148 and the 64.7% margin is overstated. The same applies to Native Rice + Chicken.
+- **Classic Shawarma is under-costed.** Shawarma bread, oil, sweet pepper, garlic powder, condensed milk and lemon sauce have no cost entered.
+- **Chips at ₺50 and Congolese Shawarma have no costing.** Fast-food packaging alone is about ₺30 a unit in the sheet (₺120 per batch of 4); if chips use similar packaging, little is left.
+- **Native Rice + Chicken uses the Village Rice costing (confirmed).** Its chicken cost has the same gap as Jollof's.
+- **Sheet prices are out of date.** Jollof (₺300 → ₺420), Zinger (₺370 → ₺400) and Classic Shawarma (₺360 → ₺370) differ from the menu. The app uses the menu.
+- **The per-batch overhead is about 4× actual spend** (₺1,600 a week actual vs ₺6,600 built in), and **weekly volumes are placeholders.** The app's weekly P&L will replace both with real figures.
+
+## Non-functional requirements
+
+The app must be fast on a phone, impossible to quietly falsify, and cheap to run.
+
+| Area | Requirement |
+| --- | --- |
+| Devices | Mobile-first web app, installable on the home screen (PWA); works on phones, tablets and laptops |
+| Speed | Screens load in under 2 seconds on 4G; order save in under 1 second |
+| Connectivity | If the connection drops mid-order, the order is kept on the device and synced when back online (phase 2; version 1 shows a clear offline warning) |
+| Integrity | No hard deletes; money and order records are append-only with reversals; database-level permission rules, not just hidden buttons |
+| Security | Passwords and PINs hashed; sessions expire after 12 hours; Admin-only actions checked on the server |
+| Backups | Automatic daily database backup, plus a weekly export Admin can download |
+| Time zone | All dates in Europe/Nicosia (Famagusta local time); a business day runs 06:00 to 05:59 so late-night orders count for the right day |
+| Language and currency | English UI; amounts in ₺ with 2 decimals; Naira and crypto shown in their own symbols |
+| Brand | SFx Burger red #D7263D and amber #F4A300 on a clean light UI |
+| Cost | Under US$30 per month to run at launch |
+
+## Recommended stack
+
+Use React (Vite) for the app and Supabase for everything server-side; no custom backend is needed, and it runs for about US$25 a month.
+
+| Layer | Choice | Why |
+| --- | --- | --- |
+| Frontend | React + TypeScript + Vite | Your existing React skills; fast builds; a plain single-page app is all an internal tool needs |
+| UI | Tailwind CSS + shadcn/ui | Ready-made, accessible components (sheets, dialogs, tables); brand colours set once |
+| Data fetching | TanStack Query + supabase-js | Caching and retries for spotty mobile connections |
+| Forms | React Hook Form + Zod | Validation shared across order, withdrawal and purchase forms |
+| Charts | Recharts | Simple charts for the reports dashboard |
+| Installable app | vite-plugin-pwa | Home-screen install on staff phones, offline shell |
+| Database | Supabase Postgres | Relational data and SQL views make the reports straightforward; matches your Postgres background |
+| Auth and roles | Supabase Auth + row-level security | Roles enforced in the database, not only in the UI |
+| Receipt photos | Supabase Storage | Private bucket, linked to purchases and withdrawals |
+| Server logic | Postgres functions (RPC) | Placing an order, withdrawing and closing the day run as single transactions |
+| Scheduled reports | pg\_cron + one Supabase Edge Function | Nightly and weekly summaries to WhatsApp or email |
+| Hosting | Cloudflare Pages | Free tier allows business use |
+
+**Why not your usual NestJS + TypeORM + AWS stack?** It would work, but you would spend the first weeks building auth, file upload, permissions and deployment that Supabase gives you on day one. For about 5 users and a few hundred orders a day, that time is better spent on the order screen.
+
+**Plans and cost (checked 12 Oct 2026)**
+
+- Supabase Free works for building and testing. Free projects pause after 7 days of inactivity and have no daily backups, so move to Supabase Pro (US$25/month) at go-live ([Supabase pricing](https://supabase.com/pricing)).
+- Avoid Vercel's free Hobby plan: its terms allow personal, non-commercial use only, and Pro is US$20 per user per month ([Vercel plan comparison](https://docs.it.apps.vogels.com/docs/vercel/reference/pricing)). Cloudflare Pages' free tier has no such restriction.
+
+**Setup in five steps**
+
+1. Create a Supabase project (region: Frankfurt, closest to Cyprus) and run `schema.sql` in the SQL editor.
+2. Create the private storage bucket `receipts`; create the Admin user and set their role to admin.
+3. `npm create vite@latest sfx-oms -- --template react-ts`, then add Tailwind, shadcn/ui, supabase-js and TanStack Query.
+4. Put the Supabase URL and anon key in `.env`; generate types with `supabase gen types typescript`.
+5. Connect the GitHub repo to Cloudflare Pages; every push to `main` deploys.
+
+## Delivery plan, risks and open questions
+
+An AI coding agent builds it milestone by milestone from the build kit (CLAUDE.md and docs/BUILD\_PLAN.md in the project folder), while you review and test each step: plan on 2–3 weeks part-time to version 1, then the 2-week parallel run.
+
+| Phase | Build-kit milestones | Scope | Done when |
+| --- | --- | --- | --- |
+| 0. Setup | M0–M1 | Repo, Supabase project, schema, logins and roles, app shell, brand theme | Three test users log in and each sees only their own menu |
+| 1. Core (version 1) | M2–M9 | Menu and extras, orders and payments, orders board and deliveries, money and approvals, logistics purchases, debts and go-live, daily close, reports | One full day of real orders runs through the app |
+| 2. Parallel run | M10 | App and paper books side by side for 2 weeks; fix gaps; train staff | Two weeks where app totals match the books |
+| 3. Polish | M11 | Installable app, offline warning, CSV/PDF export, nightly and weekly summaries, deploy | Paper books retired |
+| 4. Later | — | Ingredient stock and recipe costing, kitchen display, table service, second location | When the restaurant opens |
+
+**Working with an AI builder.** The business rules (money, roles, no deletions) already live in the database and are covered by 42 automated checks, so a mistake in AI-written screens cannot corrupt balances. What still needs a human: reviewing each milestone on a real phone with Increase and Musa, and refusing any change that loosens database permissions or edits schema.sql without the checks passing.
+
+**Risks**
+
+| Risk | Effect | Mitigation |
+| --- | --- | --- |
+| Orders not entered during rush hours | Every report understates sales | Fast order screen; daily close flags cash differences; Admin reviews close daily for the first month |
+| Exchange rates guessed or wrong | Naira and dollar revenue misstated | Pre-filled daily default rates set by Admin; rate stored on each payment |
+| Advances never accounted for | Spending is invisible again | Open advances shown on the dashboard with age; block new advances to a staff member with one older than 3 days |
+| Operations sets prices and withdraws money | Room for error or misuse | Price history, activity log, approval limit, Admin review of the weekly report |
+| Supabase Free project pauses | App unavailable | Upgrade to Pro before go-live |
+
+**Open questions**
+
+- [x] SFx, RedotPay and Crypto all hold US dollars.
+- [x] Approval limit is on at launch: ₺2,000 (change in settings).
+- [x] Start fresh at go-live, with opening balances for all 7 accounts and every outstanding debt entered.
+- [x] Menu and prices come from the printed menu; cost categories from the costing sheet.
+- [x] Naira is kept in a Nigerian account that is received into and spent from.
+- [x] Debts carry no interest or instalment schedules.
+- [x] Native Rice + Chicken is the sheet's Village Rice.
+- [x] Extras are sold on their own as well as added to a dish.
+- [x] Built with an AI coding agent, following the build kit in the project folder.

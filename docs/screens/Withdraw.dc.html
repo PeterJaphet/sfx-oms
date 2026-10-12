@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Take money out</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&amp;family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FBF7F4}
+a{color:#B01E31}a:hover{color:#8C1727}
+button{font:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FBF7F4; font-family: Archivo, system-ui, sans-serif; color: #1C1615; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="padding: 20px 16px 14px; background: #FFFFFF; border-bottom: 1px solid #EDE6E1; display: flex; flex-direction: column; gap: 12px">
+    <h1 style="margin: 0; font-family: 'Bricolage Grotesque', Archivo, sans-serif; font-size: 26px; font-weight: 800">Take money out</h1>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; background: #F3EDE9; padding: 4px; border-radius: 12px" role="radiogroup" aria-label="Type">
+      <button type="button" role="radio" aria-checked="true" style="height: 44px; border: 0; border-radius: 9px; background: #FFFFFF; font-weight: 700; font-size: 15px; color: #1C1615">Advance for supplies</button>
+      <button type="button" role="radio" aria-checked="false" style="height: 44px; border: 0; border-radius: 9px; background: transparent; font-weight: 600; font-size: 15px; color: #6B605C">Direct expense</button>
+    </div>
+  </header>
+
+  <div style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px">
+
+    <fieldset style="border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px">
+      <legend style="font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6B605C; padding: 0; margin-bottom: 8px">From account</legend>
+      <sc-for list="{{accounts}}" as="a" hint-placeholder-count="4">
+        <button type="button" role="radio" aria-checked="{{a.on}}" style="{{a.style}}">
+          <span style="font-weight: 700">{{a.name}}</span>
+          <span style="font-weight: 600; color: {{a.balColor}}">{{a.balance}}</span>
+        </button>
+      </sc-for>
+    </fieldset>
+
+    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600">Amount (₺)
+      <input value="1,000" inputmode="decimal" style="height: 56px; border: 1px solid #E2D8D2; border-radius: 12px; padding: 0 14px; font: inherit; font-size: 24px; font-weight: 700; color: #1C1615; background: #FFFFFF"></label>
+
+    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600">What is it for?
+      <textarea rows="2" style="border: 1px solid #E2D8D2; border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 15px; color: #1C1615; background: #FFFFFF; resize: none">Buy chicken and burger bread for the weekend</textarea></label>
+
+    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600">Given to
+      <select style="height: 48px; border: 1px solid #E2D8D2; border-radius: 12px; padding: 0 12px; font: inherit; font-size: 15px; color: #1C1615; background: #FFFFFF">
+        <option>Musa (Logistics)</option><option>Hilary (Head Chef)</option>
+      </select></label>
+
+    <div style="display: flex; gap: 10px; align-items: flex-start; background: #FFF1D1; border-radius: 12px; padding: 12px 14px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7A4B00" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.5"></path></svg>
+      <p style="margin: 0; font-size: 14px; line-height: 1.45; color: #5C3A00">Cash balance after this: <strong>₺1,350</strong>. Musa logs what he buys and returns the change; it counts as an expense only when he does.</p>
+    </div>
+
+    <button type="button" style="height: 52px; border-radius: 12px; border: 1px dashed #C9BCB4; background: #FFFFFF; color: #1C1615; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"></rect><circle cx="12" cy="13" r="3.5"></circle><path d="M8 6l1.5-2h5L16 6"></path></svg>
+      Add photo (optional)</button>
+  </div>
+
+  <div style="padding: 12px 16px 16px; background: #FFFFFF; border-top: 1px solid #EDE6E1">
+    <button type="button" style="width: 100%; height: 52px; border-radius: 12px; border: 0; background: #D7263D; color: #FFFFFF; font-weight: 700; font-size: 16px">Take out ₺1,000</button>
+  </div>
+
+  <nav style="height: 64px; background: #FFFFFF; border-top: 1px solid #EDE6E1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))" aria-label="Main">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 500; color: #6B605C; text-decoration: none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>New order</a>
+    <a href="Orders.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 500; color: #6B605C; text-decoration: none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="M8 9h8M8 13h8M8 17h5"></path></svg>Orders</a>
+    <a href="Withdraw.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 700; color: #D7263D; text-decoration: none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"></rect><path d="M3 10h18M16 15h2"></path></svg>Money</a>
+    <a href="DailyClose.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 500; color: #6B605C; text-decoration: none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path></svg>Close day</a>
+    <a href="Dashboard.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 500; color: #6B605C; text-decoration: none">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 19V11M12 19V5M19 19v-6"></path></svg>Reports</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var list = [['Cash', '₺2,350'], ['İşbank', '₺9,460'], ['Koop', '₺0'], ['SFx', '$85.00'], ['RedotPay', '$42.00'], ['Crypto', '$30.00']];
+    return {
+      accounts: list.map(function (a) {
+        var on = a[0] === 'Cash';
+        return {
+          name: a[0], balance: a[1], on: on ? 'true' : 'false',
+          balColor: a[1] === '₺0' ? '#6B605C' : '#1C1615',
+          style: 'height: 52px; border-radius: 12px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; font-size: 15px; color: #1C1615; background: #FFFFFF; border: ' +
+            (on ? '2px solid #D7263D' : '1px solid #E2D8D2')
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>
