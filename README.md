@@ -748,3 +748,33 @@ actions; Logistics keeps its own purchase screens and cannot open business-wide 
 
 WhatsApp and scheduled delivery are deferred until after the project at the user's request.
 No M9 commit/push until the user approves the completed milestone.
+
+
+## M11 — installable app, offline protection and deployment
+
+The app has an SFx Burger manifest, phone/Apple/maskable icons, installation help and a production
+service worker. It caches static app files only; Supabase Auth/data and private receipt/menu images
+remain network-only. Known offline and failed-network states show a warning above every screen.
+Server-save/upload actions preflight connection and disable their buttons offline. Local draft
+editing remains available where reference data is loaded. Query mutations do not queue for later
+delivery. Reconnecting refreshes reads and requires a manual save/retry.
+
+Interrupted requests retain their existing recovery IDs. Updates require an explicit tap,
+connection, no active save, no pending confirmation and no other open app tabs. The update callback
+also rechecks before reloading. A separate tab's update cannot automatically reload current work.
+Staff finish/cancel open forms before updating; persisted order drafts survive reload. Supporting
+layouts are in `docs/PWA_DESIGN.md`.
+
+Use Node 22 (minimum supported: 20.19) to build; `.node-version` selects 22 for hosting. PWA behavior
+is verified using `npm run build` and production preview, rather than the HTTP LAN dev server.
+Cloudflare `_headers` keeps shell/service-worker metadata fresh and immutable hashed assets cached.
+
+The provided workers.dev URL is an existing Workers deployment. The user chose a new Pages project
+as originally planned, with Git integration from `main`. Configuration, authorized pre-commit
+preview instructions, backup steps and phone acceptance are in `docs/DEPLOYMENT.md`. No M11 SQL,
+Edge Function, scheduled delivery, database reset or subscription purchase is performed by this code.
+Weekly P&L PDF is already implemented in M9. WhatsApp and scheduled delivery remain deferred.
+
+The user must check real phone installation/offline behavior, Supabase Pro/backups and go-live
+opening records. M10's two-week comparisons remain deferred; preparing M11 does not assert they
+matched. No M11 commit or push until the user approves the reviewed milestone.

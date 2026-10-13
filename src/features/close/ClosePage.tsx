@@ -1,3 +1,4 @@
+import { isOnline, offlineMessage } from '@/lib/connectivity'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -88,6 +89,7 @@ export default function ClosePage() {
   const locked = busy || !!pending
   const validCount = countedSchema.safeParse(counted)
   async function execute(attempt: CloseAttempt) {
+    if (!isOnline()) { setError(offlineMessage); toast.error(offlineMessage); return }
     if (lock.current) return
     lock.current = true
     setBusy(true)
@@ -183,7 +185,7 @@ export default function ClosePage() {
             counting again.
           </p>
           {error ? <p className="break-words text-sm">{error}</p> : null}
-          <Button
+          <Button requiresOnline
             disabled={busy}
             variant="secondary"
             onClick={() => {
@@ -350,7 +352,7 @@ export default function ClosePage() {
                     {error}
                   </p>
                 ) : null}
-                <Button
+                <Button requiresOnline
                   className="w-full"
                   type="submit"
                   disabled={

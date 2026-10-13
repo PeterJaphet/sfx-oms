@@ -182,7 +182,7 @@ export default function SettlementForm({
           Close details and retry the pending debt confirmation.
         </p>
       ) : null}
-      <Button
+      <Button requiresOnline
         type="submit"
         className="w-full"
         disabled={

@@ -1,3 +1,4 @@
+import { assertOnline } from '@/lib/connectivity'
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { Session } from '@supabase/supabase-js'
@@ -88,6 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [expiresAt, session, signOut])
 
   async function signIn(phone: string, pin: string) {
+  assertOnline()
     if (!supabase) throw new Error('Sign-in is not configured yet')
     setSigningIn(true)
     try {

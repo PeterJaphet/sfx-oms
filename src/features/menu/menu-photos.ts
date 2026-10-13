@@ -1,3 +1,4 @@
+import { assertOnline } from '@/lib/connectivity'
 import { useQuery } from '@tanstack/react-query'
 import { client } from './menu-api'
 
@@ -16,6 +17,7 @@ export function photoId() {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
 }
 export async function uploadPhoto(file: File, userId: string) {
+  assertOnline()
   validatePhoto(file)
   const url = URL.createObjectURL(file)
   try {

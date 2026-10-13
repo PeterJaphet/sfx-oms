@@ -151,7 +151,7 @@ export default function OpeningForm({
           Close this form and retry the pending opening confirmation.
         </p>
       ) : null}
-      <Button
+      <Button requiresOnline
         type="submit"
         className="w-full"
         disabled={

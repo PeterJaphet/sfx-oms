@@ -1,6 +1,7 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { ConnectionNotice } from '@/components/ConnectionNotice'
 
 export function Sheet({ open, onOpenChange, title, description, children }: {
   open: boolean; onOpenChange: (open: boolean) => void; title: string; description: string; children: ReactNode
@@ -14,6 +15,7 @@ export function Sheet({ open, onOpenChange, title, description, children }: {
             <Dialog.Description className="mt-1 text-sm text-muted">{description}</Dialog.Description></div>
           <Dialog.Close aria-label="Close" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-line-strong bg-card"><X className="h-5 w-5" /></Dialog.Close>
         </div>
+        <ConnectionNotice compact />
         {children}
       </Dialog.Content>
     </Dialog.Portal>

@@ -41,7 +41,7 @@ export function LoginPage() {
           <div><label htmlFor="pin" className="mb-1.5 block text-sm font-semibold">PIN</label>
             <Input id="pin" type="password" inputMode="numeric" autoComplete="current-password" maxLength={6} aria-invalid={!!form.formState.errors.pin} aria-describedby="pin-error" {...form.register('pin')} />
             <FieldError id="pin-error" message={form.formState.errors.pin?.message} /></div>
-          <Button type="submit" disabled={!supabase || form.formState.isSubmitting || auth.loading}>{form.formState.isSubmitting ? 'Signing in…' : 'Sign in'}</Button>
+          <Button requiresOnline type="submit" disabled={!supabase || form.formState.isSubmitting || auth.loading}>{form.formState.isSubmitting ? 'Signing in…' : 'Sign in'}</Button>
         </form>
       </CardContent>
     </Card>

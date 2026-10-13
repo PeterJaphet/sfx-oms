@@ -1,3 +1,4 @@
+import { assertOnline } from '@/lib/connectivity'
 import { z } from 'zod'
 import { useQuery, type QueryClient } from '@tanstack/react-query'
 import type { Json } from '@/lib/db.types'
@@ -83,6 +84,7 @@ export async function quoteWithdrawal(p: Json) {
   return withdrawalQuoteSchema.parse(result.data)
 }
 export async function runMoney(attempt: MoneyAttempt) {
+  assertOnline()
   let result
   try {
     result = await client().rpc('run_money_action', {
@@ -99,7 +101,7 @@ export async function runMoney(attempt: MoneyAttempt) {
   if (result.error)
     throw new SaveError(
       result.error.message,
-      !result.error.code ||
+      !result.error.code || result.error.code === 'SFX_OFFLINE' ||
         result.error.code === '42501' ||
         result.error.code.startsWith('PGRST') ||
         result.error.code.startsWith('08'),

@@ -1,3 +1,4 @@
+import { assertOnline } from '@/lib/connectivity'
 import { useRef, useState } from 'react'
 import { Outlet, Link } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
@@ -37,6 +38,7 @@ export default function LogisticsLayout() {
   const [error, setError] = useState<string>()
   const [last, setLast] = useState<LogisticsResult | null>(null)
   async function execute(attempt: LogisticsAttempt) {
+  assertOnline()
     if (lock.current) throw new Error('A Logistics request is already saving')
     lock.current = true
     setBusy(true)
@@ -105,7 +107,7 @@ export default function LogisticsLayout() {
             request safely; new purchases and change returns are paused.
           </p>
           {error ? <p className="break-words text-sm">{error}</p> : null}
-          <Button
+          <Button requiresOnline
             variant="secondary"
             disabled={busy}
             onClick={() => {

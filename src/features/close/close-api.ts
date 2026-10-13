@@ -1,3 +1,4 @@
+import { assertOnline } from '@/lib/connectivity'
 import { z } from 'zod'
 import type { QueryClient } from '@tanstack/react-query'
 import { client } from '@/features/menu/menu-api'
@@ -27,6 +28,7 @@ export async function loadCloseHistory(offset: number) {
   return z.array(historyCloseSchema).parse(r.data)
 }
 export async function runClose(attempt: CloseAttempt) {
+  assertOnline()
   const r = await client().rpc('run_close', {
     p: attempt.payload,
     p_request_id: attempt.request_id,
@@ -34,7 +36,7 @@ export async function runClose(attempt: CloseAttempt) {
   if (r.error)
     throw new SaveError(
       r.error.message,
-      !r.error.code ||
+      !r.error.code || r.error.code === 'SFX_OFFLINE' ||
         r.error.code.startsWith('PGRST') ||
         r.error.code.startsWith('08') ||
         r.error.code === '42501',

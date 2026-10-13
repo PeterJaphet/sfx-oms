@@ -37,7 +37,7 @@ export function AddStaffForm({ onSaved }: { onSaved: () => void }) {
     <div><label htmlFor="staff-phone" className="mb-1.5 block text-sm font-semibold">Phone number</label><Input id="staff-phone" type="tel" autoComplete="tel" placeholder="Include country code" aria-invalid={!!form.formState.errors.phone} aria-describedby="staff-phone-error" {...form.register('phone')} /><FieldError id="staff-phone-error" message={form.formState.errors.phone?.message} /></div>
     <RoleSelect id="staff-role" value={form.watch('role')} onChange={role => form.setValue('role', role, { shouldValidate: true })} />
     <div><label htmlFor="staff-pin" className="mb-1.5 block text-sm font-semibold">Six-digit PIN</label><Input id="staff-pin" type="password" inputMode="numeric" autoComplete="new-password" maxLength={6} aria-invalid={!!form.formState.errors.pin} aria-describedby="staff-pin-error" {...form.register('pin')} /><FieldError id="staff-pin-error" message={form.formState.errors.pin?.message} /></div>
-    <Button type="submit" disabled={mutation.isPending}>{mutation.isPending ? 'Adding…' : 'Add staff member'}</Button>
+    <Button requiresOnline type="submit" disabled={mutation.isPending}>{mutation.isPending ? 'Adding…' : 'Add staff member'}</Button>
   </form>
 }
 
@@ -48,14 +48,14 @@ export function EditStaffForm({ staff, onSaved }: { staff: Staff; onSaved: () =>
   const mutation = useStaffMutation(onSaved)
   return <div className="flex flex-col gap-6">
     <form className="flex flex-col gap-3" onSubmit={event => { event.preventDefault(); mutation.mutate({ action: 'role', id: staff.id, role }) }}>
-      <RoleSelect id="edit-role" value={role} onChange={setRole} /><Button type="submit" disabled={mutation.isPending || role === staff.role}>Save role</Button>
+      <RoleSelect id="edit-role" value={role} onChange={setRole} /><Button requiresOnline type="submit" disabled={mutation.isPending || role === staff.role}>Save role</Button>
     </form>
     <form className="flex flex-col gap-3 border-t pt-5" onSubmit={pinForm.handleSubmit(({ pin }) => mutation.mutate({ action: 'pin', id: staff.id, pin }))} noValidate>
       <div><label htmlFor="new-pin" className="mb-1.5 block text-sm font-semibold">New six-digit PIN</label><Input id="new-pin" type="password" inputMode="numeric" autoComplete="new-password" maxLength={6} aria-invalid={!!pinForm.formState.errors.pin} aria-describedby="new-pin-error" {...pinForm.register('pin')} /><FieldError id="new-pin-error" message={pinForm.formState.errors.pin?.message} /></div>
-      <Button type="submit" variant="secondary" disabled={mutation.isPending}>Reset PIN</Button>
+      <Button requiresOnline type="submit" variant="secondary" disabled={mutation.isPending}>Reset PIN</Button>
     </form>
     {staff.is_active ? <div className="border-t pt-5">
-      {confirmDeactivate ? <div className="flex flex-col gap-3 rounded-lg bg-brand-soft p-3"><p className="text-sm text-brand-deep">{staff.full_name} will lose access immediately.</p><Button disabled={mutation.isPending} onClick={() => mutation.mutate({ action: 'deactivate', id: staff.id })}>Deactivate</Button><Button variant="secondary" disabled={mutation.isPending} onClick={() => setConfirmDeactivate(false)}>Keep active</Button></div> : <Button variant="secondary" className="w-full text-brand-strong" onClick={() => setConfirmDeactivate(true)}>Deactivate staff member</Button>}
+      {confirmDeactivate ? <div className="flex flex-col gap-3 rounded-lg bg-brand-soft p-3"><p className="text-sm text-brand-deep">{staff.full_name} will lose access immediately.</p><Button requiresOnline disabled={mutation.isPending} onClick={() => mutation.mutate({ action: 'deactivate', id: staff.id })}>Deactivate</Button><Button variant="secondary" disabled={mutation.isPending} onClick={() => setConfirmDeactivate(false)}>Keep active</Button></div> : <Button variant="secondary" className="w-full text-brand-strong" onClick={() => setConfirmDeactivate(true)}>Deactivate staff member</Button>}
     </div> : <p className="rounded-lg bg-amber-soft p-3 text-sm text-amber-ink">This staff member is inactive.</p>}
   </div>
 }

@@ -1,3 +1,4 @@
+import { assertOnline } from '@/lib/connectivity'
 import { FunctionsHttpError } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import type { Database } from '@/lib/db.types'
@@ -10,6 +11,7 @@ export type StaffAction =
   | { action: 'deactivate'; id: string }
 
 export async function saveStaff(values: StaffAction) {
+  assertOnline()
   if (!supabase) throw new Error('Sign-in is not configured yet')
   const functionName = 'action' in values ? 'admin-manage-user' : 'admin-create-user'
   const { data, error } = await supabase.functions.invoke(functionName, { body: values })

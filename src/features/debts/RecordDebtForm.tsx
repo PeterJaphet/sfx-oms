@@ -269,7 +269,7 @@ export default function RecordDebtForm({
           Close this form and retry the pending debt confirmation.
         </p>
       ) : null}
-      <Button
+      <Button requiresOnline
         type="submit"
         className="w-full"
         disabled={

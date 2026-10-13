@@ -138,7 +138,7 @@ export default function DeliveriesPage() {
                     </span>
                   )}
                   {action ? (
-                    <Button
+                    <Button requiresOnline
                       className={cn(
                         'min-w-0 flex-1',
                         o.status === 'ready' ? 'bg-ink hover:bg-ink-2' : '',

@@ -155,7 +155,7 @@ export function TransferForm({ onSaved }: { onSaved: () => void }) {
         </p>
       ) : null}
       <FormNotice error={error} />
-      <Button
+      <Button requiresOnline
         className="w-full"
         type="submit"
         disabled={money.busy || !!money.pending}
@@ -276,7 +276,7 @@ export function AdjustmentForm({ onSaved }: { onSaved: () => void }) {
         </div>
       </fieldset>
       <FormNotice error={error} />
-      <Button
+      <Button requiresOnline
         className="w-full"
         type="submit"
         disabled={money.busy || !!money.pending}
@@ -336,7 +336,7 @@ export function ReversalForm({
         />
       </div>
       <FormNotice error={error} />
-      <Button
+      <Button requiresOnline
         className="w-full"
         type="submit"
         disabled={money.busy || !!money.pending}
@@ -428,7 +428,7 @@ export function RateForm({ onSaved }: { onSaved: () => void }) {
         </div>
       </fieldset>
       <FormNotice error={error} />
-      <Button
+      <Button requiresOnline
         className="w-full"
         type="submit"
         disabled={money.busy || !!money.pending}
@@ -511,7 +511,7 @@ export function LimitForm({ onSaved }: { onSaved: () => void }) {
         )}
       </fieldset>
       <FormNotice error={error} />
-      <Button
+      <Button requiresOnline
         className="w-full"
         type="submit"
         disabled={money.busy || !!money.pending}

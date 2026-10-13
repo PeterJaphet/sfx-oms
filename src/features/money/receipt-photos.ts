@@ -1,3 +1,4 @@
+import { assertOnline } from '@/lib/connectivity'
 import { useQuery } from '@tanstack/react-query'
 import { client } from '@/features/menu/menu-api'
 import { photoId, validatePhoto } from '@/features/menu/menu-photos'
@@ -7,6 +8,7 @@ export async function uploadReceipt(
   userId: string,
   businessDate: string,
 ) {
+  assertOnline()
   validatePhoto(file)
   const url = URL.createObjectURL(file)
   try {

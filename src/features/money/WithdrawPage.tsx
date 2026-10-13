@@ -421,7 +421,7 @@ export default function WithdrawPage() {
             {error}
           </p>
         ) : null}
-        <Button
+        <Button requiresOnline
           className="w-full"
           type="submit"
           disabled={locked || !quote.data || quote.isFetching || !!quote.error}

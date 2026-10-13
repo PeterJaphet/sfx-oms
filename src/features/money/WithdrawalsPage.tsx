@@ -222,7 +222,7 @@ export default function WithdrawalsPage({
                 ) : null}
                 <div className="grid grid-cols-2 gap-3">
                   {[false, true].map((approve) => (
-                    <Button
+                    <Button requiresOnline
                       key={String(approve)}
                       variant={approve ? 'default' : 'secondary'}
                       disabled={money.busy || !!money.pending}

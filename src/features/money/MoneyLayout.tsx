@@ -1,3 +1,4 @@
+import { assertOnline } from '@/lib/connectivity'
 import { useRef, useState, type ReactNode } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
@@ -41,6 +42,7 @@ function MoneyProvider({ children }: { children: ReactNode }) {
     null,
   )
   async function execute(attempt: MoneyAttempt) {
+  assertOnline()
     if (lock.current) throw new Error('Money request is already being saved')
     lock.current = true
     setBusy(true)
@@ -114,7 +116,7 @@ function MoneyProvider({ children }: { children: ReactNode }) {
             safely; other money writes are paused.
           </p>
           {error ? <p className="break-words text-sm">{error}</p> : null}
-          <Button
+          <Button requiresOnline
             variant="secondary"
             disabled={busy}
             onClick={() => {

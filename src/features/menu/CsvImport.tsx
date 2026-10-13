@@ -30,6 +30,6 @@ export function CsvImport({ onSaved }: { onSaved: () => void }) {
     {error || save.error ? <p role="alert" className="break-words text-sm text-brand-strong">{error ?? save.error?.message}</p> : null}
     {rows.length ? <><div className="rounded-xl bg-amber-soft p-3 text-sm text-amber-ink">Exact category + product + variant matches update the price. Existing inactive items stay inactive. All rows save together.</div><h3 className="font-bold">Preview · {rows.length} rows</h3><ol className="space-y-2">{rows.map((row, index) => <li key={index} className="rounded-xl border bg-card p-3">
       <p className="text-xs text-muted">{row.category}</p><p className="break-words font-semibold">{row.product} · {row.variant}</p><p className="mt-1 text-sm">{row.oldPrice !== undefined ? `${formatMoney(row.oldPrice, 'TRY')} → ` : ''}{formatMoney(Number(row.price), 'TRY')}</p><p className="mt-1 text-sm font-semibold text-brand-strong">{row.action}{row.inactive ? ' · stays inactive' : ''}</p>
-    </li>)}</ol><Button className="w-full" disabled={save.isPending} onClick={() => save.mutate()}>{save.isPending ? 'Importing…' : `Import ${rows.length} rows`}</Button></> : null}
+    </li>)}</ol><Button requiresOnline className="w-full" disabled={save.isPending} onClick={() => save.mutate()}>{save.isPending ? 'Importing…' : `Import ${rows.length} rows`}</Button></> : null}
   </div>
 }

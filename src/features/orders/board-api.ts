@@ -1,3 +1,4 @@
+import { assertOnline } from '@/lib/connectivity'
 import { z } from 'zod'
 import { useQuery, type QueryClient } from '@tanstack/react-query'
 import { client } from '@/features/menu/menu-api'
@@ -28,6 +29,9 @@ export async function loadBoard(from:string,to:string,account:number|null){
 }
 export async function loadDailySales(day:string){const result=await client().from('v_sales_daily').select('orders,net_sales').eq('business_date',day).maybeSingle();if(result.error)throw new Error(result.error.message);return result.data}
 export async function loadDeliveries(){const result=await client().rpc('list_delivery_orders');if(result.error)throw new Error(result.error.message);return z.array(boardOrderSchema).parse(result.data)}
-export async function changeStatus(id:string,status:'new'|'preparing'|'ready'|'picked_up'|'completed'|'cancelled'){const result=await client().rpc('set_order_status',{p_order:id,p_status:status});if(result.error)throw new Error(result.error.message);if(!result.data?.id)throw new Error('Status confirmation was not received; refresh the order')}
-export async function cancelOrder(id:string,reason:string){const result=await client().rpc('cancel_order',{p_order:id,p_reason:reason});if(result.error)throw new Error(result.error.message);if(!result.data?.id)throw new Error('Cancellation confirmation was not received; refresh the order')}
-export async function addSavedPayment(id:string,payment:DraftPayment){const result=await client().rpc('add_order_payment',{p_order:id,p_account:payment.account_id,p_amount_try:Number(payment.amount_try),p_amount:Number(payment.amount??payment.amount_try),p_request_id:payment.id});if(result.error)throw new SaveError(result.error.message,!result.error.code||result.error.code==='42501'||result.error.code.startsWith('PGRST')||result.error.code.startsWith('08'));if(!result.data)throw new SaveError('Payment confirmation was not received; retry the same payment',true);return result.data}
+export async function changeStatus(id:string,status:'new'|'preparing'|'ready'|'picked_up'|'completed'|'cancelled'){
+  assertOnline();const result=await client().rpc('set_order_status',{p_order:id,p_status:status});if(result.error)throw new Error(result.error.message);if(!result.data?.id)throw new Error('Status confirmation was not received; refresh the order')}
+export async function cancelOrder(id:string,reason:string){
+  assertOnline();const result=await client().rpc('cancel_order',{p_order:id,p_reason:reason});if(result.error)throw new Error(result.error.message);if(!result.data?.id)throw new Error('Cancellation confirmation was not received; refresh the order')}
+export async function addSavedPayment(id:string,payment:DraftPayment){
+  assertOnline();const result=await client().rpc('add_order_payment',{p_order:id,p_account:payment.account_id,p_amount_try:Number(payment.amount_try),p_amount:Number(payment.amount??payment.amount_try),p_request_id:payment.id});if(result.error)throw new SaveError(result.error.message,!result.error.code|| result.error.code === 'SFX_OFFLINE' ||result.error.code==='42501'||result.error.code.startsWith('PGRST')||result.error.code.startsWith('08'));if(!result.data)throw new SaveError('Payment confirmation was not received; retry the same payment',true);return result.data}

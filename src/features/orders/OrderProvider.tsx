@@ -1,3 +1,4 @@
+import { isOnline, offlineMessage } from '@/lib/connectivity'
 import { useCallback, useRef, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -22,6 +23,7 @@ export function OrderProvider({ userId, children }: { userId: string; children: 
     try { sessionStorage.setItem(key, JSON.stringify(next)) } catch { setStorageWarning(true) }
   }, [key])
   const submit = useCallback(async (attempt: NonNullable<Workspace['attempt']>) => {
+    if (!isOnline()) { setError(new Error(offlineMessage)); toast.error(offlineMessage); return }
     if (savingRef.current) return
     savingRef.current = true; setSaving(true); setError(null)
     store({ ...state.current, attempt })

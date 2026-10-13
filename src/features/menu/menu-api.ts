@@ -1,3 +1,4 @@
+import { assertOnline } from '@/lib/connectivity'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
@@ -22,16 +23,19 @@ export async function loadMenu(): Promise<MenuData> {
 }
 export function useMenu() { return useQuery({ queryKey: ['menu'], queryFn: loadMenu, staleTime: 15_000, refetchInterval: 30_000 }) }
 export async function saveProduct(payload: Json) {
+  assertOnline()
   const { data, error } = await client().rpc('save_menu_product', { p_product: payload })
   if (error) throw new Error(error.message)
   return data
 }
 export async function saveExtra(payload: Json) {
+  assertOnline()
   const { data, error } = await client().rpc('save_menu_extra', { p_extra: payload })
   if (error) throw new Error(error.message)
   return data
 }
 export async function saveCategory(id: number | undefined, values: CategoryFormValues) {
+  assertOnline()
   const payload = { name: values.name, sort_order: Number(values.sort_order), is_active: values.is_active }
   const db = client()
   const result = id ? await db.from('product_categories').update(payload).eq('id', id).select('id').single() : await db.from('product_categories').insert(payload).select('id').single()
@@ -39,7 +43,7 @@ export async function saveCategory(id: number | undefined, values: CategoryFormV
 }
 export function useMenuSave<T>(save: (values: T) => Promise<unknown>, onSaved: () => void) {
   const queries = useQueryClient()
-  return useMutation({ mutationFn: save, onSuccess: async () => {
+  return useMutation({ mutationFn: (values: T) => { assertOnline(); return save(values) }, onSuccess: async () => {
     await Promise.all([queries.invalidateQueries({ queryKey: ['menu'] }), queries.invalidateQueries({ queryKey: ['price-history'] }), queries.invalidateQueries({ queryKey: ['activity'] })])
     toast.success('Menu saved'); onSaved()
   }, onError: (error: Error) => toast.error(error.message) })

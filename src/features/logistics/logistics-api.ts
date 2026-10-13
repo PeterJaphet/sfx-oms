@@ -1,3 +1,4 @@
+import { assertOnline } from '@/lib/connectivity'
 import { z } from 'zod'
 import { useQuery, type QueryClient } from '@tanstack/react-query'
 import type { Json } from '@/lib/db.types'
@@ -92,6 +93,7 @@ export async function quoteChange(p: Json) {
   return changeQuoteSchema.parse(r.data)
 }
 export async function runLogistics(attempt: LogisticsAttempt) {
+  assertOnline()
   let r
   try {
     r = await client().rpc('run_logistics_action', {
@@ -105,7 +107,7 @@ export async function runLogistics(attempt: LogisticsAttempt) {
   if (r.error)
     throw new SaveError(
       r.error.message,
-      !r.error.code ||
+      !r.error.code || r.error.code === 'SFX_OFFLINE' ||
         r.error.code === '42501' ||
         r.error.code.startsWith('PGRST') ||
         r.error.code.startsWith('08'),

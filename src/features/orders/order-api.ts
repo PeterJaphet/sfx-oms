@@ -1,3 +1,4 @@
+import { assertOnline } from '@/lib/connectivity'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import type { Json } from '@/lib/db.types'
@@ -11,8 +12,9 @@ export async function quoteOrder(payload: Json) {
 }
 export class SaveError extends Error { constructor(message: string, public readonly uncertain: boolean) { super(message) } }
 export async function createOrder(payload: Json) {
+  assertOnline()
   const { data, error } = await client().rpc('create_order', { p_order: payload })
-  if (error) throw new SaveError(error.message, !error.code || error.code.startsWith('PGRST') || error.code.startsWith('08'))
+  if (error) throw new SaveError(error.message, !error.code || error.code === 'SFX_OFFLINE' || error.code.startsWith('PGRST') || error.code.startsWith('08'))
   if (!data?.id) throw new SaveError('Order confirmation was not received; retry the same save', true)
   return data
 }

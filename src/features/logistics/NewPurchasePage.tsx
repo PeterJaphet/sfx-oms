@@ -510,7 +510,7 @@ export default function NewPurchasePage() {
               server total.
             </p>
           )}
-          <Button
+          <Button requiresOnline
             className="w-full"
             type="submit"
             disabled={

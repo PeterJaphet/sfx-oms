@@ -1,3 +1,4 @@
+import { assertOnline } from '@/lib/connectivity'
 import { useRef, useState } from 'react'
 import { Outlet, Link } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
@@ -33,6 +34,7 @@ export default function DebtLayout() {
   const [error, setError] = useState<string>()
   const [last, setLast] = useState<DebtResult | null>(null)
   async function execute(attempt: DebtAttempt) {
+  assertOnline()
     if (lock.current) throw new Error('A Debt request is already saving')
     lock.current = true
     setBusy(true)
@@ -97,7 +99,7 @@ export default function DebtLayout() {
             safely; new debt and setup writes are paused.
           </p>
           {error ? <p className="break-words text-sm">{error}</p> : null}
-          <Button
+          <Button requiresOnline
             variant="secondary"
             disabled={busy}
             onClick={() => {

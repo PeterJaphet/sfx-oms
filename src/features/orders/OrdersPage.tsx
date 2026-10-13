@@ -146,7 +146,7 @@ export default function OrdersPage() {
             Covers{' '}
             {formatMoney(Number(payment.pending.payment.amount_try), 'TRY')}
           </p>
-          <Button
+          <Button requiresOnline
             variant="secondary"
             disabled={busy}
             onClick={() => {

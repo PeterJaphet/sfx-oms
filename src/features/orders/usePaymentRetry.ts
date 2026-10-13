@@ -1,3 +1,4 @@
+import { assertOnline } from '@/lib/connectivity'
 import { useRef, useState } from 'react'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -13,6 +14,7 @@ export function usePaymentRetry(){
  const [pending,setPending]=useState<z.infer<typeof pendingSchema>|null>(()=>{try{const raw=sessionStorage.getItem(key);return raw?pendingSchema.parse(JSON.parse(raw)):null}catch{return null}})
  const [busy,setBusy]=useState(false);const [error,setError]=useState<string>();const lock=useRef(false)
  async function send(orderId:string,payment:DraftPayment){
+  assertOnline()
   if(lock.current)throw new Error('Payment is already being saved')
   if(pending&&(pending.orderId!==orderId||pending.payment.id!==payment.id))throw new Error('Confirm the pending payment before adding another')
   const attempt={orderId,payment};lock.current=true;setBusy(true);setError(undefined)

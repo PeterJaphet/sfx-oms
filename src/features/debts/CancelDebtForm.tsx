@@ -52,7 +52,7 @@ export default function CancelDebtForm({
           {error}
         </p>
       ) : null}
-      <Button
+      <Button requiresOnline
         className="w-full"
         type="submit"
         disabled={state.busy || !!state.pending}

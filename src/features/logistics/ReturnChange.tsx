@@ -166,7 +166,7 @@ export default function ReturnChange({
             confirmation.
           </p>
         ) : null}
-        <Button
+        <Button requiresOnline
           className="w-full"
           type="submit"
           disabled={
