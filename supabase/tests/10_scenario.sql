@@ -7,10 +7,13 @@ insert into profiles (id, full_name, role) values
  ('00000000-0000-0000-0000-00000000000a','Peter (Admin)','admin'),
  ('00000000-0000-0000-0000-00000000000b','Increase (Ops)','operations'),
  ('00000000-0000-0000-0000-00000000000c','Musa (Logistics)','logistics');
+insert into auth.sessions(id, user_id)
+select id, id from auth.users;
 grant select, insert, update on all tables in schema public to authenticated;
 
 create or replace function as_user(u text) returns void language sql as $$
-  select set_config('request.jwt.claim.sub', u, false); $$;
+  select set_config('request.jwt.claim.sub', u, false),
+         set_config('request.jwt.claims', jsonb_build_object('sub',u,'session_id',u,'role','authenticated')::text, false); $$;
 create or replace function expect_fail(sql text, label text) returns text language plpgsql as $$
 begin execute sql; return 'FAIL (no error): ' || label;
 exception when others then return 'ok blocked: ' || label || ' -> ' || sqlerrm; end $$;
@@ -20,7 +23,9 @@ create or replace function v(name text) returns uuid language sql as $$
   select pv.id from product_variants pv join products p on p.id = pv.product_id where p.name = v.name; $$;
 create or replace function cat(name text) returns smallint language sql as $$
   select id from expense_categories where expense_categories.name = cat.name; $$;
-grant execute on all functions in schema public to authenticated;
+-- Grant only test helpers; never undo migration/internal-function revocations.
+grant execute on function as_user(text), expect_fail(text,text), check_eq(numeric,numeric,text),
+  v(text), cat(text) to authenticated, service_role;
 
 set role authenticated;
 
@@ -146,3 +151,69 @@ select * from report_items_sold(business_date(), business_date());
 select direction, counterparty, currency, amount, settled, outstanding, state from v_debts order by created_at;
 \echo '--- P&L'
 select * from report_pnl(business_date(), business_date());
+
+-- ===== M1: sessions, staff permissions and audit (original 42 checks above) =====
+select check_eq((select count(*) from get_session_profile() where role = 'admin'), 1, 'active Admin session profile');
+select * from record_login();
+select * from record_login();
+select check_eq((select count(*) from activity_log where action='auth.login'), 1, 'login audited once per session');
+select check_eq((select count(*) from activity_log where action='auth.login' and actor_id=auth.uid()), 1, 'login audit actor');
+select expect_fail($$select audit_staff_pin_reset(auth.uid(),auth.uid(),auth.uid())$$, 'client cannot forge PIN-reset audit');
+select expect_fail($$select log_activity('fake','profiles','fake')$$, 'client cannot call internal audit helper');
+reset role;
+insert into auth.users values ('00000000-0000-0000-0000-00000000000d');
+set role authenticated;
+insert into profiles(id,full_name,phone,role) values ('00000000-0000-0000-0000-00000000000d','New Staff','+905000000000','operations');
+select check_eq((select count(*) from activity_log where action='staff.create' and entity_id='00000000-0000-0000-0000-00000000000d' and actor_id=auth.uid()), 1, 'staff creation audited with Admin actor');
+update profiles set role='logistics' where id='00000000-0000-0000-0000-00000000000d';
+select check_eq((select count(*) from activity_log where action='staff.update' and entity_id='00000000-0000-0000-0000-00000000000d' and details->'before'->>'role'='operations' and details->'after'->>'role'='logistics'), 1, 'role-change audit contains before and after');
+select expect_fail($$delete from profiles where id='00000000-0000-0000-0000-00000000000d'$$, 'staff cannot be deleted');
+
+select as_user('00000000-0000-0000-0000-00000000000b');
+with changed as (update profiles set role='admin' where id=auth.uid() returning id)
+select check_eq((select count(*) from changed),0,'Operations cannot promote themselves');
+select * from record_login();
+select as_user('00000000-0000-0000-0000-00000000000c');
+with changed as (update profiles set is_active=false where id='00000000-0000-0000-0000-00000000000a' returning id)
+select check_eq((select count(*) from changed),0,'Logistics cannot deactivate Admin');
+select * from record_login();
+select as_user('00000000-0000-0000-0000-00000000000a');
+select check_eq((select count(*) from activity_log where action='auth.login'),3,'all three roles can audit their own login');
+
+reset role;
+set role service_role;
+select audit_staff_pin_reset('00000000-0000-0000-0000-00000000000a','00000000-0000-0000-0000-00000000000a','00000000-0000-0000-0000-00000000000d');
+select expect_fail($$select audit_staff_pin_reset('00000000-0000-0000-0000-00000000000b','00000000-0000-0000-0000-00000000000b','00000000-0000-0000-0000-00000000000d')$$,'PIN audit rejects non-admin actor');
+reset role;
+set role authenticated;
+select check_eq((select count(*) from activity_log where action='staff.pin_reset' and actor_id=auth.uid()),1,'successful PIN reset audited');
+select check_eq((select count(*) from activity_log where action='staff.pin_reset' and details is not null),0,'audit never contains PIN');
+update profiles set is_active=false where id='00000000-0000-0000-0000-00000000000c';
+select check_eq((select count(*) from activity_log where action='staff.update' and entity_id='00000000-0000-0000-0000-00000000000c' and details->'after'->>'is_active'='false'),1,'deactivation audited');
+select as_user('00000000-0000-0000-0000-00000000000c');
+select check_eq((select count(*) from withdrawals),0,'inactive Logistics cannot read their own advances');
+select check_eq((select count(*) from purchases),0,'inactive Logistics cannot read their own purchases');
+select expect_fail($$select record_login()$$,'inactive staff cannot finish login');
+select as_user('00000000-0000-0000-0000-00000000000a');
+update profiles set is_active=true where id='00000000-0000-0000-0000-00000000000c';
+
+reset role;
+update auth.sessions set created_at=statement_timestamp()-interval '12 hours' where user_id='00000000-0000-0000-0000-00000000000b';
+set role authenticated;
+select as_user('00000000-0000-0000-0000-00000000000b');
+select check_eq((select count(*) from accounts),0,'12-hour session cannot read accounts');
+select check_eq((select count(*) from products),0,'12-hour session cannot read menu');
+select expect_fail($$select create_order('{"channel":"walk_in","items":[]}')$$,'12-hour session cannot call order RPC');
+select expect_fail($$select get_session_profile()$$,'12-hour session cannot fetch profile');
+select as_user('00000000-0000-0000-0000-00000000000a');
+select set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-00000000000a","session_id":"00000000-0000-0000-0000-00000000000c"}',false);
+select check_eq((select count(*) from accounts),0,'session must belong to caller');
+select set_config('request.jwt.claims','{}',false);
+select expect_fail($$select get_session_profile()$$,'missing session id rejected');
+select as_user('00000000-0000-0000-0000-00000000000a');
+reset role;
+delete from auth.sessions where user_id='00000000-0000-0000-0000-00000000000c';
+set role authenticated;
+select as_user('00000000-0000-0000-0000-00000000000c');
+select check_eq((select count(*) from orders),0,'signed-out JWT cannot read orders');
+select as_user('00000000-0000-0000-0000-00000000000a');

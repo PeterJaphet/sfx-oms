@@ -1398,6 +1398,10 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      audit_staff_pin_reset: {
+        Args: { p_actor: string; p_session: string; p_target: string }
+        Returns: undefined
+      }
       business_date: { Args: { ts?: string }; Returns: string }
       cancel_debt: {
         Args: { p_debt: string; p_reason: string }
@@ -1570,6 +1574,16 @@ export type Database = {
         Args: { p_account: number; p_date: string }
         Returns: number
       }
+      get_session_profile: {
+        Args: never
+        Returns: {
+          expires_at: string
+          full_name: string
+          id: string
+          phone: string
+          role: Database["public"]["Enums"]["user_role"]
+        }[]
+      }
       log_activity: {
         Args: {
           p_action: string
@@ -1605,6 +1619,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      m1_session_active: { Args: never; Returns: boolean }
       post_entry: {
         Args: {
           p_account: number
@@ -1656,6 +1671,16 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      record_login: {
+        Args: never
+        Returns: {
+          expires_at: string
+          full_name: string
+          id: string
+          phone: string
+          role: Database["public"]["Enums"]["user_role"]
+        }[]
       }
       report_items_sold: {
         Args: { p_from: string; p_to: string }

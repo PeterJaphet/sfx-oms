@@ -1,75 +1,27 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { formatMoney, type Currency } from '@/lib/format'
+import { AppShell } from '@/components/AppShell'
+import { Card, CardContent } from '@/components/ui/card'
+import { useAuth } from '@/features/auth/auth-context'
+import { LoginPage } from '@/features/auth/LoginPage'
+import { RouteGuard } from '@/features/auth/RouteGuard'
+import { homeRoutes, pages } from '@/features/auth/permissions'
+import { StaffPage } from '@/features/admin/StaffPage'
 
-const samples: { currency: Currency; name: string; amount: number; fraction: number }[] = [
-  { currency: 'TRY', name: 'Turkish lira', amount: 1220, fraction: 1220.5 },
-  { currency: 'USD', name: 'US dollars', amount: 85, fraction: 85.5 },
-  { currency: 'NGN', name: 'Nigerian naira', amount: 15000, fraction: 15000.5 },
-]
-
-function ProjectSetup() {
-  return (
-    <div className="min-h-svh">
-      <header className="border-b bg-card">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-4 sm:px-6">
-          <span aria-hidden="true" className="flex h-11 w-11 items-center justify-center rounded-lg bg-brand font-heading text-base font-extrabold text-card">SFx</span>
-          <span className="font-heading text-lg font-extrabold">SFx Burger OMS</span>
-        </div>
-      </header>
-
-      <main className="mx-auto flex max-w-xl flex-col gap-4 px-4 py-8 sm:px-6 sm:py-12">
-        <div className="flex flex-col gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted">Project setup</p>
-          <h1 className="text-[26px] font-extrabold leading-tight sm:text-[34px]">Orders and money,<br />in one place.</h1>
-          <p className="text-ink-2">The starting point for SFx Burger’s order and money app.</p>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>SFx Burger</CardTitle>
-            <CardDescription>Built for the team in Famagusta.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <p className="text-ink-2">Order taking, deliveries and daily money records will come together here.</p>
-            <Button asChild>
-              <a href="#amounts">View amount display</a>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card id="amounts" className="scroll-mt-4">
-          <CardHeader>
-            <CardTitle>Amount display</CardTitle>
-            <CardDescription>Examples of the three account currencies.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <dl className="divide-y divide-line">
-              {samples.map(({ currency, name, amount, fraction }) => (
-                <div key={currency} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
-                  <dt className="text-sm font-medium text-ink-2">{name}</dt>
-                  <dd className="text-right tabular-nums">
-                    <p className="text-xl font-bold">{formatMoney(amount, currency)}</p>
-                    <p className="text-sm text-muted">{formatMoney(fraction, currency)}</p>
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </CardContent>
-        </Card>
-
-        <p className="rounded-lg bg-amber-soft px-4 py-3 text-sm text-amber-ink">Whole amounts stay simple. Fractions show two decimal places.</p>
-      </main>
-    </div>
-  )
+function Home() {
+  const { profile } = useAuth()
+  return profile ? <Navigate to={homeRoutes[profile.role]} replace /> : null
 }
-
+function Placeholder({ title }: { title: string }) {
+  return <section className="flex flex-col gap-4"><h1 className="text-[26px] font-extrabold sm:text-[34px]">{title}</h1><Card><CardContent className="p-4"><p className="text-ink-2">{title} is coming soon.</p></CardContent></Card></section>
+}
 export default function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<ProjectSetup />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  )
+  return <Routes>
+    <Route path="/login" element={<LoginPage />} />
+    <Route element={<RouteGuard><AppShell /></RouteGuard>}>
+      <Route path="/" element={<Home />} />
+      {pages.map(page => <Route key={page.path} path={page.path} element={<RouteGuard path={page.path}>{page.path === '/staff' ? <StaffPage /> : <Placeholder title={page.label} />}</RouteGuard>} />)}
+      <Route path="/money/withdraw" element={<Navigate to="/money" replace />} />
+      <Route path="*" element={<section><h1 className="text-[26px] font-extrabold">Page not found</h1><p className="mt-2 text-ink-2">Choose a page from your navigation.</p></section>} />
+    </Route>
+  </Routes>
 }

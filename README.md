@@ -38,8 +38,8 @@ The agent reads `CLAUDE.md` for its rules.
 
 React 18 + TypeScript + Vite, Tailwind CSS 4 + shadcn/ui, TanStack Query, React Router 7,
 supabase-js v2, React Hook Form + Zod, Vitest and ESLint. Vite 6 and the pinned Supabase
-client support the project's Node 20 runtime. The root page is the M0 brand and currency
-display preview; sign-in and role navigation begin in M1.
+client support the project's Node 20 runtime. M0 established the brand and currency
+display foundation. M1 replaces the root preview with sign-in and role navigation.
 
 From the repository root, with Node.js 20.17+ and npm installed:
 
@@ -187,3 +187,102 @@ Uses any local Postgres 15+ (install, or `docker run -d -p 5432:5432 -e POSTGRES
 It builds a throwaway database from schema, migrations and seed, runs go-live (opening balances, debts,
 a dollar loan) and a full day through all three roles, then prints "All 42 database checks passed" or
 the failing lines and exits with an error. Run it after every database change. Never point it at the live project.
+
+## M1 — sign-in, roles and staff
+
+The approved flow is **direct phone number + six-digit PIN**. The phone's digits
+map to `<digits>@staff.sfxburger.app`; no prior Admin device sign-in is required.
+The screens follow the approved light brand theme. Money/order pages remain
+placeholders until their scheduled milestones.
+
+### Manual Supabase setup
+
+1. SQL Editor: run the entire `supabase/migrations/001_m1_auth_audit.sql` once.
+   This adds server-side 12-hour access checks and login/staff audit on the Free
+   plan. It adds restrictive policies and preserves existing permissions.
+2. Authentication → Providers → Email: keep **Confirm email off**. The Auth
+   password settings must accept the specified six-digit PIN (minimum length 6).
+3. Ensure local `.env` contains the project URL and public anon key; restart Vite
+   after changing it. Do not put server keys in this file.
+4. Deploy the two Edge Functions from this repository's terminal:
+
+```bash
+npx supabase functions deploy admin-create-user --project-ref lnolchqycicixjikolfi
+npx supabase functions deploy admin-manage-user --project-ref lnolchqycicixjikolfi
+```
+
+Keep gateway JWT verification enabled (the default). Each function additionally
+verifies the caller through Auth and the database's active-session profile RPC,
+then requires the admin role. Supabase supplies `SUPABASE_URL`,
+`SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` inside the deployed Edge runtime.
+The service-role key is never returned or imported into the browser.
+
+### Create the first Admin by hand
+
+If an Admin profile already exists, use that login. Otherwise:
+
+1. Choose your phone number including its country code. Strip spaces, punctuation
+   and `+` for the email: e.g. `+90 500 000 0000` → `905000000000@staff.sfxburger.app`.
+   This is an example, not a seeded login.
+2. Authentication → Users → Add user → Create new user. Use that synthetic email
+   and your own six-digit PIN as the password; confirm the user. Never share the
+   PIN in chat, commit it, or put it in SQL or environment files.
+3. Copy the created user's UUID. In SQL Editor replace all three placeholders:
+
+```sql
+insert into public.profiles (id, full_name, phone, role)
+values ('<AUTH_USER_UUID>', '<YOUR FULL NAME>', '+<PHONE DIGITS>', 'admin');
+```
+
+4. Sign in using that same phone number and PIN. Admin lands on `/dashboard` and
+   can open Staff to create Operations and Logistics users.
+
+### Sessions, deactivation and audit
+
+- A session's cutoff is its **server Auth session creation time + 12 hours**.
+  Refreshing tokens, reloading and opening another tab cannot extend that cutoff.
+  The browser signs out at the cutoff and rechecks on focus. The database and
+  Edge Functions deny expired sessions independently of the browser clock.
+- On Free, Supabase Auth may still refresh a token; the app's server guards deny
+  data and operations after the app-session cutoff. This does not alter or
+  weaken Supabase Auth's policies.
+- Deactivation first changes `profiles.is_active` (immediately denying app
+  access), then bans Auth sign-in. An interrupted ban call still leaves the
+  account blocked by the database. PINs are hashed by Supabase Auth.
+- `record_login()` writes one `auth.login` event per verified session. Profile
+  creation/role/deactivation changes are audited by a database trigger in the
+  same transaction. The PIN-reset function calls a service-only audit RPC after
+  Auth confirms the change. Audit events never contain the PIN.
+- Auth API and profile/audit RPCs are separate transactions. Errors are surfaced;
+  do not assume a failed request made no changes. Creation retries can finish a
+  previously created Auth user's missing profile without deleting any records.
+  For a PIN-reset error, check Auth audit logs and confirm the current PIN before
+  retrying. The application never silently reports success after an audit error.
+
+### M1 verification
+
+Run the four required commands from CLAUDE.md. The DB suite now has **67 checks**:
+the original 42 unchanged business assertions plus 25 session/role/audit checks.
+Only the auth test fixtures and helper grants changed to model real JWT sessions;
+the broad test helper grant no longer reopens private audit functions.
+
+Additional Edge Function typecheck:
+
+```bash
+npx deno check --config supabase/functions/deno.json supabase/functions/admin-create-user/index.ts supabase/functions/admin-manage-user/index.ts
+npx deno test --config supabase/functions/deno.json --allow-env=SUPABASE_URL,SUPABASE_ANON_KEY,SUPABASE_SERVICE_ROLE_KEY supabase/functions/_shared/staff-handler_test.ts
+```
+
+On a real phone, verify each M1 acceptance item:
+
+- Admin can create Operations and Logistics staff from Staff; try changing a
+  role, resetting a PIN and signing in with the new PIN.
+- Operations lands on `/order` with five nav items; Logistics on `/deliveries`
+  with three; Admin on `/dashboard` with Dashboard/New order/Orders/Money/Staff.
+- A guessed disallowed URL shows “Not available for your role”.
+- A deactivated user cannot sign in; a previously signed-in device loses access
+  on its next profile check (at most 15 seconds when online).
+- Confirm login and staff changes in `activity_log` using SQL Editor as Admin.
+- Service credentials are absent under `src/` (automated source check).
+
+No commit or push until the user approves the completed M1 review.

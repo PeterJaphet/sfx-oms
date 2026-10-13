@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'node_modules/**', 'coverage/**', 'src/lib/db.types.ts'] },
+  { ignores: ['dist/**', 'node_modules/**', 'coverage/**', 'src/lib/db.types.ts', 'supabase/functions/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
