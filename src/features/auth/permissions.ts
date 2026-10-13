@@ -84,6 +84,12 @@ export const pages = [
     roles: ['logistics', 'admin'],
   },
   {
+    path: '/purchases',
+    label: 'Purchases',
+    icon: 'supplies',
+    roles: ['logistics', 'admin'],
+  },
+  {
     path: '/purchases/new',
     label: 'Log supplies',
     icon: 'supplies',

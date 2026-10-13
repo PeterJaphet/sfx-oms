@@ -540,3 +540,60 @@ Also check a phone receipt upload and preview, last 20 account entries, a foreig
 adjustment/reversal, daily exchange rates and approval settings. Logistics must be denied Money;
 Operations must be denied Admin tools/Approvals. These are test financial records: corrections
 use the normal reversal tools. No M5 commit/push until the user replies approved after review.
+
+## M6 — Logistics purchases and advances
+
+Logistics and Admin use `/purchases/new`, `/purchases` and `/advances`. Deliveries now includes
+the deferred dark advance card. Purchases can use an open advance, an account or supplier credit;
+item amounts and funding are totalled by the database. Receipt photos and credit due dates are
+optional by user decision. Supporting layouts: `docs/LOGISTICS_DESIGN.md`.
+
+### Manual Supabase step
+
+Run the entire `supabase/migrations/007_m6_purchase_support.sql` once after 006. It was applied
+successfully to `lnolchqycicixjikolfi` during M6, and public database types were regenerated from
+that project. No Edge Function deployment is needed. The original schema, Storage rules
+and migrations 001–006 stay unchanged. The new migration preserves the original RPC signatures,
+all role guards, overspend support and permanent records.
+
+`quote_purchase` and `quote_return_change` write nothing. Saved totals use their server preview;
+changed funding is rejected for review. `run_logistics_action` delegates to `log_purchase` or
+`return_change`, using M5's private hashed recovery table. Repeated requests return their original
+confirmation without another purchase, debt or ledger entry. Advance locks serialize purchase
+logging and change returns; outgoing account postings retain M5's account locks/funds guard.
+
+The invoker v_advances view alone can undercount purchases for Logistics when Admin logged them.
+The narrow `list_logistics_advances` read function returns correct totals only for assigned
+advances (Admin: all). `list_logistics_purchases` similarly returns only caller-owned purchases
+(Admin: all), with the associated credit due date; it grants no general debt access. Item lines
+still read through their existing RLS, and receipt previews use the original private bucket.
+
+Supplier suggestions come from the last 100 purchases visible to the caller. Purchase history and
+accounted advance history page 50 records at a time. The UI requires positive quantities; legacy
+RPC callers may still omit quantities, but supplied values are validated. Line amounts are total
+costs, never unit prices. Advance purchases keep the advance's recorded rate; account purchases
+confirm the selected rate; supplier credit uses TRY. Overspend appears as owed to staff.
+
+### Verification and phone acceptance
+
+M6 adds 24 unit tests (181 total) and 61 database checks (291 total), preserving all prior
+assertions. A separate two-session test returned 800 twice against an advance of 1000: only one
+return succeeded, leaving 200 held and one ledger entry. Browser checks use simulated Auth and
+actual RPCs/RLS in an isolated local PostgreSQL database, without hosted financial writes.
+
+On a phone, verify every M6 Done when item:
+
+1. Operations/Admin gives your Logistics test user a 1000 TRY advance. Logistics logs 900 in
+   purchases, then returns 100 to Cash. Confirm Given 1000 / Spent 900 / You hold 100 before return,
+   then Accounted for with zero remaining. The account receives the returned 100 once.
+2. Log a purchase on credit with a supplier and optional due date. Its details confirm the debt;
+   Admin can verify the corresponding purchase_on_credit debt in Supabase. No account money moves.
+3. Use two Logistics users: each sees only their own advances, purchases, items and receipts.
+   Admin can see all; Operations is denied the Logistics pages. An Admin-logged purchase against
+   an assigned advance changes the recipient's Spent/You hold correctly, without exposing the
+   Admin's purchase details to that recipient.
+
+Also check phone receipt upload/preview, add/edit/remove draft item lines, account funding in TRY
+and USD/NGN, supplier suggestions, overspend messaging and too-much-change errors. If a save is
+interrupted, reload and use Retry Logistics confirmation; do not submit a new copy. Never delete
+saved test records; use the established Admin correction functions. No commit/push until approved.

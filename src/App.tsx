@@ -13,6 +13,14 @@ const NewOrderPage = lazy(() => import('@/features/orders/NewOrderPage'))
 const PaymentPage = lazy(() => import('@/features/orders/PaymentPage'))
 const OrdersPage = lazy(() => import('@/features/orders/OrdersPage'))
 const DeliveriesPage = lazy(() => import('@/features/logistics/DeliveriesPage'))
+const LogisticsLayout = lazy(
+  () => import('@/features/logistics/LogisticsLayout'),
+)
+const NewPurchasePage = lazy(
+  () => import('@/features/logistics/NewPurchasePage'),
+)
+const AdvancesPage = lazy(() => import('@/features/logistics/AdvancesPage'))
+const PurchasesPage = lazy(() => import('@/features/logistics/PurchasesPage'))
 const MoneyLayout = lazy(() => import('@/features/money/MoneyLayout'))
 const AccountsPage = lazy(() => import('@/features/money/AccountsPage'))
 const WithdrawPage = lazy(() => import('@/features/money/WithdrawPage'))
@@ -147,10 +155,54 @@ export default function App() {
             }
           />
         </Route>
+        <Route
+          element={
+            <RouteGuard path="/purchases/new">
+              <Suspense fallback={<p role="status">Loading Logistics…</p>}>
+                <LogisticsLayout />
+              </Suspense>
+            </RouteGuard>
+          }
+        >
+          <Route
+            path="/deliveries"
+            element={
+              <Suspense fallback={<p role="status">Loading deliveries…</p>}>
+                <DeliveriesPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/purchases/new"
+            element={
+              <Suspense fallback={<p role="status">Loading purchase…</p>}>
+                <NewPurchasePage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/purchases"
+            element={
+              <Suspense fallback={<p role="status">Loading purchases…</p>}>
+                <PurchasesPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/advances"
+            element={
+              <Suspense fallback={<p role="status">Loading advances…</p>}>
+                <AdvancesPage />
+              </Suspense>
+            }
+          />
+        </Route>
         {pages
           .filter(
             (page) =>
               !page.path.startsWith('/money') &&
+              !page.path.startsWith('/purchases') &&
+              !['/advances', '/deliveries'].includes(page.path) &&
               page.path !== '/order' &&
               page.path !== '/order/pay',
           )
@@ -163,12 +215,6 @@ export default function App() {
                   {page.path === '/orders' ? (
                     <Suspense fallback={<p role="status">Loading orders…</p>}>
                       <OrdersPage />
-                    </Suspense>
-                  ) : page.path === '/deliveries' ? (
-                    <Suspense
-                      fallback={<p role="status">Loading deliveries…</p>}
-                    >
-                      <DeliveriesPage />
                     </Suspense>
                   ) : page.path === '/staff' ? (
                     <StaffPage />

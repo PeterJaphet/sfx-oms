@@ -1684,6 +1684,14 @@ export type Database = {
       }
       import_menu_products: { Args: { p_rows: Json }; Returns: number }
       list_delivery_orders: { Args: never; Returns: Json }
+      list_logistics_advances: {
+        Args: { p_offset?: number; p_state?: string }
+        Returns: Json
+      }
+      list_logistics_purchases: {
+        Args: { p_id?: string; p_offset?: number }
+        Returns: Json
+      }
       log_activity: {
         Args: {
           p_action: string
@@ -1725,6 +1733,7 @@ export type Database = {
         Returns: undefined
       }
       m5_rate: { Args: { p_rate: number }; Returns: undefined }
+      m6_purchase_preview: { Args: { p: Json }; Returns: Json }
       post_entry: {
         Args: {
           p_account: number
@@ -1743,6 +1752,8 @@ export type Database = {
         Returns: number
       }
       quote_order: { Args: { p_order: Json }; Returns: Json }
+      quote_purchase: { Args: { p: Json }; Returns: Json }
+      quote_return_change: { Args: { p: Json }; Returns: Json }
       quote_withdrawal: { Args: { p: Json }; Returns: Json }
       record_debt: {
         Args: {
@@ -1831,6 +1842,10 @@ export type Database = {
       reverse_purchase: {
         Args: { p_purchase: string; p_reason: string }
         Returns: undefined
+      }
+      run_logistics_action: {
+        Args: { p: Json; p_action: string; p_request_id: string }
+        Returns: Json
       }
       run_money_action: {
         Args: { p: Json; p_action: string; p_request_id: string }
