@@ -30,6 +30,7 @@ const ExpensesPage = lazy(() => import('@/features/money/ExpensesPage'))
 const DebtLayout = lazy(() => import('@/features/debts/DebtLayout'))
 const DebtsPage = lazy(() => import('@/features/debts/DebtsPage'))
 const SetupPage = lazy(() => import('@/features/debts/SetupPage'))
+const ReportsPage = lazy(() => import('@/features/reports/ReportsPage'))
 const ClosePage = lazy(() => import('@/features/close/ClosePage'))
 const MenuPage = lazy(() => import('@/features/menu/MenuPage'))
 
@@ -248,6 +249,10 @@ export default function App() {
                   {page.path === '/orders' ? (
                     <Suspense fallback={<p role="status">Loading orders…</p>}>
                       <OrdersPage />
+                    </Suspense>
+                  ) : ['/dashboard', '/reports'].includes(page.path) ? (
+                    <Suspense fallback={<p role="status">Loading reports…</p>}>
+                      <ReportsPage />
                     </Suspense>
                   ) : page.path === '/close' ? (
                     <Suspense fallback={<p role="status">Loading close…</p>}>

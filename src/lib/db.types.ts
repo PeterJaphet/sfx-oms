@@ -554,6 +554,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ledger_entries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "v_report_deliveries"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ledger_entries_purchase_id_fkey"
             columns: ["purchase_id"]
             isOneToOne: false
@@ -681,6 +688,13 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "v_order_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "v_report_deliveries"
             referencedColumns: ["id"]
           },
           {
@@ -1509,6 +1523,69 @@ export type Database = {
         }
         Relationships: []
       }
+      v_report_account_days: {
+        Row: {
+          account_id: number | null
+          business_date: string | null
+          money_in: number | null
+          money_out: number | null
+          movement: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_entries_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_entries_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "v_account_balances"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_report_deliveries: {
+        Row: {
+          business_date: string | null
+          completed_at: string | null
+          daily_number: number | null
+          delivery_minutes: number | null
+          id: string | null
+          picked_up_at: string | null
+          picked_up_by: string | null
+          ready_at: string | null
+          staff: string | null
+          status: Database["public"]["Enums"]["order_status"] | null
+          waiting_minutes: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_picked_up_by_fkey"
+            columns: ["picked_up_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_report_order_dimensions: {
+        Row: {
+          business_date: string | null
+          channel: Database["public"]["Enums"]["order_channel"] | null
+          discounts: number | null
+          gross_sales: number | null
+          hour: number | null
+          net_revenue: number | null
+          order_type: Database["public"]["Enums"]["order_type"] | null
+          orders: number | null
+          weekday: number | null
+        }
+        Relationships: []
+      }
       v_sales_daily: {
         Row: {
           business_date: string | null
@@ -1744,6 +1821,18 @@ export type Database = {
         Args: { p_account?: number; p_date?: string }
         Returns: Json
       }
+      get_dashboard: { Args: { p_from: string; p_to: string }; Returns: Json }
+      get_report: {
+        Args: {
+          p_from: string
+          p_limit?: number
+          p_offset?: number
+          p_report: string
+          p_search?: string
+          p_to: string
+        }
+        Returns: Json
+      }
       get_session_profile: {
         Args: never
         Returns: {
@@ -1900,6 +1989,7 @@ export type Database = {
           variant_name: string
         }[]
       }
+      report_periods: { Args: never; Returns: Json }
       report_pnl: {
         Args: { p_from: string; p_to: string }
         Returns: {

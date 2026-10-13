@@ -703,3 +703,48 @@ Also check that Operations financial controls are disabled after close, Logistic
 and deliver, and Admin financial corrections remain possible. Lost-response confirmation uses
 Retry close confirmation after reload. Phone layouts were checked at 360/390/430px; desktop at
 1280px. No M8 commit/push until the user approves the completed milestone.
+
+## M9 — reports and dashboard
+
+Admin `/dashboard` and Operations `/reports` share a dashboard/report viewer, following
+Dashboard.dc.html and `docs/REPORT_DESIGN.md`. This week (Monday–Sunday) is the default. Today,
+last week, month and custom use server-provided business dates. Shortcuts answer BBQ Burger last
+week and Swallow this month directly. All report maths stays in database views/functions.
+
+`010_m9_report_support.sql` introduces invoker reporting views and guarded
+read-only RPCs, without editing schema.sql or any prior migration, financial RPC, RLS policy or
+delete guard. It supplies P&L, sales, item/category/extra counts and comparisons, payments, sales
+dimensions, expenses, period account movements, close history and logistics activity.
+Debts, unpaid customer balances and outstanding Advances use the approved Outstanding now scope,
+independent of date filters. Headers/filenames identify that scope; no historical state is invented.
+The user applied migration 010 once after 009 to lnolchqycicixjikolfi, and public types were regenerated
+from that project. No Edge Function deployment is required for M9.
+
+CSV/PDF exports are available on every implemented table, including category totals. Exports
+request all matching rows in one stable query, independent of the screen page. CSV is UTF-8 with
+numeric amounts and formula-neutralized text. PDFs embed the bundled licensed Archivo font,
+support all three currency symbols and Turkish account names, wrap cells, repeat table headers
+and include dates/page counts. PDF dependencies load only on demand.
+
+M9 verification so far includes application checks, database reporting/role/completeness tests,
+browser comparisons of all five P&L money figures with report_pnl, item/extra shortcuts, complete
+CSV/PDF downloads and phone widths 360/390/430 plus desktop 1280. Browser tests use simulated Auth
+and native functions/RLS in isolated local PostgreSQL; they write no hosted financial records.
+All 22 report tables downloaded complete CSV and PDF exports. A 90-day sales PDF spanned six pages
+with repeated headers and intact footers. Currency glyphs, Turkish account names and the three
+current-scope layouts were visually checked. M9 adds 29 unit tests (253 total) and 72 database checks
+(466 total), preserving all earlier checks. Reports, charts and PDF libraries load on demand; the
+production build passes with its existing main-chunk size warning.
+
+On a phone, verify both M9 Done when items:
+
+1. Compare Net revenue, COGS, Operational, Fixed and Net profit to `report_pnl` in Supabase SQL
+   Editor using exactly the business-date From/To shown in the app.
+2. Use BBQ Burger last week and Swallow this month; check counts and separate extra plate/own totals.
+
+Also verify CSV and PDF downloads, custom dates, table scrolling and Outstanding now labels for
+debts, customer balances and advances. Operations must see read-only reports without approval
+actions; Logistics keeps its own purchase screens and cannot open business-wide reports.
+
+WhatsApp and scheduled delivery are deferred until after the project at the user's request.
+No M9 commit/push until the user approves the completed milestone.

@@ -752,3 +752,98 @@ select check_eq((select count(*) from day_closes where business_date=business_da
 reset role;
 
 select check_eq((select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in('create_order','add_order_payment','cancel_order','create_withdrawal','decide_withdrawal','log_purchase','return_change','settle_advance_overspend','record_debt','settle_debt','cancel_debt','transfer_between_accounts','adjust_balance','reverse_entry','reverse_purchase','run_money_action','run_logistics_action','run_debt_action') and position('perform public.m8_lock_current_day();' in pg_get_functiondef(p.oid))>0),19,'M8 all financial entry points take day lock before row locks');
+
+-- M9 server reports, range validation, full exports and permissions.
+set role authenticated;
+select as_user('00000000-0000-0000-0000-00000000000a');
+select check_eq((get_report('sales',business_date(),business_date())->'summary'->>'net_revenue')::numeric,(select net_sales from v_sales_daily where business_date=business_date()),'M9 sales uses canonical net sales');
+select check_eq((get_report('sales',business_date(),business_date())->'summary'->>'orders')::numeric,(select orders from v_sales_daily where business_date=business_date()),'M9 sales count excludes cancellations');
+select check_eq(((get_report('pnl',business_date(),business_date())->'summary')=(select to_jsonb(t) from report_pnl(business_date(),business_date())t))::int,1,'M9 P&L exactly matches original function');
+select check_eq(((get_dashboard(business_date(),business_date())->'pnl'->'summary')=(select to_jsonb(t) from report_pnl(business_date(),business_date())t))::int,1,'M9 dashboard P&L matches same dates');
+select check_eq((select sum((x->>'revenue')::numeric) from jsonb_array_elements(get_report('items',business_date(),business_date(),0,0)->'rows')x),(select sum(revenue) from report_items_sold(business_date(),business_date())),'M9 item snapshot revenue matches canonical function');
+select check_eq((select sum((x->>'quantity')::numeric) from jsonb_array_elements(get_report('extras',business_date(),business_date(),0,0)->'rows')x),(select sum(quantity) from v_extras_sold_daily where business_date=business_date()),'M9 extras quantity combines plate and standalone');
+select check_eq((select sum((x->>'net_revenue')::numeric) from jsonb_array_elements(get_report('channels',business_date(),business_date(),0,0)->'rows')x),(select net_sales from v_sales_daily where business_date=business_date()),'M9 channels exclude cancelled orders');
+select check_eq((select sum((x->>'amount_try')::numeric) from jsonb_array_elements(get_report('payments',business_date(),business_date(),0,0)->'rows')x),(select sum(amount_try) from v_payments_daily where business_date=business_date()),'M9 payment/refund movement follows existing view');
+select check_eq((select sum((x->>'amount_try')::numeric) from jsonb_array_elements(get_report('expenses',business_date(),business_date(),0,0)->'rows')x),(select sum(amount_try) from v_expenses where business_date=business_date()),'M9 category costs match expense view');
+select check_eq((select (x->>'closing')::numeric from jsonb_array_elements(get_report('accounts',business_date(),business_date(),0,0)->'rows')x where x->>'name'='Cash'),(select balance from v_account_balances where name='Cash'),'M9 current account closing reconciles');
+select check_eq((select sum((x->>'opening')::numeric+(x->>'money_in')::numeric-(x->>'money_out')::numeric-(x->>'closing')::numeric) from jsonb_array_elements(get_report('accounts',business_date(),business_date(),0,0)->'rows')x),0,'M9 every account period movement reconciles');
+select check_eq((get_report('accounts',business_date()-2,business_date()-1,0,0)->'rows'->0->>'closing')::numeric,0,'M9 past account closing excludes later money');
+select check_eq((get_report('pnl',business_date()-2,business_date()-1)->'rows'->0->>'amount')::numeric,0,'M9 empty P&L displays zero without changing original function');
+select check_eq(((get_report('pnl',business_date()-2,business_date()-1)->'rows'->3->>'amount')is null)::int,1,'M9 no-revenue margin stays unavailable');
+select check_eq((get_report('sales',business_date()-1233,business_date(),0,0)->>'total')::numeric,1234,'M9 full export includes more than 1000 rows');
+select check_eq(jsonb_array_length(get_report('sales',business_date()-1233,business_date(),0,100)->'rows'),100,'M9 screen pages are bounded');
+select check_eq(jsonb_array_length(get_report('sales',business_date()-1233,business_date(),100,100)->'rows'),100,'M9 next page supported');
+select check_eq(((get_report('sales',business_date()-1233,business_date(),100,100)->'rows'->0->>'business_date')::date=business_date()-1133)::int,1,'M9 page order stable');
+select check_eq((get_report('items',business_date(),business_date(),0,0,'not a sold product')->>'total')::numeric,0,'M9 item search and export share matches');
+select check_eq(extract(isodow from(report_periods()->'week'->>'from')::date),1,'M9 week starts Monday on server');
+select check_eq(extract(isodow from(report_periods()->'week'->>'to')::date),7,'M9 week ends Sunday on server');
+select check_eq((report_periods()->'last_week'->>'to')::date-(report_periods()->'last_week'->>'from')::date,6,'M9 last week spans seven business dates');
+select check_eq(((get_report('items',business_date()-6,business_date())->>'previous_from')::date=business_date()-13)::int,1,'M9 comparison is equal preceding period');
+select check_eq((get_report('closes',business_date(),business_date(),0,0)->>'total')::numeric,(select count(*) from day_closes where business_date=business_date()),'M9 close report preserves earlier closes');
+select check_eq((get_report('deliveries',business_date(),business_date(),0,0)->>'total')::numeric,(select count(*) from v_report_deliveries where business_date=business_date()),'M9 delivery report includes staff and timestamps');
+select expect_fail($q$select get_report('bad',business_date(),business_date())$q$,'M9 unknown report refused');
+select expect_fail($q$select get_report('sales',business_date(),business_date()-1)$q$,'M9 reversed range refused');
+select expect_fail($q$select get_dashboard(null,business_date())$q$,'M9 missing range refused');
+select expect_fail($q$select get_report('sales',business_date(),business_date(),-1)$q$,'M9 negative offset refused');
+select expect_fail($q$select get_report('sales',business_date(),business_date(),0,1001)$q$,'M9 invalid screen page refused');
+select as_user('00000000-0000-0000-0000-00000000000b');
+select check_eq(((get_dashboard(business_date(),business_date())->'needs')?'pending_approvals')::int,0,'M9 Operations dashboard has no approval actions');
+select check_eq(((get_report('sales',business_date(),business_date())->>'report')='sales')::int,1,'M9 Operations reads sales report');
+select check_eq(((get_report('pnl',business_date(),business_date())->>'report')='pnl')::int,1,'M9 Operations reads pnl report');
+select check_eq(((get_report('items',business_date(),business_date())->>'report')='items')::int,1,'M9 Operations reads items report');
+select check_eq(((get_report('extras',business_date(),business_date())->>'report')='extras')::int,1,'M9 Operations reads extras report');
+select check_eq(((get_report('payments',business_date(),business_date())->>'report')='payments')::int,1,'M9 Operations reads payments report');
+select check_eq(((get_report('channels',business_date(),business_date())->>'report')='channels')::int,1,'M9 Operations reads channels report');
+select check_eq(((get_report('types',business_date(),business_date())->>'report')='types')::int,1,'M9 Operations reads types report');
+select check_eq(((get_report('hours',business_date(),business_date())->>'report')='hours')::int,1,'M9 Operations reads hours report');
+select check_eq(((get_report('weekdays',business_date(),business_date())->>'report')='weekdays')::int,1,'M9 Operations reads weekdays report');
+select check_eq(((get_report('expenses',business_date(),business_date())->>'report')='expenses')::int,1,'M9 Operations reads expenses report');
+select check_eq(((get_report('suppliers',business_date(),business_date())->>'report')='suppliers')::int,1,'M9 Operations reads suppliers report');
+select check_eq(((get_report('expense_staff',business_date(),business_date())->>'report')='expense_staff')::int,1,'M9 Operations reads expense_staff report');
+select check_eq(((get_report('expense_details',business_date(),business_date())->>'report')='expense_details')::int,1,'M9 Operations reads expense_details report');
+select check_eq(((get_report('accounts',business_date(),business_date())->>'report')='accounts')::int,1,'M9 Operations reads accounts report');
+select check_eq(((get_report('closes',business_date(),business_date())->>'report')='closes')::int,1,'M9 Operations reads closes report');
+select check_eq(((get_report('logistics_purchases',business_date(),business_date())->>'report')='logistics_purchases')::int,1,'M9 Operations reads logistics_purchases report');
+select check_eq(((get_report('logistics_advances',business_date(),business_date())->>'report')='logistics_advances')::int,1,'M9 Operations reads logistics_advances report');
+select check_eq(((get_report('deliveries',business_date(),business_date())->>'report')='deliveries')::int,1,'M9 Operations reads deliveries report');
+
+select as_user('00000000-0000-0000-0000-00000000000c');
+select expect_fail($q$select get_report('pnl',business_date(),business_date())$q$,'M9 Logistics cannot read business P&L');
+select expect_fail($q$select get_dashboard(business_date(),business_date())$q$,'M9 Logistics cannot read dashboard');
+select expect_fail($q$select report_periods()$q$,'M9 Logistics cannot enter reports');
+set role anon;
+select expect_fail($q$select get_report('sales',business_date(),business_date())$q$,'M9 anon cannot read reports');
+select expect_fail($q$select get_dashboard(business_date(),business_date())$q$,'M9 anon cannot read dashboard');
+reset role;
+
+set role authenticated;
+select as_user('00000000-0000-0000-0000-00000000000b');
+select check_eq((select sum((x->>'revenue')::numeric) from jsonb_array_elements(get_report('item_categories',business_date(),business_date(),0,0)->'rows')x),(select sum(revenue) from report_items_sold(business_date(),business_date())),'M9 category exports reconcile to item snapshots');
+select check_eq((get_dashboard(business_date(),business_date())->>'operational_fixed')::numeric,(select operational_expenses+fixed_overheads from report_pnl(business_date(),business_date())),'M9 combined cost card computed by server');
+reset role;
+
+set role authenticated;
+select as_user('00000000-0000-0000-0000-00000000000b');
+select check_eq((get_report('items',business_date(),business_date(),0,0,'BBQ Burger')->'summary'->>'filtered_quantity')::numeric,(select coalesce(sum(quantity),0) from report_items_sold(business_date(),business_date()) where product_name='BBQ Burger'),'M9 filtered BBQ quantity calculated on server');
+select check_eq((get_report('extras',business_date(),business_date(),0,0,'Swallow')->'summary'->>'filtered_on_plate')::numeric,(select coalesce(sum(on_plate),0) from v_extras_sold_daily where business_date=business_date() and extra_name='Swallow'),'M9 filtered plate count calculated on server');
+select check_eq((get_report('extras',business_date(),business_date(),0,0,'Swallow')->'summary'->>'filtered_standalone')::numeric,(select coalesce(sum(standalone),0) from v_extras_sold_daily where business_date=business_date() and extra_name='Swallow'),'M9 filtered standalone count calculated on server');
+select check_eq((get_report('expenses',business_date(),business_date())->'summary'->>'cogs')::numeric,(select cost_of_goods from report_pnl(business_date(),business_date())),'M9 expense cost of goods matches P&L');
+select check_eq((get_report('expenses',business_date(),business_date())->'summary'->>'operational')::numeric,(select operational_expenses from report_pnl(business_date(),business_date())),'M9 expense operational total matches P&L');
+select check_eq((get_report('expenses',business_date(),business_date())->'summary'->>'fixed')::numeric,(select fixed_overheads from report_pnl(business_date(),business_date())),'M9 expense fixed total matches P&L');
+reset role;
+
+-- M9 current outstanding scope explicitly approved by the user.
+set role authenticated;
+select as_user('00000000-0000-0000-0000-00000000000b');
+select check_eq((get_report('debts',business_date()-30,business_date()-20)->>'scope'='current')::int,1,'M9 debts explicitly current scope');
+select check_eq((get_report('debts',business_date()-30,business_date()-20)->>'from'=business_date()::text)::int,1,'M9 debt export dates describe now');
+select check_eq((get_report('debts',business_date()-30,business_date()-20,0,0)->>'total')::numeric,(select count(*) from v_debts where state='open'),'M9 outstanding debts include all open debts across dates');
+select check_eq((get_report('advances',business_date()-30,business_date()-20)->>'scope'='current')::int,1,'M9 advances explicitly current scope');
+select check_eq((get_report('advances',business_date()-30,business_date()-20,0,0)->>'total')::numeric,(select count(*) from v_advances where state in('open','owed_to_staff')),'M9 outstanding advances include unaccounted and owed staff amounts');
+select check_eq((get_report('unpaid',business_date()-30,business_date()-20)->>'scope'='current')::int,1,'M9 unpaid customer balances explicitly current');
+select check_eq((get_report('unpaid',business_date()-30,business_date()-20)->'summary'->>'due_now')::numeric,(select sum(balance_due) from v_order_payments where status<>'cancelled' and balance_due>0),'M9 unpaid total reads canonical order view');
+select check_eq((get_report('sales',business_date(),business_date())->>'scope'='period')::int,1,'M9 other reports keep date-range scope');
+select as_user('00000000-0000-0000-0000-00000000000c');
+select expect_fail($q$select get_report('debts',business_date(),business_date())$q$,'M9 Logistics denied business debts report');
+select expect_fail($q$select get_report('advances',business_date(),business_date())$q$,'M9 Logistics denied all-staff advances report');
+reset role;
