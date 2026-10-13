@@ -4,6 +4,7 @@ export const roleNames: Record<Role, string> = { operations: 'Operations', logis
 export const homeRoutes: Record<Role, string> = { operations: '/order', logistics: '/deliveries', admin: '/dashboard' }
 export const pages = [
   { path: '/order', label: 'New order', icon: 'plus', roles: ['operations', 'admin'] },
+  { path: '/order/pay', label: 'Payment', icon: 'money', roles: ['operations', 'admin'] },
   { path: '/orders', label: 'Orders', icon: 'orders', roles: ['operations', 'admin'] },
   { path: '/money', label: 'Money', icon: 'money', roles: ['operations', 'admin'] },
   { path: '/close', label: 'Close day', icon: 'close', roles: ['operations', 'admin'] },

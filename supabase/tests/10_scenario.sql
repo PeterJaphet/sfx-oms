@@ -274,3 +274,62 @@ select as_user('00000000-0000-0000-0000-00000000000a');
 select check_eq(((select count(*) from activity_log where action='product_addons.update' and actor_id='00000000-0000-0000-0000-00000000000b')>0)::int,1,'M2 dish-extra changes audited');
 select check_eq(((select count(*) from activity_log where action='product_categories.update' and actor_id='00000000-0000-0000-0000-00000000000b')>0)::int,1,'M2 category changes audited');
 select check_eq((select count(*) from storage.buckets where id='menu-photos' and not public and file_size_limit=5242880),1,'M2 photos bucket is private and capped at 5MB');
+
+-- ===== M3: quotes, discounts, payments, retries (all 102 earlier checks retained) =====
+select as_user('00000000-0000-0000-0000-00000000000b');
+update addons set price=180 where name='Fish'; -- isolated acceptance fixture, never the hosted menu
+create temp table m3_cases(name text primary key,payload jsonb);
+insert into m3_cases values('split',jsonb_build_object('channel','walk_in','client_request_id','30000000-0000-4000-8000-000000000001',
+  'items',jsonb_build_array(jsonb_build_object('variant_id',v('BBQ Burger'),'quantity',2),jsonb_build_object('variant_id',v('Jollof Rice + Chicken'),'quantity',1)),
+  'payments',jsonb_build_array(jsonb_build_object('account_id',1,'amount_try',780),jsonb_build_object('account_id',7,'amount_try',410,'amount',15000))));
+select count(*) as m3_orders_before from orders \gset
+select check_eq((quote_order((select payload from m3_cases where name='split'))->>'total')::numeric,1220,'M3 database quote total');
+select check_eq((quote_order((select payload from m3_cases where name='split'))->>'balance_due')::numeric,30,'M3 split-payment quote leaves 30 due');
+select check_eq((quote_order((select payload from m3_cases where name='split'))->'payments'->1->>'rate_to_try')::numeric,0.027333,'M3 implied Naira rate has six decimals');
+select check_eq((select count(*) from orders),:m3_orders_before,'M3 quotes create no order');
+select check_eq((quote_order(jsonb_build_object('items',jsonb_build_array(jsonb_build_object('variant_id',v('Vegetable Soup'),'addon_ids',(select jsonb_agg(id) from addons where name in('Fish','Swallow'))))))->>'total')::numeric,580,'M3 soup plus Swallow and Fish quote');
+select check_eq((quote_order(jsonb_build_object('items',jsonb_build_array(jsonb_build_object('variant_id',v('Fish'),'quantity',2))))->>'total')::numeric,360,'M3 standalone Fish quote');
+select check_eq((quote_order((select payload-'payments' from m3_cases where name='split')||'{"discount_percent":10,"discount_reason":"Ten percent"}')->>'total')::numeric,1098,'M3 percentage discount is computed in database');
+select check_eq((quote_order((select payload-'payments' from m3_cases where name='split')||'{"discount_amount":20,"discount_reason":"Loyal customer"}')->>'total')::numeric,1200,'M3 fixed discount quote');
+select expect_fail($$select quote_order((select payload from m3_cases where name='split')||'{"discount_percent":101,"discount_reason":"Bad"}')$$,'M3 discount percent above 100');
+select expect_fail($$select quote_order((select payload from m3_cases where name='split')||'{"discount_percent":10,"discount_amount":1,"discount_reason":"Both"}')$$,'M3 conflicting discount types');
+select expect_fail($$select quote_order((select payload from m3_cases where name='split')||'{"discount_amount":1,"discount_reason":"   "}')$$,'M3 blank discount reason');
+select expect_fail($$select quote_order((select payload-'payments' from m3_cases where name='split')||'{"payments":[{"account_id":1,"amount_try":1221}]}')$$,'M3 overpayment uses database message');
+select expect_fail($$select quote_order((select payload-'payments' from m3_cases where name='split')||'{"payments":[{"account_id":7,"amount_try":100}]}')$$,'M3 foreign payment needs received amount');
+select expect_fail($$select quote_order((select payload-'payments' from m3_cases where name='split')||'{"payments":[{"account_id":1,"amount_try":1.001}]}')$$,'M3 sub-cent payment rejected');
+select expect_fail($$select quote_order((select payload-'payments' from m3_cases where name='split')||'{"payments":[{"account_id":7,"amount_try":1,"amount":"NaN"}]}')$$,'M3 non-finite foreign receipt rejected');
+create temp table m3_saved as select (create_order(payload)).* from m3_cases where name='split';
+select check_eq((select balance_due from v_order_payments where id=(select id from m3_saved)),30,'M3 saved split order leaves 30 due');
+select check_eq((select count(*) from ledger_entries where order_id=(select id from m3_saved)),2,'M3 both payments saved once');
+select create_order(payload) from m3_cases where name='split';
+select check_eq((select count(*) from orders where client_request_id='30000000-0000-4000-8000-000000000001'),1,'M3 retried save returns same order');
+select check_eq((select count(*) from ledger_entries where order_id=(select id from m3_saved)),2,'M3 retried save never duplicates payments');
+select expect_fail($$select create_order((select payload from m3_cases where name='split')||'{"note":"Changed request"}')$$,'M3 request id cannot be reused with changed content');
+insert into m3_cases values('discount',(select payload-'payments'-'client_request_id' from m3_cases where name='split')||'{"client_request_id":"30000000-0000-4000-8000-000000000002","discount_percent":10,"discount_reason":"Ten percent"}');
+select check_eq((create_order((select payload from m3_cases where name='discount'))).discount_amount,122,'M3 saved percentage discount becomes exact amount');
+select check_eq((select count(*) from ledger_entries l join orders o on o.id=l.order_id where o.client_request_id='30000000-0000-4000-8000-000000000002'),0,'M3 unpaid save writes no payments');
+select expect_fail($$select create_order((select payload-'client_request_id' from m3_cases where name='split')||'{"client_request_id":"30000000-0000-4000-8000-000000000003","payments":[{"account_id":1,"amount_try":780},{"account_id":7,"amount_try":410,"amount":0}]}')$$,'M3 invalid split payment rejects whole order');
+select check_eq((select count(*) from orders where client_request_id='30000000-0000-4000-8000-000000000003'),0,'M3 failed save has no partial order');
+select check_eq((select count(*) from ledger_entries l join orders o on o.id=l.order_id where o.client_request_id='30000000-0000-4000-8000-000000000003'),0,'M3 failed save has no partial ledger');
+insert into m3_cases values('stale',(select payload-'payments'-'client_request_id' from m3_cases where name='split')||jsonb_build_object('quote_token',quote_order((select payload-'payments' from m3_cases where name='split'))->>'quote_token'));
+update product_variants set price=401 where id=v('BBQ Burger');
+select expect_fail($$select create_order((select payload from m3_cases where name='stale'))$$,'M3 changed menu quote must be reviewed');
+select check_eq((select unit_price from order_items where order_id=(select id from m3_saved) and product_name='BBQ Burger'),400,'M3 saved prices stay frozen after menu edit');
+update product_variants set price=400 where id=v('BBQ Burger');
+update product_variants set is_active=false where id=v('BBQ Burger');
+select expect_fail($$select quote_order((select payload from m3_cases where name='split'))$$,'M3 inactive variants cannot be quoted');
+update product_variants set is_active=true where id=v('BBQ Burger');
+select as_user('00000000-0000-0000-0000-00000000000c');
+select expect_fail($$select quote_order('{"items":[]}')$$,'M3 Logistics cannot quote orders');
+select expect_fail($$select create_order('{"items":[]}')$$,'M3 Logistics cannot create orders');
+select as_user('00000000-0000-0000-0000-00000000000a');
+select check_eq((quote_order((select payload from m3_cases where name='split'))->>'total')::numeric,1220,'M3 Admin can quote orders');
+select check_eq((select count(*) from activity_log where action='order.create' and entity_id=(select id::text from m3_saved)),1,'M3 save audited once even after retries');
+select check_eq(has_function_privilege('anon','quote_order(jsonb)','execute')::int,0,'M3 anonymous cannot call quote RPC');
+select check_eq((select sum(line_total) from order_items where order_id=(select id from m3_saved)),1220,'M3 stored item lines equal quote');
+
+select check_eq((select length(client_request_hash) from m3_saved),64,'M3 request metadata is an opaque SHA-256 hash');
+select check_eq((select count(*) from information_schema.columns where table_schema='public' and table_name='orders' and column_name='client_request_payload'),0,'M3 full payment payload is not exposed on orders');
+
+select check_eq((quote_order(jsonb_build_object('total',1,'subtotal',1,'items',jsonb_build_array(jsonb_build_object('variant_id',v('BBQ Burger'),'quantity',2,'unit_price',1),jsonb_build_object('variant_id',v('Jollof Rice + Chicken'),'quantity',1,'unit_price',1))))->>'total')::numeric,1220,'M3 quotes ignore client prices and totals');
+select expect_fail($$select quote_order(jsonb_build_object('items',jsonb_build_array(jsonb_build_object('variant_id',v('BBQ Burger'),'quantity',0))))$$,'M3 zero item quantity refused');

@@ -185,7 +185,7 @@ PGURL=postgres://postgres@localhost:5432/postgres ./scripts/db-test.sh
 
 Uses any local Postgres 15+ (install, or `docker run -d -p 5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust postgres:16`).
 It builds a throwaway database from schema, migrations and seed, runs go-live (opening balances, debts,
-a dollar loan) and a full day through all three roles, then prints "All 42 database checks passed" or
+a dollar loan) and a full day through all three roles, then prints "All N database checks passed" or
 the failing lines and exits with an error. Run it after every database change. Never point it at the live project.
 
 ## M1 — sign-in, roles and staff
@@ -345,3 +345,75 @@ behavior must also be checked on a phone.
   the preview before importing, then check the saved prices and history.
 
 Do not commit or push M2 until the user replies approved.
+
+## M3 — new order and payment
+
+Operations and Admin take orders at `/order`, then pay at `/order/pay`.
+Layouts follow Main.dc.html and Checkout.dc.html; supporting layouts and the
+approved rate choice are documented in `docs/ORDER_DESIGN.md`.
+
+### Manual Supabase setup
+
+Run these entire files once, in this order after M2:
+
+1. `supabase/migrations/003_order_quote.sql` — read-only `quote_order`, database
+   percentage discounts, atomic `create_order` and optional idempotent requests.
+2. `supabase/migrations/004_order_request_privacy.sql` — converts request metadata
+   to an opaque SHA-256 hash, preserving previously saved orders and retries.
+   Full submitted payment payloads are not exposed through the orders table.
+
+No RLS policy is weakened, no delete path is added, and the original schema stays
+untouched. `create_order` keeps `require_role`, numbering locks, item snapshots,
+`add_order_payment` and audit. Quotes write no orders, payments or audit records.
+Checkout stays disabled until the required privacy column is present.
+No Edge Function deployment is needed. Regenerate public database types after
+both migrations are applied.
+
+### Saving and recovery
+
+The cart sends item/variant IDs, quantities and extra IDs; menu prices, line totals,
+subtotal, discount, total and amount due come from the database. Percent discounts
+are computed from the same priced snapshot as the saved items. A changed quote
+is refused and refreshed for review. Each save uses an independent request UUID.
+Repeating it returns the same order without posting any payment twice; changed
+content cannot reuse a completed request.
+
+Drafts and pending requests are saved per staff user in that browser tab's
+sessionStorage. If an RPC response is lost, keep the page or reload it, then
+press Retry save; the original request is retained. A definite database error
+confirms rollback and allows editing. If local storage is unavailable, the app
+asks staff to keep the page open until confirmation. Saved confirmation reads
+orders, stored order_items and v_order_payments; it never uses a live menu price.
+
+Foreign payments use entered amount received and lira covered. Guidance shows
+the latest Admin-set default dated no later than the business day, with its date.
+An absent rate says Not set; no exchange rate is guessed. Defaults are managed
+in M5. The confirmed implied rate is stored by the existing payment function.
+
+### M3 verification and phone checks
+
+The required suite now has **140 database checks**: the previous 102 unchanged
+assertions plus 38 quote/discount/payment/retry/privacy checks. Browser tests use
+intercepted API responses; database scenario tests exercise the real functions
+in a disposable local database. Hosted end-to-end behavior needs phone review.
+
+On the same Wi-Fi, use the Network URL printed by Vite and sign in as Operations
+(and verify Admin can take orders too). Walk through each M3 Done when item:
+
+- Time a three-item order; target under 15 seconds on the phone.
+- At seeded prices: 2 × BBQ Burger + 1 × Jollof Rice + Chicken is ₺1,220. The
+  Chicken is included in that rice product's price; do not add another Chicken
+  extra. Vegetable Soup + Swallow + Fish is ₺580 when Fish is ₺180. If you changed
+  Fish to ₺200 during M2 review, that soup total correctly becomes ₺600.
+- Cash ₺780 plus Naira ₦15,000 covering ₺410 leaves ₺30 due, both before saving
+  and in the saved confirmation. Confirm the daily order number and business date.
+- Try adding more than is due and verify the database's message appears.
+- Fish can be ordered alone from Extras. Deactivate a test item/variant/category
+  and confirm it disappears; earlier confirmations retain their stored snapshot.
+
+Also test delivery address validation, a percent discount with a reason, a dollar
+payment, and Save as unpaid after drafting a payment (confirmation must show no
+received money). Logistics must be denied `/order` and `/order/pay`. The orders
+board, subsequent payments, cancellation and delivery status changes remain M4.
+
+Do not commit or push M3 until the user replies approved after review.

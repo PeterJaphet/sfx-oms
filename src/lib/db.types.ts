@@ -606,6 +606,8 @@ export type Database = {
           cancelled_at: string | null
           cancelled_by: string | null
           channel: Database["public"]["Enums"]["order_channel"]
+          client_request_hash: string | null
+          client_request_id: string | null
           completed_at: string | null
           created_at: string
           created_by: string
@@ -632,6 +634,8 @@ export type Database = {
           cancelled_at?: string | null
           cancelled_by?: string | null
           channel: Database["public"]["Enums"]["order_channel"]
+          client_request_hash?: string | null
+          client_request_id?: string | null
           completed_at?: string | null
           created_at?: string
           created_by: string
@@ -658,6 +662,8 @@ export type Database = {
           cancelled_at?: string | null
           cancelled_by?: string | null
           channel?: Database["public"]["Enums"]["order_channel"]
+          client_request_hash?: string | null
+          client_request_id?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string
@@ -1418,6 +1424,8 @@ export type Database = {
           cancelled_at: string | null
           cancelled_by: string | null
           channel: Database["public"]["Enums"]["order_channel"]
+          client_request_hash: string | null
+          client_request_id: string | null
           completed_at: string | null
           created_at: string
           created_by: string
@@ -1481,6 +1489,8 @@ export type Database = {
           cancelled_at: string | null
           cancelled_by: string | null
           channel: Database["public"]["Enums"]["order_channel"]
+          client_request_hash: string | null
+          client_request_id: string | null
           completed_at: string | null
           created_at: string
           created_by: string
@@ -1641,6 +1651,7 @@ export type Database = {
         }
         Returns: number
       }
+      quote_order: { Args: { p_order: Json }; Returns: Json }
       record_debt: {
         Args: {
           p_account?: number
@@ -1746,6 +1757,8 @@ export type Database = {
           cancelled_at: string | null
           cancelled_by: string | null
           channel: Database["public"]["Enums"]["order_channel"]
+          client_request_hash: string | null
+          client_request_id: string | null
           completed_at: string | null
           created_at: string
           created_by: string

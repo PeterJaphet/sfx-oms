@@ -8,6 +8,9 @@ import { RouteGuard } from '@/features/auth/RouteGuard'
 import { homeRoutes, pages } from '@/features/auth/permissions'
 import { StaffPage } from '@/features/admin/StaffPage'
 
+const OrderLayout = lazy(() => import('@/features/orders/OrderLayout'))
+const NewOrderPage = lazy(() => import('@/features/orders/NewOrderPage'))
+const PaymentPage = lazy(() => import('@/features/orders/PaymentPage'))
 const MenuPage = lazy(() => import('@/features/menu/MenuPage'))
 
 function Home() {
@@ -22,7 +25,11 @@ export default function App() {
     <Route path="/login" element={<LoginPage />} />
     <Route element={<RouteGuard><AppShell /></RouteGuard>}>
       <Route path="/" element={<Home />} />
-      {pages.map(page => <Route key={page.path} path={page.path} element={<RouteGuard path={page.path}>{page.path === '/staff' ? <StaffPage /> : page.path === '/menu' ? <Suspense fallback={<p role="status">Loading menu…</p>}><MenuPage /></Suspense> : <Placeholder title={page.label} />}</RouteGuard>} />)}
+      <Route path="/order" element={<RouteGuard path="/order"><Suspense fallback={<p role="status">Loading order…</p>}><OrderLayout /></Suspense></RouteGuard>}>
+        <Route index element={<Suspense fallback={<p role="status">Loading menu…</p>}><NewOrderPage /></Suspense>} />
+        <Route path="pay" element={<RouteGuard path="/order/pay"><Suspense fallback={<p role="status">Loading payment…</p>}><PaymentPage /></Suspense></RouteGuard>} />
+      </Route>
+      {pages.filter(page => page.path !== '/order' && page.path !== '/order/pay').map(page => <Route key={page.path} path={page.path} element={<RouteGuard path={page.path}>{page.path === '/staff' ? <StaffPage /> : page.path === '/menu' ? <Suspense fallback={<p role="status">Loading menu…</p>}><MenuPage /></Suspense> : <Placeholder title={page.label} />}</RouteGuard>} />)}
       <Route path="/money/withdraw" element={<Navigate to="/money" replace />} />
       <Route path="*" element={<section><h1 className="text-[26px] font-extrabold">Page not found</h1><p className="mt-2 text-ink-2">Choose a page from your navigation.</p></section>} />
     </Route>
