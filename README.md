@@ -479,3 +479,64 @@ WhatsApp sharing preview. Confirm deactivated menu items still appear with their
 original prices on old order cards/details (the remaining M2 phone check).
 
 No M4 commit/push until the user approves these checks.
+
+## M5 — accounts, withdrawals, approvals and rates
+
+Money now includes seven own-currency balances and server TRY estimates, account history,
+withdrawals with receipts and server balance previews, withdrawal history, recent Expenses,
+Admin approval count/queue, transfers, signed adjustments, entry reversals, dated USD/NGN defaults
+and approval settings. Supporting layouts are in `docs/MONEY_DESIGN.md`. Categories are required
+for both withdrawal types, as approved by the user. Opening balances remain M7.
+
+### Manual Supabase step
+
+Run the complete `supabase/migrations/006_m5_money_support.sql` once after 005. It is installed
+in `lnolchqycicixjikolfi`; public database types were regenerated from that project. No Edge
+Function deployment is needed. The original schema and migrations 001–005 are unchanged.
+
+The new read-only `quote_withdrawal` returns amounts, approval status, balances and a preview
+fingerprint. `run_money_action` delegates to the original role-checked money functions and stores
+only an opaque payload hash and compact confirmation in a private, immutable request table.
+A stale withdrawal preview is rejected. Repeating a confirmed request returns its original result
+before checking later balances. Account locks serialize outgoing postings; a concurrent request
+cannot spend an obsolete balance. New settings/rate/transfer audit events supplement existing
+withdrawal/adjustment/reversal audit. No RLS policy or role guard is weakened.
+
+Pending requests are stored in per-user sessionStorage before sending. If the response is lost,
+keep the tab or reload it and use Retry money confirmation; other money writes stay paused.
+Storage failure prevents the request being sent. A definite database rejection permits editing.
+Approval posts at the withdrawal's recorded rate, with another balance check. Transfers post both
+sides atomically. Adjustments/reversals do not change permanent ledger rows.
+
+Optional receipt uploads use the original private receipts bucket and its existing policies.
+The app prepares a unique JPEG under `<staff UUID>/<business date>/<image UUID>.jpg`, then saves
+the withdrawal. Preview URLs last ten minutes. A failed save may leave an unreferenced private
+upload. Real hosted Storage and phone file-selection behavior require the phone check.
+
+### Verification and phone acceptance
+
+Run the four required checks plus build. M5 adds 21 unit tests (157 total) and 64 database checks
+(230 total). All prior assertions remain; the old advance fixture now supplies the category
+required by the user's decision. The database runner also loads storage.sql to exercise receipt
+access. A separate two-session test proved only one of two simultaneous 80-unit withdrawals from
+100 succeeds: final balance 20, one withdrawal.
+
+Browser checks use simulated Auth and a REST bridge to actual RPCs/RLS in an isolated PostgreSQL
+database, without hosted financial writes. They cover all three Done when items, Admin tools,
+private receipt upload/preview, lost-response retry after reload, roles and 360/390/430/1280 widths.
+
+On a phone, sign in with your Operations and Admin test accounts and walk each Done when item:
+
+1. With an account holding at least ₺2,500 and the approval limit at ₺2,000, Operations submits a
+   ₺2,500 request. Confirm Waiting for approval and the unchanged balance. Admin approves from
+   Approvals; confirm the count drops and the balance decreases once.
+2. Enter more than the account balance. Confirm saving is blocked and the database's message
+   includes the balance. Do not change an opening balance to fund tests; Admin can post a clearly
+   named test adjustment and reverse that entry afterward.
+3. Save a direct expense with a category; Expenses must show that category. Save an advance to a
+   staff member; it must appear in Withdrawals and not Expenses.
+
+Also check a phone receipt upload and preview, last 20 account entries, a foreign transfer,
+adjustment/reversal, daily exchange rates and approval settings. Logistics must be denied Money;
+Operations must be denied Admin tools/Approvals. These are test financial records: corrections
+use the normal reversal tools. No M5 commit/push until the user replies approved after review.

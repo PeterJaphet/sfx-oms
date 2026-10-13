@@ -525,6 +525,41 @@ export type Database = {
           },
         ]
       }
+      money_requests: {
+        Row: {
+          action: string
+          actor_id: string
+          created_at: string
+          request_hash: string
+          request_id: string
+          result: Json
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          created_at?: string
+          request_hash: string
+          request_id: string
+          result: Json
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          created_at?: string
+          request_hash?: string
+          request_id?: string
+          result?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "money_requests_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           addons: Json
@@ -1685,6 +1720,11 @@ export type Database = {
         }
       }
       m1_session_active: { Args: never; Returns: boolean }
+      m5_amount: {
+        Args: { p_amount: number; p_positive?: boolean }
+        Returns: undefined
+      }
+      m5_rate: { Args: { p_rate: number }; Returns: undefined }
       post_entry: {
         Args: {
           p_account: number
@@ -1703,6 +1743,7 @@ export type Database = {
         Returns: number
       }
       quote_order: { Args: { p_order: Json }; Returns: Json }
+      quote_withdrawal: { Args: { p: Json }; Returns: Json }
       record_debt: {
         Args: {
           p_account?: number
@@ -1791,8 +1832,27 @@ export type Database = {
         Args: { p_purchase: string; p_reason: string }
         Returns: undefined
       }
+      run_money_action: {
+        Args: { p: Json; p_action: string; p_request_id: string }
+        Returns: Json
+      }
       save_menu_extra: { Args: { p_extra: Json }; Returns: string }
       save_menu_product: { Args: { p_product: Json }; Returns: string }
+      set_approval_limit: {
+        Args: { p_limit: number }
+        Returns: {
+          advance_max_age_days: number
+          id: boolean
+          updated_at: string
+          withdrawal_approval_limit_try: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "settings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       set_fx_rate: {
         Args: { p_currency: string; p_rate: number }
         Returns: undefined

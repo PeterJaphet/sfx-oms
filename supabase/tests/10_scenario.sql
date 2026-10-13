@@ -65,7 +65,7 @@ select status from set_order_status((select id from orders where daily_number=2)
 select expect_fail($$select set_order_status((select id from orders where daily_number=2), 'completed')$$, 'ops completing a delivery');
 
 -- ===== OPERATIONS: money out =====
-select kind, amount, status from create_withdrawal('advance', 1::smallint, 1000, 'Buy chicken and burger bread', null, '00000000-0000-0000-0000-00000000000c');
+select kind, amount, status from create_withdrawal('advance', 1::smallint, 1000, 'Buy chicken and burger bread', cat('Meat, chicken & offal'), '00000000-0000-0000-0000-00000000000c');
 select kind, amount, status from create_withdrawal('direct_expense', 1::smallint, 150, 'Gas cylinder refill', cat('Gas'));
 select check_eq((select count(*) from create_withdrawal('direct_expense', 2::smallint, 2500, 'Freezer repair', cat('Equipment maintenance')) where status = 'pending_approval'), 1, 'withdrawal over ₺2,000 waits for approval');
 select expect_fail($$select create_withdrawal('direct_expense', 1::smallint, 999999, 'Too much', cat('Gas'))$$, 'withdraw more than balance');
@@ -375,3 +375,108 @@ select expect_fail($$select cancel_order((select id from m4_delivery),'Duplicate
 select check_eq(has_function_privilege('anon','list_delivery_orders()','execute')::int,0,'M4 anonymous cannot read delivery projection');
 select check_eq(has_function_privilege('anon','add_order_payment(uuid,smallint,numeric,numeric,uuid)','execute')::int,0,'M4 anonymous cannot add payment');
 select check_eq((select count(*) from order_payment_requests),0,'M4 retry metadata unreadable even by client Admin');
+
+-- ===== M5: money previews, approvals, request safety, audit, role guards =====
+-- The earlier advance fixture now supplies the user-required category; no prior assertion changed.
+select as_user('00000000-0000-0000-0000-00000000000a');
+select adjust_balance(1::smallint,15000,'M5 isolated test funds');
+select balance as m5_cash_before from v_account_balances where id=1 \gset
+create temp table m5_payloads(name text primary key,p jsonb);
+insert into m5_payloads values('pending',jsonb_build_object('kind','direct_expense','account_id',1,'amount','2500','purpose','M5 repair request','category_id',cat('Gas')));
+select as_user('00000000-0000-0000-0000-00000000000b');
+select check_eq((quote_withdrawal((select p from m5_payloads where name='pending'))->>'needs_approval')::boolean::int,1,'M5 2500 preview needs approval');
+select check_eq((quote_withdrawal((select p from m5_payloads where name='pending'))->>'balance_after')::numeric,:m5_cash_before,'M5 pending preview leaves balance unchanged');
+select check_eq((quote_withdrawal((select p from m5_payloads where name='pending'))->>'balance_if_approved')::numeric,:m5_cash_before-2500,'M5 preview shows approved balance');
+select check_eq((select balance from v_account_balances where id=1),:m5_cash_before,'M5 preview posts nothing');
+insert into m5_payloads values('pending-token',(select p||jsonb_build_object('quote_token',quote_withdrawal(p)->>'quote_token') from m5_payloads where name='pending'));
+create temp table m5_pending as select run_money_action('withdraw',(select p from m5_payloads where name='pending-token'),'60000000-0000-4000-8000-000000000001') as result;
+select check_eq((select count(*) from withdrawals where id=(select (result->>'id')::uuid from m5_pending) and status='pending_approval'),1,'M5 request is pending');
+select check_eq((select balance from v_account_balances where id=1),:m5_cash_before,'M5 pending request posts no money');
+select run_money_action('withdraw',(select p from m5_payloads where name='pending-token'),'60000000-0000-4000-8000-000000000001');
+select check_eq((select count(*) from withdrawals where purpose='M5 repair request'),1,'M5 withdrawal retry creates one request');
+select expect_fail($$select run_money_action('withdraw',(select p||'{"amount":"2501"}' from m5_payloads where name='pending-token'),'60000000-0000-4000-8000-000000000001')$$,'M5 changed request content refused');
+select expect_fail($$select run_money_action('decide',jsonb_build_object('withdrawal_id',(select result->>'id' from m5_pending),'approve',true),'60000000-0000-4000-8000-000000000002')$$,'M5 Operations cannot approve');
+select expect_fail($$select quote_withdrawal('{"kind":"advance","account_id":1,"amount":"10","purpose":"No category","recipient_id":"00000000-0000-0000-0000-00000000000c"}')$$,'M5 advance preview requires category');
+select expect_fail($$select create_withdrawal('advance',1::smallint,10,'Missing category',null,'00000000-0000-0000-0000-00000000000c')$$,'M5 advance write requires category');
+select expect_fail($$select quote_withdrawal((select p||'{"amount":"99999999"}' from m5_payloads where name='pending'))$$,'M5 excessive withdrawal rejected with balance');
+select expect_fail($$select create_withdrawal('direct_expense',1::smallint,0.001,'Sub-cent amount',cat('Gas'))$$,'M5 sub-cent withdrawal rejected');
+select expect_fail($$select create_withdrawal('direct_expense',1::smallint,-1,'Negative amount',cat('Gas'))$$,'M5 negative withdrawal rejected');
+select expect_fail($$select create_withdrawal('direct_expense',1::smallint,'NaN','Nonfinite amount',cat('Gas'))$$,'M5 nonfinite withdrawal rejected');
+select expect_fail($$select create_withdrawal('advance',1::smallint,10,'Unknown recipient',cat('Gas'),'00000000-0000-0000-0000-000000000099')$$,'M5 advance needs active recipient');
+select expect_fail($$select create_withdrawal('direct_expense',1::smallint,10,'Bad receipt path',cat('Gas'),null,null,'someone-else/test.jpg')$$,'M5 receipt must be real and owned');
+select check_eq((quote_withdrawal(jsonb_build_object('kind','direct_expense','account_id',4,'amount','1','purpose','M5 USD quote','category_id',cat('Gas')))->>'amount_try')::numeric,47.90,'M5 USD preview uses latest default');
+select check_eq((quote_withdrawal(jsonb_build_object('kind','direct_expense','account_id',4,'amount','1','rate','48','purpose','M5 explicit rate','category_id',cat('Gas')))->>'amount_try')::numeric,48,'M5 explicit confirmed withdrawal rate');
+insert into m5_payloads values('stale',(select p||jsonb_build_object('quote_token',quote_withdrawal(p)->>'quote_token') from m5_payloads where name='pending'));
+select as_user('00000000-0000-0000-0000-00000000000a');
+select run_money_action('decide',jsonb_build_object('withdrawal_id',(select result->>'id' from m5_pending),'approve',true,'note','Approved repair'),'60000000-0000-4000-8000-000000000002');
+select check_eq((select balance from v_account_balances where id=1),:m5_cash_before-2500,'M5 balance changes after approval');
+select run_money_action('decide',jsonb_build_object('withdrawal_id',(select result->>'id' from m5_pending),'approve',true,'note','Approved repair'),'60000000-0000-4000-8000-000000000002');
+select check_eq((select count(*) from ledger_entries where withdrawal_id=(select (result->>'id')::uuid from m5_pending)),1,'M5 approval retry posts once');
+select expect_fail($$select run_money_action('withdraw',(select p from m5_payloads where name='stale'),'60000000-0000-4000-8000-000000000003')$$,'M5 changed balance preview refused');
+select check_eq((select amount_try from v_expenses where id=(select (result->>'id')::uuid from m5_pending)),2500,'M5 approved direct expense visible');
+select check_eq((select count(*) from v_expenses where id=(select (result->>'id')::uuid from m5_pending) and category='Gas'),1,'M5 expense has correct category');
+create temp table m5_advance as select saved.* from create_withdrawal('advance',1::smallint,50,'M5 category advance',cat('Meat, chicken & offal'),'00000000-0000-0000-0000-00000000000c') saved;
+select check_eq((select count(*) from v_expenses where id=(select id from m5_advance)),0,'M5 advance is not an expense');
+select check_eq((select category_id from m5_advance),cat('Meat, chicken & offal'),'M5 advance stores category');
+select expect_fail($$select transfer_between_accounts(1::smallint,2::smallint,-1)$$,'M5 negative transfer refused');
+select expect_fail($$select transfer_between_accounts(1::smallint,2::smallint,10,9)$$,'M5 same-currency mismatch refused');
+select expect_fail($$select transfer_between_accounts(1::smallint,4::smallint,100)$$,'M5 foreign transfer needs received amount');
+select expect_fail($$select transfer_between_accounts(1::smallint,1::smallint,10)$$,'M5 same-account transfer refused');
+select balance as m5_cash_pre_transfer from v_account_balances where id=1 \gset
+select balance as m5_usd_pre_transfer from v_account_balances where id=4 \gset
+select run_money_action('transfer','{"from_account":1,"to_account":4,"amount_from":"479","amount_to":"10","note":"M5 conversion"}','60000000-0000-4000-8000-000000000004');
+select run_money_action('transfer','{"from_account":1,"to_account":4,"amount_from":"479","amount_to":"10","note":"M5 conversion"}','60000000-0000-4000-8000-000000000004');
+select check_eq((select balance from v_account_balances where id=1),:m5_cash_pre_transfer-479,'M5 transfer source debited once');
+select check_eq((select balance from v_account_balances where id=4),:m5_usd_pre_transfer+10,'M5 transfer destination credited once');
+select check_eq((select count(*) from account_transfers where note='M5 conversion'),1,'M5 transfer retry keeps one transfer');
+select expect_fail($$select adjust_balance(1::smallint,0.001,'Sub-cent adjustment')$$,'M5 sub-cent adjustment refused');
+select balance as m5_cash_pre_adjust from v_account_balances where id=1 \gset
+create temp table m5_adjust as select run_money_action('adjust','{"account_id":1,"amount":"12.50","reason":"M5 till correction"}','60000000-0000-4000-8000-000000000005') as result;
+select run_money_action('adjust','{"account_id":1,"amount":"12.50","reason":"M5 till correction"}','60000000-0000-4000-8000-000000000005');
+select check_eq((select balance from v_account_balances where id=1),:m5_cash_pre_adjust+12.5,'M5 adjustment retry posts once');
+select expect_fail($$select reverse_entry((select (result->>'id')::bigint from m5_adjust),'')$$,'M5 reversal needs reason');
+select run_money_action('reverse',jsonb_build_object('entry_id',(select result->>'id' from m5_adjust),'reason','M5 undo correction'),'60000000-0000-4000-8000-000000000006');
+select run_money_action('reverse',jsonb_build_object('entry_id',(select result->>'id' from m5_adjust),'reason','M5 undo correction'),'60000000-0000-4000-8000-000000000006');
+select check_eq((select balance from v_account_balances where id=1),:m5_cash_pre_adjust,'M5 reversal retry posts once');
+select expect_fail($$select set_fx_rate('USD',0)$$,'M5 zero rate refused');
+select expect_fail($$select set_fx_rate('EUR',1)$$,'M5 unsupported default currency refused');
+select expect_fail($$select set_fx_rate('NGN',0.0000001)$$,'M5 overprecision rate refused');
+select run_money_action('rate','{"currency":"USD","rate":"48"}','60000000-0000-4000-8000-000000000007');
+select run_money_action('rate','{"currency":"USD","rate":"48"}','60000000-0000-4000-8000-000000000007');
+select check_eq((select rate_to_try from fx_rates where currency='USD' and effective_date=business_date()),48,'M5 rate saved on server business date');
+select check_eq((select count(*) from activity_log where action='account.transfer' and details->>'amount_from'='479'),1,'M5 transfer audited once');
+select check_eq((select count(*) from activity_log where action='fx_rate.set' and details->'after'->>'rate_to_try'='48.000000'),1,'M5 rate change audited once');
+select run_money_action('limit','{"limit":"3000"}','60000000-0000-4000-8000-000000000008');
+select check_eq((select withdrawal_approval_limit_try from settings),3000,'M5 Admin can change approval limit');
+select check_eq((select count(*) from activity_log where action='settings.update' and details->'after'->>'withdrawal_approval_limit_try'='3000.00'),1,'M5 limit change audited');
+select expect_fail($$select set_approval_limit(-1)$$,'M5 invalid limit refused');
+select expect_fail($$select run_money_action('arbitrary','{}','60000000-0000-4000-8000-000000000099')$$,'M5 dispatcher cannot write arbitrary tables');
+select check_eq((select count(*) from money_requests),0,'M5 recovery metadata has no client read policy');
+select check_eq(has_function_privilege('anon','run_money_action(text,jsonb,uuid)','execute')::int,0,'M5 anonymous cannot run money actions');
+select check_eq(has_function_privilege('authenticated','m5_amount(numeric,boolean)','execute')::int,0,'M5 validation helper is private');
+select set_approval_limit(2000);
+select as_user('00000000-0000-0000-0000-00000000000b');
+select expect_fail($$select set_approval_limit(3000)$$,'M5 Operations cannot change limit');
+select expect_fail($$select run_money_action('adjust','{"account_id":1,"amount":"1","reason":"Forbidden"}','60000000-0000-4000-8000-000000000010')$$,'M5 Operations cannot adjust');
+select as_user('00000000-0000-0000-0000-00000000000c');
+select expect_fail($$select quote_withdrawal((select p from m5_payloads where name='pending'))$$,'M5 Logistics cannot preview withdrawal');
+select expect_fail($$select run_money_action('withdraw',(select p from m5_payloads where name='pending'),'60000000-0000-4000-8000-000000000011')$$,'M5 Logistics cannot withdraw');
+select expect_fail($$insert into ledger_entries(account_id,entry_type,amount,rate_to_try,amount_try,created_by) values(1,'direct_expense',-999999,1,-999999,auth.uid())$$,'M5 direct ledger writes remain denied');
+
+-- M5 receipt bucket uses the original storage.sql policies, unchanged.
+select as_user('00000000-0000-0000-0000-00000000000b');
+insert into storage.objects(bucket_id,name) values('receipts',auth.uid()::text||'/'||business_date()||'/m5-test.jpg');
+select check_eq((select count(*) from storage.objects where bucket_id='receipts'),1,'M5 Operations uploads own receipt');
+select expect_fail($$insert into storage.objects(bucket_id,name) values('receipts','someone-else/m5.jpg')$$,'M5 receipt upload rejects another folder');
+select id from create_withdrawal('direct_expense',1::smallint,1,'M5 uploaded receipt',cat('Gas'),null,null,auth.uid()::text||'/'||business_date()||'/m5-test.jpg');
+select check_eq((select count(*) from withdrawals where purpose='M5 uploaded receipt' and receipt_path is not null),1,'M5 real receipt attaches to withdrawal');
+with changed as(update storage.objects set name='changed.jpg' where bucket_id='receipts' returning id)select check_eq((select count(*) from changed),0,'M5 receipt files cannot be overwritten');
+with changed as(delete from storage.objects where bucket_id='receipts' returning id)select check_eq((select count(*) from changed),0,'M5 receipt files cannot be deleted');
+select as_user('00000000-0000-0000-0000-00000000000a');
+select check_eq((select count(*) from storage.objects where bucket_id='receipts'),1,'M5 Admin reads staff receipts');
+select as_user('00000000-0000-0000-0000-00000000000c');
+select check_eq((select count(*) from storage.objects where bucket_id='receipts'),0,'M5 Logistics cannot read Operations receipt');
+insert into storage.objects(bucket_id,name) values('receipts',auth.uid()::text||'/'||business_date()||'/own-test.jpg');
+select check_eq((select count(*) from storage.objects where bucket_id='receipts'),1,'M5 Logistics sees only own receipt');
+select as_user('00000000-0000-0000-0000-00000000000a');
+select check_eq((select count(*) from storage.buckets where id='receipts' and not public and file_size_limit=5242880),1,'M5 original receipts bucket remains private and capped');

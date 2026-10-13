@@ -24,6 +24,7 @@ psql "$TESTURL" -q -v ON_ERROR_STOP=1 -f "$ROOT/supabase/schema.sql" >/dev/null
 for f in "$ROOT"/supabase/migrations/*.sql; do
   [ -e "$f" ] && psql "$TESTURL" -q -v ON_ERROR_STOP=1 -f "$f" >/dev/null
 done
+psql "$TESTURL" -q -v ON_ERROR_STOP=1 -f "$ROOT/supabase/storage.sql" >/dev/null
 psql "$TESTURL" -q -v ON_ERROR_STOP=1 -f "$ROOT/supabase/seed.sql" >/dev/null
 
 OUT="$(psql "$TESTURL" -q -f "$ROOT/supabase/tests/10_scenario.sql" 2>&1 || true)"
