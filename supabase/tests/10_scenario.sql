@@ -333,3 +333,45 @@ select check_eq((select count(*) from information_schema.columns where table_sch
 
 select check_eq((quote_order(jsonb_build_object('total',1,'subtotal',1,'items',jsonb_build_array(jsonb_build_object('variant_id',v('BBQ Burger'),'quantity',2,'unit_price',1),jsonb_build_object('variant_id',v('Jollof Rice + Chicken'),'quantity',1,'unit_price',1))))->>'total')::numeric,1220,'M3 quotes ignore client prices and totals');
 select expect_fail($$select quote_order(jsonb_build_object('items',jsonb_build_array(jsonb_build_object('variant_id',v('BBQ Burger'),'quantity',0))))$$,'M3 zero item quantity refused');
+
+-- ===== M4: delivery visibility, payments, status, refund permissions =====
+select as_user('00000000-0000-0000-0000-00000000000b');
+create temp table m4_delivery as select saved.* from create_order(jsonb_build_object('channel','phone','order_type','delivery','delivery_address','M4 test address','customer_name','M4 Customer',
+ 'items',jsonb_build_array(jsonb_build_object('variant_id',v('BBQ Burger'))),'payments',jsonb_build_array(jsonb_build_object('account_id',1,'amount_try',100)))) saved;
+create temp table m4_receipt(eid bigint);
+insert into m4_receipt select add_order_payment((select id from m4_delivery),7::smallint,100,5000,'40000000-0000-4000-8000-000000000001');
+select check_eq(add_order_payment((select id from m4_delivery),7::smallint,100,5000,'40000000-0000-4000-8000-000000000001'),(select eid from m4_receipt),'M4 retry returns original ledger entry');
+select check_eq((select count(*) from ledger_entries where order_id=(select id from m4_delivery)),2,'M4 retry never duplicates payment');
+select expect_fail($$select add_order_payment((select id from m4_delivery),7::smallint,101,5000,'40000000-0000-4000-8000-000000000001')$$,'M4 changed payment retry refused');
+select expect_fail($$select add_order_payment((select id from m4_delivery),1::smallint,201,null,'40000000-0000-4000-8000-000000000002')$$,'M4 overpayment retains database guard');
+select expect_fail($$select add_order_payment((select id from m4_delivery),1::smallint,1.001,null,'40000000-0000-4000-8000-000000000002')$$,'M4 sub-cent payment refused');
+select expect_fail($$select add_order_payment((select id from m4_delivery),7::smallint,1,'NaN','40000000-0000-4000-8000-000000000002')$$,'M4 nonfinite payment refused');
+select expect_fail($$select add_order_payment((select id from m4_delivery),7::smallint,1,null,'40000000-0000-4000-8000-000000000002')$$,'M4 foreign amount required');
+select expect_fail($$select cancel_order((select id from m4_delivery),'Ops cannot refund')$$,'M4 Operations cannot cancel partially paid delivery');
+select status from set_order_status((select id from m4_delivery),'preparing');
+select status from set_order_status((select id from m4_delivery),'ready');
+select expect_fail($$select list_delivery_orders()$$,'M4 Operations cannot call Logistics projection');
+select expect_fail($$select set_order_status((select id from m4_delivery),'picked_up')$$,'M4 Operations cannot pick up delivery');
+select as_user('00000000-0000-0000-0000-00000000000c');
+select check_eq((select (x->>'balance_due')::numeric from jsonb_array_elements(list_delivery_orders()) x where x->>'id'=(select id::text from m4_delivery)),200,'M4 Logistics sees true partially paid due');
+select check_eq((select (x->>'paid_try')::numeric from jsonb_array_elements(list_delivery_orders()) x where x->>'id'=(select id::text from m4_delivery)),200,'M4 Logistics sees true paid total');
+select check_eq((select count(*) from ledger_entries where order_id=(select id from m4_delivery)),0,'M4 Logistics still cannot read order ledger');
+select check_eq((select count(*) from jsonb_array_elements(list_delivery_orders()) x where x->>'order_type'<>'delivery' or x->>'status' not in ('ready','picked_up')),0,'M4 projection only exposes active deliveries');
+select check_eq((select count(*) from jsonb_array_elements(list_delivery_orders()) x where x ? 'client_request_hash' or x ? 'payments' or x ? 'paid_via'),0,'M4 projection has no request or account details');
+select expect_fail($$select add_order_payment((select id from m4_delivery),1::smallint,1,null,'40000000-0000-4000-8000-000000000003')$$,'M4 Logistics cannot take payment');
+select status from set_order_status((select id from m4_delivery),'picked_up');
+select check_eq((select count(*) from jsonb_array_elements(list_delivery_orders()) x where x->>'id'=(select id::text from m4_delivery)),1,'M4 picked-up delivery remains on board');
+select status from set_order_status((select id from m4_delivery),'completed');
+select check_eq((select count(*) from jsonb_array_elements(list_delivery_orders()) x where x->>'id'=(select id::text from m4_delivery)),0,'M4 completed delivery leaves board');
+select as_user('00000000-0000-0000-0000-00000000000a');
+select check_eq((select count(*) from activity_log where action='order.payment' and entity_id=(select id::text from m4_delivery)),2,'M4 payments each audited once');
+select balance as m4_cash_before from v_account_balances where id=1 \gset
+select balance as m4_naira_before from v_account_balances where id=7 \gset
+select status from cancel_order((select id from m4_delivery),'Admin voids completed delivery');
+select check_eq((select balance from v_account_balances where id=1),:m4_cash_before-100,'M4 Admin refund reduces Cash by original receipt');
+select check_eq((select balance from v_account_balances where id=7),:m4_naira_before-5000,'M4 Admin refund reduces Naira by original receipt');
+select check_eq((select paid_try from v_order_payments where id=(select id from m4_delivery)),0,'M4 voided payment total is zero');
+select expect_fail($$select cancel_order((select id from m4_delivery),'Duplicate refund')$$,'M4 double cancellation refused');
+select check_eq(has_function_privilege('anon','list_delivery_orders()','execute')::int,0,'M4 anonymous cannot read delivery projection');
+select check_eq(has_function_privilege('anon','add_order_payment(uuid,smallint,numeric,numeric,uuid)','execute')::int,0,'M4 anonymous cannot add payment');
+select check_eq((select count(*) from order_payment_requests),0,'M4 retry metadata unreadable even by client Admin');

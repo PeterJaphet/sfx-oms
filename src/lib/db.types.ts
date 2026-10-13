@@ -599,6 +599,45 @@ export type Database = {
           },
         ]
       }
+      order_payment_requests: {
+        Row: {
+          actor_id: string
+          created_at: string
+          ledger_entry_id: number
+          request_hash: string
+          request_id: string
+        }
+        Insert: {
+          actor_id: string
+          created_at?: string
+          ledger_entry_id: number
+          request_hash: string
+          request_id: string
+        }
+        Update: {
+          actor_id?: string
+          created_at?: string
+          ledger_entry_id?: number
+          request_hash?: string
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_payment_requests_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_payment_requests_ledger_entry_id_fkey"
+            columns: ["ledger_entry_id"]
+            isOneToOne: false
+            referencedRelation: "ledger_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           business_date: string
@@ -1384,15 +1423,26 @@ export type Database = {
     }
     Functions: {
       account_balance: { Args: { p_account: number }; Returns: number }
-      add_order_payment: {
-        Args: {
-          p_account: number
-          p_amount?: number
-          p_amount_try: number
-          p_order: string
-        }
-        Returns: number
-      }
+      add_order_payment:
+        | {
+            Args: {
+              p_account: number
+              p_amount?: number
+              p_amount_try: number
+              p_order: string
+            }
+            Returns: number
+          }
+        | {
+            Args: {
+              p_account: number
+              p_amount: number
+              p_amount_try: number
+              p_order: string
+              p_request_id: string
+            }
+            Returns: number
+          }
       adjust_balance: {
         Args: {
           p_account: number
@@ -1598,6 +1648,7 @@ export type Database = {
         }[]
       }
       import_menu_products: { Args: { p_rows: Json }; Returns: number }
+      list_delivery_orders: { Args: never; Returns: Json }
       log_activity: {
         Args: {
           p_action: string

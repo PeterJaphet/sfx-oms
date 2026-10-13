@@ -417,3 +417,65 @@ received money). Logistics must be denied `/order` and `/order/pay`. The orders
 board, subsequent payments, cancellation and delivery status changes remain M4.
 
 Do not commit or push M3 until the user replies approved after review.
+
+## M4 — orders board and deliveries
+
+Operations/Admin use `/orders`: today by database business date, status counts,
+search, channel/account/date filters, snapshot details, next-status actions,
+payments, cancellation and text receipt sharing. Logistics/Admin use `/deliveries`
+for ready and picked-up delivery orders across business days, oldest ready first.
+Both refresh every 15 seconds. Supporting layouts: `docs/BOARD_DESIGN.md`.
+
+### Manual Supabase step
+
+Run the complete `supabase/migrations/005_m4_order_support.sql` once after 004.
+It was applied successfully to project `lnolchqycicixjikolfi` during M4 and hosted
+database types were regenerated. No Edge Function deployment is needed.
+
+Logistics cannot read order ledger rows under the existing RLS. Consequently the
+invoker `v_order_payments` by itself cannot give Logistics true due amounts. The
+role-checked `list_delivery_orders` RPC exposes only active delivery snapshots and
+their server-read paid/due totals; it exposes no ledger, account names or request
+metadata and changes no existing policy. It includes Ready and Picked up orders,
+including those from prior days, and excludes completed/cancelled/non-delivery work.
+
+The original four-argument `add_order_payment` remains compatible with M3. Its new
+five-argument overload adds a per-staff request UUID, validates amounts and delegates
+to the original guarded function. Retry metadata contains an opaque hash and the
+returned ledger ID in an RLS-protected table with no client read/write policy.
+Same request/payload returns the same entry; changed payload is refused. A trigger
+audits every newly inserted order payment exactly once, including M3 payments.
+
+Saved-order payments are immediate individual RPCs. A request is stored in the
+tab's session storage before sending; blocked storage prevents sending. If a
+response is uncertain, the same request can be confirmed after reload. Do not
+create a fresh payment instead. Saved payments cannot be removed from the sheet.
+Status/cancellation requests refetch on success or error so a lost response is
+reconciled against the database. Admin voids refund original account-currency
+amounts and the balance confirmation reads `v_account_balances`.
+
+### Verification and phone acceptance
+
+Run typecheck, lint, unit tests and `./scripts/db-test.sh`. The suite retains all
+140 prior checks and adds 26 M4 checks (166 total). Browser checks use simulated
+sign-in and a REST bridge to actual RPCs/RLS in an isolated local PostgreSQL
+database; they never create hosted financial records. They cover lost-response
+payment retry after reload, role actions, true Logistics due without ledger access,
+search/filters, receipt preview/link, completed-order refunds and phone widths.
+
+On your phone, using Admin-created Operations and Logistics test logins:
+
+1. Create a delivery order. Operations: New → Cooking → Ready. Logistics:
+   Picked up → Delivered. Confirm it leaves Deliveries and is Completed on Orders.
+2. A paid/partly paid order offers no cancellation for Operations. Admin can void
+   it (including after completion), enter a reason and see the original-account
+   refund reflected in the balance confirmation. No duplicate refund is possible.
+3. A partly paid order shows the same due on the board, details, receipt preview
+   and Logistics board; adding payment updates due. A cancelled order is labelled
+   Cancelled and its receipt does not request payment.
+
+Also try search, date/channel/account filters, the customer Call button and the
+WhatsApp sharing preview. Confirm deactivated menu items still appear with their
+original prices on old order cards/details (the remaining M2 phone check).
+
+No M4 commit/push until the user approves these checks.

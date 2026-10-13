@@ -15,6 +15,7 @@ export function SavedOrder({ id }: { id: string }) {
       {order.discount_amount > 0 ? <p className="text-sm text-muted">Discount {formatMoney(order.discount_amount, 'TRY')} · {order.discount_reason}</p> : null}<div className="flex justify-between border-t pt-3 text-xl font-bold"><span>Total</span><span>{formatMoney(order.total, 'TRY')}</span></div>
     </div><div role="status" className={`rounded-xl p-4 font-bold ${payment.balance_due > 0 ? 'bg-amber-soft text-amber-ink' : 'bg-ok-soft text-ok'}`}><span>{payment.balance_due > 0 ? `${formatMoney(payment.balance_due, 'TRY')} due` : 'Paid'}</span><p className="mt-1 text-sm font-normal">Received {formatMoney(payment.paid_try, 'TRY')}{payment.paid_via ? ` · ${payment.paid_via}` : ''}</p></div>
     {order.customer_name ? <p className="text-sm">Customer: {order.customer_name}</p> : null}{order.delivery_address ? <p className="break-words text-sm">Deliver to: {order.delivery_address}</p> : null}{order.note ? <p className="break-words text-sm">Note: {order.note}</p> : null}
+    <Button asChild variant="secondary" className="w-full"><Link to="/orders">View orders</Link></Button>
     <Button asChild className="w-full"><Link to="/order" onClick={workspace.clear}>New order</Link></Button>
   </section>
 }
