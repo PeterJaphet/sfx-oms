@@ -654,3 +654,52 @@ by Retry debt confirmation after reload rather than submitting a new copy. Logis
 Debts and Setup; Operations can settle but cannot open Setup or record/cancel debts.
 
 No M7 commit/push until the user approves the completed phone review.
+
+## M8 — daily close
+
+Operations/Admin use `/close`; Money links there for Admin. The form follows DailyClose.dc.html
+and `docs/CLOSE_DESIGN.md`. Reconciliation and the counted difference come from the database,
+with unpaid orders, currently outstanding advances and an optional note. Admin re-closes preserve
+every earlier snapshot. No ledger adjustment is posted by closing or by entering a discrepancy.
+
+### Manual Supabase step
+
+The complete `supabase/migrations/009_m8_close_support.sql` was applied once after 008 to
+`lnolchqycicixjikolfi` during M8; public types were regenerated from that project. No Edge Function
+deployment is needed. Original schema, Storage, migrations 001–008 and their policies stay unchanged.
+
+Financial RPCs take a shared business-day lock before row locks. Close takes an exclusive lock,
+waits for existing writes to commit, then snapshots expected/count/difference and reconciliation.
+Closed-day triggers reject non-Admin financial writes across accounts, including credit purchases
+and unpaid orders. Delivery statuses remain available. New business-day writes resume at 06:00
+Europe/Nicosia; corrections affecting an earlier closed day's finances still need Admin.
+Admin closed-day writes have additional `day.closed_write` audit entries. Snapshots are immutable
+apart from marking an earlier record superseded, and cannot be deleted. Pre-M8 records preserve
+their recorded totals without inventing historical breakdowns.
+
+`run_close` delegates to `close_day` with quote checking and private hashed request recovery.
+Persisted `sfx-close-v1:<staff id>` attempts replay the same actor/request/payload after a lost response,
+including after close. Changed payloads are refused. Other confirmed financial request replays also
+continue after close. Unpaid orders and advances are warnings, not new closing restrictions.
+
+### Verification and phone acceptance
+
+M8 adds 18 unit tests (224 total) and 53 database checks (394 total). The earlier scenario's close
+fixture is rolled back after its unchanged assertions because later milestone scenarios continue
+same-day trading. Separate tests prove close waits for spending already in flight, subsequent
+Operations spending is blocked, next-day trading resumes and simultaneous Admin closes serialize.
+The upgrade test retains existing closes and verifies all 19 original financial entry points change
+only by the shared lock, with identical ACLs and public RLS policies. Browser checks use simulated
+Auth and real RPCs/RLS in isolated local PostgreSQL, with no hosted financial writes.
+
+On a phone, verify every M8 Done when item:
+
+1. Before closing, compare expected Cash on `/close` with Cash in Money at the same moment.
+   Review the breakdown, unpaid orders and advances; enter a count and confirm Short/Over/Balanced.
+2. Operations closes once and cannot close that business day again. Admin re-closes it with another
+   count/note; history shows both closes, the earlier unchanged and marked Earlier close.
+
+Also check that Operations financial controls are disabled after close, Logistics can still pick up
+and deliver, and Admin financial corrections remain possible. Lost-response confirmation uses
+Retry close confirmation after reload. Phone layouts were checked at 360/390/430px; desktop at
+1280px. No M8 commit/push until the user approves the completed milestone.

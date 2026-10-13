@@ -1,3 +1,4 @@
+import { useFinancialDay } from '@/features/close/financial-day'
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
@@ -16,13 +17,14 @@ import { OrderNotices } from './OrderNotices'
 import { SavedOrder } from './SavedOrder'
 
 export default function PaymentPage() {
+  const financial = useFinancialDay()
   const order = useOrder(), reference = useOrderReference(), quote = useOrderQuote(), queries = useQueryClient()
   const [selected, setSelected] = useState<number | null>(null)
   const [discount, setDiscount] = useState(false)
   const [checking, setChecking] = useState(false)
   if (order.savedId) return <SavedOrder id={order.savedId} />
   if (order.draft.items.length === 0) return <Navigate to="/order" replace />
-  const locked = !!order.attempt || order.saving || checking
+  const locked = financial.blocked || !!order.attempt || order.saving || checking
   const account = reference.data?.accounts.find(a => a.id === selected)
   const latestRate = account ? reference.data?.rates.find(rate => rate.currency === account.currency && rate.effective_date <= reference.data!.businessDate) : undefined
   async function addPayment(payment: DraftPayment) {

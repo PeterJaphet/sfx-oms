@@ -137,7 +137,8 @@ function MoneyNavigation() {
     ['/money/withdraw', 'Take money out'],
     ['/money/history', 'Withdrawals'],
     ['/money/expenses', 'Expenses'],
-    ['/debts','Debts'],
+    ['/debts', 'Debts'],
+    ['/close', 'Close day'],
     ...(profile!.role === 'admin'
       ? [
           [

@@ -1,3 +1,4 @@
+import { useFinancialDay } from '@/features/close/financial-day'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { BarChart3, ClipboardList, Clock, Plus, ReceiptText, Truck, Users, Wallet } from 'lucide-react'
 import { Button } from './ui/button'
@@ -7,6 +8,7 @@ import { cn } from '@/lib/utils'
 
 const icons = { plus: Plus, orders: ClipboardList, money: Wallet, close: Clock, reports: BarChart3, deliveries: Truck, supplies: ReceiptText, staff: Users }
 export function AppShell() {
+  const financial = useFinancialDay()
   const path = useLocation().pathname
   const { profile, signOut } = useAuth()
   if (!profile) return null
@@ -25,7 +27,7 @@ export function AppShell() {
         {navigation.map(page => <NavLink key={page.path} to={page.path} className={({ isActive }) => cn('flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold', (isActive || (page.path === '/money' && ['/debts','/setup'].includes(path))) ? 'bg-brand-soft text-brand-deep' : 'text-ink-2 hover:bg-chip')}>{page.label}</NavLink>)}
       </nav>
     </header> : null}
-    <main className={checkout ? 'mx-auto max-w-3xl' : 'mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6'}><Outlet /></main>
+    <main className={checkout ? 'mx-auto max-w-3xl' : 'mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6'}>{financial.data?.closed?<div role="status" className="mb-4 rounded-xl bg-amber-soft p-4 text-sm text-amber-ink">Business day {financial.data.business_date} is closed. {profile.role==='admin'?'Your financial changes will be logged.':'Financial changes need Admin until the next 06:00 business day.'} Delivery status updates can continue.</div>:financial.error?<div role="alert" className="mb-4 space-y-2 rounded-xl bg-amber-soft p-4 text-sm text-amber-ink"><p className="break-words">{financial.error.message}</p><Button variant="secondary" onClick={()=>{void financial.refetch()}}>Retry day status</Button></div>:null}<Outlet /></main>
     {!checkout ? <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 flex border-t bg-card pb-[env(safe-area-inset-bottom)] sm:hidden">
       {navigation.map(page => {
         const Icon = icons[page.icon]

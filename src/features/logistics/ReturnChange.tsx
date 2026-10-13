@@ -1,3 +1,4 @@
+import { useFinancialDay } from '@/features/close/financial-day'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -19,6 +20,7 @@ export default function ReturnChange({
   onClose: () => void
 }) {
   const state = useLogistics()
+  const financial = useFinancialDay()
   const ref = state.reference
   const accounts =
     ref.data?.accounts.filter(
@@ -98,7 +100,7 @@ export default function ReturnChange({
           </p>
         ) : null}
         <fieldset
-          disabled={state.busy || !!state.pending}
+          disabled={financial.blocked || state.busy || !!state.pending}
           className="space-y-4"
         >
           <div>
@@ -168,6 +170,7 @@ export default function ReturnChange({
           className="w-full"
           type="submit"
           disabled={
+            financial.blocked ||
             state.busy ||
             !!state.pending ||
             !preview.data ||

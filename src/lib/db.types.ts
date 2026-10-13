@@ -224,6 +224,7 @@ export type Database = {
           closed_at: string
           closed_by: string
           counted_amount: number
+          details: Json | null
           difference: number | null
           expected_amount: number
           id: number
@@ -238,6 +239,7 @@ export type Database = {
           closed_at?: string
           closed_by: string
           counted_amount: number
+          details?: Json | null
           difference?: number | null
           expected_amount: number
           id?: never
@@ -252,6 +254,7 @@ export type Database = {
           closed_at?: string
           closed_by?: string
           counted_amount?: number
+          details?: Json | null
           difference?: number | null
           expected_amount?: number
           id?: never
@@ -1613,6 +1616,7 @@ export type Database = {
           closed_at: string
           closed_by: string
           counted_amount: number
+          details: Json | null
           difference: number | null
           expected_amount: number
           id: number
@@ -1735,6 +1739,11 @@ export type Database = {
         Args: { p_account: number; p_date: string }
         Returns: number
       }
+      financial_day_state: { Args: never; Returns: Json }
+      get_close_context: {
+        Args: { p_account?: number; p_date?: string }
+        Returns: Json
+      }
       get_session_profile: {
         Args: never
         Returns: {
@@ -1747,6 +1756,7 @@ export type Database = {
       }
       get_setup_accounts: { Args: never; Returns: Json }
       import_menu_products: { Args: { p_rows: Json }; Returns: number }
+      list_day_closes: { Args: { p_offset?: number }; Returns: Json }
       list_debts: {
         Args: {
           p_direction?: string
@@ -1809,6 +1819,7 @@ export type Database = {
       }
       m5_rate: { Args: { p_rate: number }; Returns: undefined }
       m6_purchase_preview: { Args: { p: Json }; Returns: Json }
+      m8_lock_current_day: { Args: never; Returns: undefined }
       post_entry: {
         Args: {
           p_account: number
@@ -1826,6 +1837,7 @@ export type Database = {
         }
         Returns: number
       }
+      quote_close: { Args: { p: Json }; Returns: Json }
       quote_debt_settlement: { Args: { p: Json }; Returns: Json }
       quote_opening: { Args: { p: Json }; Returns: Json }
       quote_order: { Args: { p_order: Json }; Returns: Json }
@@ -1921,6 +1933,7 @@ export type Database = {
         Args: { p_purchase: string; p_reason: string }
         Returns: undefined
       }
+      run_close: { Args: { p: Json; p_request_id: string }; Returns: Json }
       run_debt_action: {
         Args: { p: Json; p_action: string; p_request_id: string }
         Returns: Json
@@ -2074,12 +2087,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2103,11 +2116,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2128,11 +2141,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2153,11 +2166,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2170,11 +2183,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never) = never,
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

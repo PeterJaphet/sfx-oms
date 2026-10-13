@@ -1,3 +1,4 @@
+import { useFinancialDay } from '@/features/close/financial-day'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useForm, useFieldArray } from 'react-hook-form'
@@ -23,6 +24,7 @@ import PurchaseItems, { type PurchaseItem } from './PurchaseItems'
 export default function NewPurchasePage() {
   const { profile } = useAuth()
   const state = useLogistics()
+  const financial = useFinancialDay()
   const ref = state.reference
   const advances = useActiveAdvances()
   const [params] = useSearchParams()
@@ -59,7 +61,7 @@ export default function NewPurchasePage() {
   const [path, setPath] = useState<string>()
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string>()
-  const locked = state.busy || !!state.pending || uploading
+  const locked = financial.blocked || state.busy || !!state.pending || uploading
   const selected = advances.data?.find((a) => a.id === values.advance_id)
   const account = ref.data?.accounts.find(
     (a) => String(a.id) === values.account_id,

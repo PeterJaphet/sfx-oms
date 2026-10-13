@@ -98,6 +98,9 @@ select settle_debt((select id from debts where counterparty='Metro Market'), 2::
 select check_eq((select outstanding from v_debts where counterparty='Lemar'), 600, 'credit purchase owed to Lemar');
 select check_eq((select count(*) from v_debts where state='settled'), 2, 'settled debts (Metro, EMU)');
 
+-- Close is isolated: later scenarios deliberately keep trading the same day.
+begin;
+savepoint original_close;
 -- ===== OPERATIONS: daily close =====
 select as_user('00000000-0000-0000-0000-00000000000b');
 -- Cash: 2,000 + 660 − 1,000 − 150 + 1,850 + 100 = 3,460
@@ -106,6 +109,8 @@ select expect_fail($$select close_day(3460)$$, 'ops re-closing the day');
 select expect_fail($$select reverse_entry(1, 'nope nope')$$, 'ops reversing ledger');
 select case when count(*) = 0 then 'ok blocked: ops cannot see activity log' else 'FAIL: ops sees activity log' end from activity_log;
 
+rollback to original_close;
+commit;
 reset role;
 select expect_fail($$update ledger_entries set amount = 1 where id = 1$$, 'editing ledger (even as superuser)');
 select expect_fail($$delete from debts$$, 'deleting debts');
@@ -660,3 +665,90 @@ set role anon;
 select expect_fail($q$select get_setup_accounts()$q$,'M7 anon cannot read setup');
 select expect_fail($q$select quote_debt_settlement('{}')$q$,'M7 anon cannot quote settlement');
 reset role;
+
+
+-- M8: server reconciliation, preserved snapshots, locks, roles and retries.
+set role authenticated;
+select as_user('00000000-0000-0000-0000-00000000000b');
+select check_eq((financial_day_state()->>'closed')::boolean::int,0,'M8 day initially open');
+select check_eq((get_close_context()->>'expected')::numeric,(select balance from v_account_balances where is_cash),'M8 expected equals live Cash balance');
+select check_eq((get_close_context()->>'opening')::numeric+coalesce((select sum((x->>'amount')::numeric) from jsonb_array_elements(get_close_context()->'lines')x),0),(get_close_context()->>'expected')::numeric,'M8 complete ledger breakdown reconciles');
+select check_eq(jsonb_array_length(get_close_context()->'unpaid_orders'),(select count(*) from v_order_payments where business_date=public.business_date() and status<>'cancelled' and balance_due>0),'M8 lists every unpaid order for day');
+select check_eq(jsonb_array_length(get_close_context()->'advances'),(select count(*) from v_advances where state in ('open','owed_to_staff')),'M8 lists outstanding and owed-to-staff advances');
+select check_eq((quote_close('{"counted":0}')->>'difference')::numeric,-(get_close_context()->>'expected')::numeric,'M8 zero counted cash accepted with server difference');
+select expect_fail($q$select close_day(-1)$q$,'M8 negative count refused');
+select expect_fail($q$select close_day('NaN')$q$,'M8 NaN count refused');
+select expect_fail($q$select close_day('Infinity')$q$,'M8 infinite count refused');
+select expect_fail($q$select close_day(1.001)$q$,'M8 sub-cent count refused');
+select expect_fail($q$select close_day(null)$q$,'M8 missing count refused');
+select expect_fail($q$select close_day(0,null,business_date()+1)$q$,'M8 future day refused');
+select expect_fail($q$select close_day(0,null,business_date()-1)$q$,'M8 Operations cannot close past day');
+select expect_fail($q$select list_day_closes(-1)$q$,'M8 invalid history page refused');
+select set_config('sfx.m8.unpaid',(create_order(jsonb_build_object('channel','walk_in','items',jsonb_build_array(jsonb_build_object('variant_id',v('BBQ Burger'),'quantity',1))))).id::text,false);
+select set_config('sfx.m8.quote',quote_close('{"counted":2400}')::text,false);
+select as_user('00000000-0000-0000-0000-00000000000a');
+select adjust_balance(1::smallint,1,'M8 change before save');
+select as_user('00000000-0000-0000-0000-00000000000b');
+select expect_fail($q$select run_close(jsonb_build_object('counted',2400,'quote_token',current_setting('sfx.m8.quote')::jsonb->>'quote_token'),'80000000-0000-4000-8000-000000000001')$q$,'M8 stale cash preview refused');
+select expect_fail($q$select run_close('{"counted":2400}','80000000-0000-4000-8000-000000000001')$q$,'M8 preview token required');
+select set_config('sfx.m8.payload',jsonb_build_object('counted',2400,'note','M8 count test','quote_token',quote_close('{"counted":2400}')->>'quote_token')::text,false);
+select set_config('sfx.m8.saved',run_close(current_setting('sfx.m8.payload')::jsonb,'80000000-0000-4000-8000-000000000001')::text,false);
+select check_eq((current_setting('sfx.m8.saved')::jsonb->>'expected_amount')::numeric,(select balance from v_account_balances where is_cash),'M8 saved expected matches actual cash');
+select check_eq((current_setting('sfx.m8.saved')::jsonb->>'difference')::numeric,2400-(get_close_context()->>'expected')::numeric,'M8 stored difference reconciles');
+select check_eq((financial_day_state()->>'closed')::boolean::int,1,'M8 state is closed after saving');
+select check_eq((run_close(current_setting('sfx.m8.payload')::jsonb,'80000000-0000-4000-8000-000000000001')->>'id')::numeric,(current_setting('sfx.m8.saved')::jsonb->>'id')::numeric,'M8 lost close response replay returns same snapshot');
+select expect_fail($q$select run_close(current_setting('sfx.m8.payload')::jsonb||'{"counted":1}','80000000-0000-4000-8000-000000000001')$q$,'M8 retry cannot change payload');
+select expect_fail($q$select close_day(2400)$q$,'M8 Operations cannot close twice');
+select check_eq((run_debt_action('settle',current_setting('sfx.m7.settle')::jsonb,'70000000-0000-4000-8000-000000000004')->>'outstanding_after')::numeric,2700,'M8 prior financial request replays after close');
+select expect_fail($q$select create_order(jsonb_build_object('channel','walk_in','items',jsonb_build_array(jsonb_build_object('variant_id',v('BBQ Burger'),'quantity',1))))$q$,'M8 new unpaid order blocked after close');
+select expect_fail($q$select add_order_payment((select id from orders where status<>'cancelled' order by daily_number limit 1),1::smallint,1)$q$,'M8 payment blocked after close');
+select expect_fail($q$select create_withdrawal('direct_expense',1::smallint,1,'M8 closed expense',cat('Gas'))$q$,'M8 withdrawal blocked after close');
+select expect_fail($q$select settle_debt((select id from debts where counterparty='Lemar'),1::smallint,1)$q$,'M8 debt payment blocked after close');
+select expect_fail($q$select cancel_order(current_setting('sfx.m8.unpaid')::uuid,'M8 closed cancellation')$q$,'M8 unpaid cancellation blocked after close');
+select as_user('00000000-0000-0000-0000-00000000000c');
+select check_eq((financial_day_state()->>'closed')::boolean::int,1,'M8 Logistics can read only closed state');
+select expect_fail($q$select get_close_context()$q$,'M8 Logistics cannot read cash preview');
+select expect_fail($q$select list_day_closes()$q$,'M8 Logistics cannot read close history');
+select expect_fail($q$select close_day(0)$q$,'M8 Logistics cannot close');
+select expect_fail($q$select log_purchase(jsonb_build_object('supplier','M8 closed credit','category_id',cat('Gas'),'on_credit',true,'items','[{"description":"Fuel","amount":1}]'::jsonb))$q$,'M8 credit purchase blocked after close');
+select expect_fail($q$select log_purchase(jsonb_build_object('supplier','M8 closed direct','category_id',cat('Gas'),'account_id',1,'items','[{"description":"Fuel","amount":1}]'::jsonb))$q$,'M8 direct purchase blocked after close');
+select as_user('00000000-0000-0000-0000-00000000000a');
+select set_config('sfx.m8.ledger',(select count(*)::text from ledger_entries),false);
+select adjust_balance(1::smallint,2,'M8 Admin after close');
+select check_eq(((select count(*) from activity_log where action='day.closed_write' and entity='ledger_entries' and details->>'business_date'=business_date()::text)>0)::int,1,'M8 Admin closed-day financial write is audited');
+select check_eq((select expected_amount from day_closes where id=(current_setting('sfx.m8.saved')::jsonb->>'id')::bigint),(current_setting('sfx.m8.saved')::jsonb->>'expected_amount')::numeric,'M8 earlier close stays unchanged after Admin correction');
+select set_config('sfx.m8.reclosed',to_jsonb(close_day(2402,'M8 re-count'))::text,false);
+select check_eq((select count(*) from day_closes where business_date=business_date() and account_id=1),2,'M8 Admin re-close keeps both records');
+select check_eq((select count(*) from day_closes where business_date=business_date() and account_id=1 and not superseded),1,'M8 exactly one current close');
+select check_eq((select superseded::int from day_closes where id=(current_setting('sfx.m8.saved')::jsonb->>'id')::bigint),1,'M8 original close marked superseded');
+select check_eq((current_setting('sfx.m8.reclosed')::jsonb->>'expected_amount')::numeric-(current_setting('sfx.m8.saved')::jsonb->>'expected_amount')::numeric,2,'M8 reclose includes Admin correction');
+select check_eq((select count(*) from ledger_entries),current_setting('sfx.m8.ledger')::numeric+1,'M8 close itself never adjusts ledger');
+select check_eq(jsonb_array_length(list_day_closes()),2,'M8 history includes superseded snapshot');
+update day_closes set counted_amount=1;
+select check_eq((select counted_amount from day_closes where id=(current_setting('sfx.m8.saved')::jsonb->>'id')::bigint),2400,'M8 browser Admin cannot edit close');
+reset role;
+select expect_fail($q$update day_closes set counted_amount=1$q$,'M8 close values immutable even to owner');
+select expect_fail($q$update day_closes set superseded=false where superseded$q$,'M8 cannot reactivate old close');
+select expect_fail($q$delete from day_closes$q$,'M8 closes cannot be deleted');
+set role anon;
+select expect_fail($q$select financial_day_state()$q$,'M8 anonymous state denied');
+select expect_fail($q$select quote_close('{"counted":1}')$q$,'M8 anonymous quote denied');
+select expect_fail($q$select run_close('{}',gen_random_uuid())$q$,'M8 anonymous close denied');
+reset role;
+
+-- Delivery status remains possible after financial close.
+set role authenticated;
+select as_user('00000000-0000-0000-0000-00000000000a');
+select set_config('sfx.m8.delivery',to_jsonb(create_order(jsonb_build_object('channel','whatsapp','order_type','delivery','delivery_address','M8 campus','items',jsonb_build_array(jsonb_build_object('variant_id',v('BBQ Burger'),'quantity',1)))))->>'id',false);
+select set_order_status(current_setting('sfx.m8.delivery')::uuid,'preparing');
+select set_order_status(current_setting('sfx.m8.delivery')::uuid,'ready');
+select as_user('00000000-0000-0000-0000-00000000000c');
+select set_order_status(current_setting('sfx.m8.delivery')::uuid,'picked_up');
+select set_order_status(current_setting('sfx.m8.delivery')::uuid,'completed');
+select check_eq((select count(*) from jsonb_array_elements(list_delivery_orders())x where x->>'id'=current_setting('sfx.m8.delivery')),0,'M8 completed delivery leaves board after close');
+select as_user('00000000-0000-0000-0000-00000000000a');
+select check_eq((select count(*) from orders where id=current_setting('sfx.m8.delivery')::uuid and status='completed'),1,'M8 Logistics completes delivery after close');
+select check_eq((select count(*) from day_closes where business_date=business_date() and account_id=1),2,'M8 delivery does not create or change close');
+reset role;
+
+select check_eq((select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in('create_order','add_order_payment','cancel_order','create_withdrawal','decide_withdrawal','log_purchase','return_change','settle_advance_overspend','record_debt','settle_debt','cancel_debt','transfer_between_accounts','adjust_balance','reverse_entry','reverse_purchase','run_money_action','run_logistics_action','run_debt_action') and position('perform public.m8_lock_current_day();' in pg_get_functiondef(p.oid))>0),19,'M8 all financial entry points take day lock before row locks');

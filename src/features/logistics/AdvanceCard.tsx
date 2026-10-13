@@ -1,3 +1,4 @@
+import { useFinancialDay } from '@/features/close/financial-day'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { formatMoney } from '@/lib/format'
@@ -11,6 +12,7 @@ export default function AdvanceCard({
   onReturn: (advance: Advance) => void
 }) {
   const state = useLogistics()
+  const financial = useFinancialDay()
   return (
     <article
       className="space-y-3 rounded-xl bg-ink p-4 text-card"
@@ -60,7 +62,7 @@ export default function AdvanceCard({
           </Button>
           <Button
             variant="secondary"
-            disabled={state.busy || !!state.pending}
+            disabled={financial.blocked || state.busy || !!state.pending}
             onClick={() => onReturn(a)}
           >
             Return change

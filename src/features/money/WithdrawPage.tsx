@@ -1,3 +1,4 @@
+import { useFinancialDay } from '@/features/close/financial-day'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -23,6 +24,7 @@ import { uploadReceipt } from './receipt-photos'
 export default function WithdrawPage() {
   const { profile } = useAuth()
   const money = useMoney()
+  const financial = useFinancialDay()
   const reference = money.reference
   const form = useForm<WithdrawalValues>({
     resolver: zodResolver(withdrawalSchema),
@@ -58,7 +60,7 @@ export default function WithdrawPage() {
   const rate = reference.data?.rates.find(
     (r) => r.currency === account?.currency,
   )
-  const locked = money.busy || !!money.pending || uploading
+  const locked = financial.blocked || money.busy || !!money.pending || uploading
   useEffect(() => {
     if (quote.error)
       toast.error(quote.error.message, { id: 'm5-preview-error' })

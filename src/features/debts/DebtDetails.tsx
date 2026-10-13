@@ -1,3 +1,4 @@
+import { useFinancialDay } from '@/features/close/financial-day'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
@@ -18,6 +19,7 @@ export default function DebtDetails({
 }) {
   const { profile } = useAuth()
   const state = useDebt()
+  const financial = useFinancialDay()
   const [mode, setMode] = useState('details')
   const history = useQuery({
     queryKey: ['debts', 'history', d.id],
@@ -127,7 +129,7 @@ export default function DebtDetails({
               <>
                 <Button
                   className="w-full"
-                  disabled={state.busy || !!state.pending}
+                  disabled={financial.blocked || state.busy || !!state.pending}
                   onClick={() => setMode('settle')}
                 >
                   {d.direction === 'we_owe' ? 'Pay debt' : 'Collect debt'}
@@ -136,7 +138,9 @@ export default function DebtDetails({
                   <Button
                     className="w-full"
                     variant="secondary"
-                    disabled={state.busy || !!state.pending}
+                    disabled={
+                      financial.blocked || state.busy || !!state.pending
+                    }
                     onClick={() => setMode('cancel')}
                   >
                     Cancel debt
