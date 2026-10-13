@@ -2,7 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { BarChart3, ClipboardList, Clock, Plus, ReceiptText, Truck, Users, Wallet } from 'lucide-react'
 import { Button } from './ui/button'
 import { useAuth } from '@/features/auth/auth-context'
-import { navigationFor, roleNames } from '@/features/auth/permissions'
+import { canVisit, navigationFor, roleNames } from '@/features/auth/permissions'
 import { cn } from '@/lib/utils'
 
 const icons = { plus: Plus, orders: ClipboardList, money: Wallet, close: Clock, reports: BarChart3, deliveries: Truck, supplies: ReceiptText, staff: Users }
@@ -17,7 +17,7 @@ export function AppShell() {
           <span aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-brand font-heading font-extrabold text-card">SFx</span>
           <div className="min-w-0"><p className="truncate font-heading text-base font-extrabold sm:text-lg">SFx Burger OMS</p><p className="truncate text-xs text-muted">{profile.full_name} · {roleNames[profile.role]}</p></div>
         </div>
-        <Button variant="secondary" size="secondary" className="shrink-0 text-sm" onClick={() => { void signOut() }}>Sign out</Button>
+        <div className="flex shrink-0 gap-2">{canVisit(profile.role, '/menu') ? <Button asChild variant="secondary" size="secondary" className="px-3 text-sm"><NavLink to="/menu">Menu</NavLink></Button> : null}<Button variant="secondary" size="secondary" className="shrink-0 px-3 text-sm" onClick={() => { void signOut() }}>Sign out</Button></div>
       </div>
       <nav aria-label="Main" className="mx-auto hidden max-w-7xl gap-1 px-6 pb-3 sm:flex">
         {navigation.map(page => <NavLink key={page.path} to={page.path} className={({ isActive }) => cn('flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold', isActive ? 'bg-brand-soft text-brand-deep' : 'text-ink-2 hover:bg-chip')}>{page.label}</NavLink>)}

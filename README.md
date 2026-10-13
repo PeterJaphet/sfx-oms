@@ -286,3 +286,62 @@ On a real phone, verify each M1 acceptance item:
 - Service credentials are absent under `src/` (automated source check).
 
 No commit or push until the user approves the completed M1 review.
+
+## M2 — menu and extras
+
+Operations and Admin open **Menu** from the header. Products, Extras and Categories
+have search, edit sheets, activation controls and no delete action. The layouts
+are described in `docs/MENU_DESIGN.md`. Standalone extras appear once in Extras;
+the database shares their price and active state with their linked product.
+Price history shows old/new prices, the staff name and Cyprus time.
+
+### Manual Supabase step
+
+Run the whole `supabase/migrations/002_menu_support.sql` once after M1 in SQL Editor.
+This creates invoker/RLS-protected menu save/import RPCs, soft-disabled extra links,
+category/link auditing and a private `menu-photos` bucket (5 MB; JPG/PNG/WebP).
+The original `schema.sql` is untouched. The order RPC adds only inactive-category
+and inactive-link checks; its money rules and role checks are preserved.
+The migration was applied successfully to `lnolchqycicixjikolfi` during M2,
+and `src/lib/db.types.ts` was regenerated from that project. No Edge deployment
+is needed for M2.
+
+### Images and CSV
+
+- Choose a phone image in a product or extra sheet. JPG/PNG/WebP inputs up to
+  15 MB are resized to at most 1600 px and uploaded with a unique name under
+  `<staff UUID>/<image UUID>.webp` (PNG fallback). The bucket remains private;
+  ten-minute signed URLs refresh through TanStack Query. Replacements and removal
+  from a product retain previous objects.
+- Upload happens before the menu save. If upload succeeds and the save fails,
+  an unreferenced private object remains; the error is shown and no menu success
+  is reported. Menu rows and price history are saved together in one transaction.
+- Download the template or import a CSV with exactly `category,product,variant,price`.
+  Up to 500 rows / 1 MB; quotes, commas, BOM and multiline fields are supported.
+  Preview every row, then press Import. Exact case-sensitive matches update only
+  price; unmatched rows create categories/products/variants. Existing inactive
+  states, photos, descriptions and extra assignments are retained. Standalone
+  extras are edited in Extras. A failed row rolls back the whole import.
+
+### M2 verification and phone review
+
+The database suite has **102 checks**: original 42 business checks, 25 M1 checks
+and 35 M2 transaction, price, snapshot, role, audit and Storage policy checks.
+The Storage stand-in tests SQL access rules; the real upload service and camera
+behavior must also be checked on a phone.
+
+- As Operations (and then Admin), change Fish from ₺180 to ₺200. In Extras,
+  confirm ₺200 and one Fish card. Open its Price history and confirm old/new
+  price, your name and timestamp. The SQL tests also check the standalone
+  variant price; the order screen Extras tab will be checked in M3.
+- Deactivate Fish or a test dish/variant/category and change allowed extras.
+  The SQL checks prove unavailable items/links cannot be ordered and old
+  snapshots retain their prices. Actual disappearance and past-order display
+  in the order screens are deferred to M3/M4 as agreed.
+- Sign in as Logistics: no Menu link; `/menu` shows “Not available for your role”.
+- Add a test product with two variants, upload a phone photo, reload and check
+  the photo. Edit its price, deactivate/reactivate it and check its history.
+- Preview a small CSV including an existing variant and a new product. Confirm
+  the preview before importing, then check the saved prices and history.
+
+Do not commit or push M2 until the user replies approved.

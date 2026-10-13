@@ -757,14 +757,17 @@ export type Database = {
       product_addons: {
         Row: {
           addon_id: string
+          is_active: boolean
           product_id: string
         }
         Insert: {
           addon_id: string
+          is_active?: boolean
           product_id: string
         }
         Update: {
           addon_id?: string
+          is_active?: boolean
           product_id?: string
         }
         Relationships: [
@@ -1584,6 +1587,7 @@ export type Database = {
           role: Database["public"]["Enums"]["user_role"]
         }[]
       }
+      import_menu_products: { Args: { p_rows: Json }; Returns: number }
       log_activity: {
         Args: {
           p_action: string
@@ -1725,6 +1729,8 @@ export type Database = {
         Args: { p_purchase: string; p_reason: string }
         Returns: undefined
       }
+      save_menu_extra: { Args: { p_extra: Json }; Returns: string }
+      save_menu_product: { Args: { p_product: Json }; Returns: string }
       set_fx_rate: {
         Args: { p_currency: string; p_rate: number }
         Returns: undefined

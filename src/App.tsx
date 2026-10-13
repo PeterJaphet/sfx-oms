@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from '@/components/AppShell'
 import { Card, CardContent } from '@/components/ui/card'
@@ -6,6 +7,8 @@ import { LoginPage } from '@/features/auth/LoginPage'
 import { RouteGuard } from '@/features/auth/RouteGuard'
 import { homeRoutes, pages } from '@/features/auth/permissions'
 import { StaffPage } from '@/features/admin/StaffPage'
+
+const MenuPage = lazy(() => import('@/features/menu/MenuPage'))
 
 function Home() {
   const { profile } = useAuth()
@@ -19,7 +22,7 @@ export default function App() {
     <Route path="/login" element={<LoginPage />} />
     <Route element={<RouteGuard><AppShell /></RouteGuard>}>
       <Route path="/" element={<Home />} />
-      {pages.map(page => <Route key={page.path} path={page.path} element={<RouteGuard path={page.path}>{page.path === '/staff' ? <StaffPage /> : <Placeholder title={page.label} />}</RouteGuard>} />)}
+      {pages.map(page => <Route key={page.path} path={page.path} element={<RouteGuard path={page.path}>{page.path === '/staff' ? <StaffPage /> : page.path === '/menu' ? <Suspense fallback={<p role="status">Loading menu…</p>}><MenuPage /></Suspense> : <Placeholder title={page.label} />}</RouteGuard>} />)}
       <Route path="/money/withdraw" element={<Navigate to="/money" replace />} />
       <Route path="*" element={<section><h1 className="text-[26px] font-extrabold">Page not found</h1><p className="mt-2 text-ink-2">Choose a page from your navigation.</p></section>} />
     </Route>
