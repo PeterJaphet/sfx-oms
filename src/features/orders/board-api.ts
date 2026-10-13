@@ -6,7 +6,7 @@ import type { DraftPayment } from './order-model'
 import { accountSchema } from './order-model'
 import { SaveError } from './order-api'
 
-export async function refreshOrderData(queryClient:QueryClient){await Promise.all(['orders','deliveries','order-payments','account-balances','activity','reports'].map(key=>queryClient.invalidateQueries({queryKey:[key]})))}
+export async function refreshOrderData(queryClient:QueryClient){await Promise.all(['orders','deliveries','order-payments','account-balances','activity','reports','debts'].map(key=>queryClient.invalidateQueries({queryKey:[key]})))}
 export function useBoardReference(){return useQuery({queryKey:['orders','reference'],staleTime:15000,refetchInterval:15000,queryFn:async()=>{
  const db=client();const [day,accounts,rates]=await Promise.all([db.rpc('business_date'),db.from('accounts').select('id,name,currency,is_active').order('sort_order'),db.from('fx_rates').select('*').order('effective_date',{ascending:false}).order('id',{ascending:false})]);
  for(const result of [day,accounts,rates])if(result.error)throw new Error(result.error.message)

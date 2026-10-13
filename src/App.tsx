@@ -27,6 +27,9 @@ const WithdrawPage = lazy(() => import('@/features/money/WithdrawPage'))
 const WithdrawalsPage = lazy(() => import('@/features/money/WithdrawalsPage'))
 const AdminToolsPage = lazy(() => import('@/features/money/AdminToolsPage'))
 const ExpensesPage = lazy(() => import('@/features/money/ExpensesPage'))
+const DebtLayout = lazy(() => import('@/features/debts/DebtLayout'))
+const DebtsPage = lazy(() => import('@/features/debts/DebtsPage'))
+const SetupPage = lazy(() => import('@/features/debts/SetupPage'))
 const MenuPage = lazy(() => import('@/features/menu/MenuPage'))
 
 function Home() {
@@ -197,10 +200,39 @@ export default function App() {
             }
           />
         </Route>
+        <Route
+          element={
+            <RouteGuard path="/debts">
+              <Suspense fallback={<p role="status">Loading debts…</p>}>
+                <DebtLayout />
+              </Suspense>
+            </RouteGuard>
+          }
+        >
+          <Route
+            path="/debts"
+            element={
+              <Suspense fallback={<p role="status">Loading debts…</p>}>
+                <DebtsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/setup"
+            element={
+              <RouteGuard path="/setup">
+                <Suspense fallback={<p role="status">Loading setup…</p>}>
+                  <SetupPage />
+                </Suspense>
+              </RouteGuard>
+            }
+          />
+        </Route>
         {pages
           .filter(
             (page) =>
               !page.path.startsWith('/money') &&
+              !['/debts', '/setup'].includes(page.path) &&
               !page.path.startsWith('/purchases') &&
               !['/advances', '/deliveries'].includes(page.path) &&
               page.path !== '/order' &&

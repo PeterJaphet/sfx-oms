@@ -22,14 +22,14 @@ export function AppShell() {
         <div className="flex shrink-0 gap-2">{profile.role === 'admin' ? <Button asChild variant="secondary" size="secondary" className="px-3 text-sm"><NavLink to="/deliveries">Deliveries</NavLink></Button> : null}{canVisit(profile.role, '/menu') ? <Button asChild variant="secondary" size="secondary" className="px-3 text-sm"><NavLink to="/menu">Menu</NavLink></Button> : null}<Button variant="secondary" size="secondary" className="shrink-0 px-3 text-sm" onClick={() => { void signOut() }}>Sign out</Button></div>
       </div>
       <nav aria-label="Main" className="mx-auto hidden max-w-7xl gap-1 px-6 pb-3 sm:flex">
-        {navigation.map(page => <NavLink key={page.path} to={page.path} className={({ isActive }) => cn('flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold', isActive ? 'bg-brand-soft text-brand-deep' : 'text-ink-2 hover:bg-chip')}>{page.label}</NavLink>)}
+        {navigation.map(page => <NavLink key={page.path} to={page.path} className={({ isActive }) => cn('flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold', (isActive || (page.path === '/money' && ['/debts','/setup'].includes(path))) ? 'bg-brand-soft text-brand-deep' : 'text-ink-2 hover:bg-chip')}>{page.label}</NavLink>)}
       </nav>
     </header> : null}
     <main className={checkout ? 'mx-auto max-w-3xl' : 'mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6'}><Outlet /></main>
     {!checkout ? <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 flex border-t bg-card pb-[env(safe-area-inset-bottom)] sm:hidden">
       {navigation.map(page => {
         const Icon = icons[page.icon]
-        return <NavLink key={page.path} to={page.path} className={({ isActive }) => cn('flex h-16 min-w-0 flex-1 flex-col items-center justify-center gap-1 text-center text-xs', isActive ? 'font-bold text-brand-strong' : 'font-medium text-muted')}><Icon aria-hidden="true" className="h-[22px] w-[22px]" /><span>{page.label}</span></NavLink>
+        return <NavLink key={page.path} to={page.path} className={({ isActive }) => cn('flex h-16 min-w-0 flex-1 flex-col items-center justify-center gap-1 text-center text-xs', (isActive || (page.path === '/money' && ['/debts','/setup'].includes(path))) ? 'font-bold text-brand-strong' : 'font-medium text-muted')}><Icon aria-hidden="true" className="h-[22px] w-[22px]" /><span>{page.label}</span></NavLink>
       })}
     </nav> : null}
   </div>

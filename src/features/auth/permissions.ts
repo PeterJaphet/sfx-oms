@@ -101,6 +101,13 @@ export const pages = [
     icon: 'money',
     roles: ['logistics', 'admin'],
   },
+  {
+    path: '/debts',
+    label: 'Debts',
+    icon: 'money',
+    roles: ['operations', 'admin'],
+  },
+  { path: '/setup', label: 'Go-live setup', icon: 'money', roles: ['admin'] },
   { path: '/dashboard', label: 'Dashboard', icon: 'reports', roles: ['admin'] },
   { path: '/staff', label: 'Staff', icon: 'staff', roles: ['admin'] },
   {

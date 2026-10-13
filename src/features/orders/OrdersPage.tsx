@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -10,34 +11,398 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/features/auth/auth-context'
 import { client } from '@/features/menu/menu-api'
 import { channels } from './order-model'
-import { cancelOrder,changeStatus,loadBoard,loadDailySales,refreshOrderData,useBoardReference } from './board-api'
-import { matchesSearch,nextAction,type BoardOrder } from './board-model'
+import {
+  cancelOrder,
+  changeStatus,
+  loadBoard,
+  loadDailySales,
+  refreshOrderData,
+  useBoardReference,
+} from './board-api'
+import { matchesSearch, nextAction, type BoardOrder } from './board-model'
 import { OrderCard } from './OrderCard'
 import { OrderDetails } from './OrderDetails'
 import { usePaymentRetry } from './usePaymentRetry'
 
-const tabs=[['new','New'],['preparing','Cooking'],['ready','Ready'],['all','All']] as const
-const selectClass='h-12 w-full rounded-lg border border-line-strong bg-card px-3 text-base'
-export default function OrdersPage(){
- const {profile}=useAuth();const qc=useQueryClient();const reference=useBoardReference();const payment=usePaymentRetry()
- const [tab,setTab]=useState<string>('new');const [search,setSearch]=useState('');const [channel,setChannel]=useState('');const [dates,setDates]=useState<{from:string;to:string}|null>(null);const [account,setAccount]=useState<number|null>(null);const [filters,setFilters]=useState(false);const [selected,setSelected]=useState<BoardOrder|null>(null);const [voided,setVoided]=useState<string|null>(null)
- const from=dates?.from??reference.data?.day??'';const to=dates?.to??reference.data?.day??'';const validDates=!!from&&!!to&&from<=to
- const board=useQuery({queryKey:['orders','board',from,to,account],enabled:validDates,refetchInterval:15000,queryFn:()=>loadBoard(from,to,account)})
- const sales=useQuery({queryKey:['orders','sales',from],enabled:validDates&&from===to,refetchInterval:15000,queryFn:()=>loadDailySales(from)})
- const balances=useQuery({queryKey:['account-balances','after-void',voided],enabled:!!voided,queryFn:async()=>{const result=await client().from('v_account_balances').select('id,name,currency,balance').order('sort_order');if(result.error)throw new Error(result.error.message);return result.data.map(b=>({...b,currency:z.enum(['TRY','USD','NGN']).parse(b.currency)}))}})
- const advance=useMutation({mutationFn:async(o:BoardOrder)=>{const action=nextAction(o,profile!.role);if(action)await changeStatus(o.id,action.status)},onSuccess:()=>setSelected(null),onSettled:()=>refreshOrderData(qc),onError:(e:Error)=>toast.error(e.message)})
- const cancel=useMutation({mutationFn:({id,reason}:{id:string;reason:string})=>cancelOrder(id,reason),onSuccess:(_data,{id})=>{setSelected(null);setVoided(id);toast.success('Order cancelled')},onSettled:()=>refreshOrderData(qc),onError:(e:Error)=>toast.error(e.message)})
- const busy=advance.isPending||cancel.isPending||payment.busy
- const all=board.data??[];const matches=all.filter(o=>(!channel||o.channel===channel)&&matchesSearch(o,search));const visible=matches.filter(o=>tab==='all'||o.status===tab);const current=selected?(all.find(o=>o.id===selected.id)??selected):null
- return <section className="space-y-4"><div className="flex flex-wrap items-end justify-between gap-2"><h1 className="text-[26px] font-extrabold sm:text-[34px]">Orders</h1><p className="text-sm text-muted">{dates?`${from} – ${to}`:'Today'} · {matches.length} orders{!dates&&!channel&&!account&&!search&&sales.data?.net_sales!==null&&sales.data?.net_sales!==undefined?` · ${formatMoney(sales.data.net_sales,'TRY')}`:''}</p></div>
-  {payment.pending?<div role="alert" className="space-y-3 rounded-xl bg-amber-soft p-4 text-amber-ink"><p>Payment confirmation pending. Retry this same payment to confirm it safely; adding another payment is paused.</p><p className="text-sm">Covers {formatMoney(Number(payment.pending.payment.amount_try),'TRY')}</p><Button variant="secondary" disabled={busy} onClick={()=>{void payment.retry().catch(()=>{})}}>Retry payment confirmation</Button>{payment.error?<p className="break-words text-sm">{payment.error}</p>:null}</div>:null}
-  {voided?<section className="space-y-2 rounded-xl border bg-card p-4" aria-label="Balances after cancellation"><h2 className="font-bold">Account balances after cancellation</h2>{balances.isPending?<p role="status">Loading balances…</p>:balances.error?<div role="alert"><p className="text-brand-strong">Order cancelled; {balances.error.message}</p><Button variant="secondary" onClick={()=>{void balances.refetch()}}>Reload balances</Button></div>:balances.data?.map(b=><div key={b.id} className="flex justify-between gap-3 text-sm"><span>{b.name}</span><span>{b.balance===null||!b.currency?'Unavailable':formatMoney(b.balance,b.currency)}</span></div>)}<Button variant="secondary" size="secondary" onClick={()=>setVoided(null)}>Dismiss</Button></section>:null}
-  <div className="flex gap-2"><label className="min-w-0 flex-1"><span className="sr-only">Search orders</span><Input type="search" placeholder="Order number or customer" value={search} onChange={e=>setSearch(e.target.value)}/></label><Button variant="secondary" onClick={()=>setFilters(true)}>Filters</Button></div>
-  {dates||channel||account?<div className="flex flex-wrap items-center gap-2 text-sm"><span>Filters applied</span><Button variant="secondary" size="secondary" onClick={()=>{setDates(null);setChannel('');setAccount(null)}}>Reset filters</Button></div>:null}
-  <div className="grid grid-cols-4 gap-1 rounded-xl bg-chip p-1" role="group" aria-label="Order status">{tabs.map(([status,label])=><button key={status} className={cn('min-h-11 rounded-lg px-1 text-sm font-semibold',tab===status?'bg-card text-ink':'text-muted')} aria-pressed={tab===status} onClick={()=>setTab(status)}>{label}{status!=='all'?` ${matches.filter(o=>o.status===status).length}`:''}</button>)}</div>
-  {reference.error||board.error||sales.error?<div role="alert" className="space-y-2 text-brand-strong"><p>{(reference.error??board.error??sales.error)?.message}</p><Button variant="secondary" onClick={()=>{void reference.refetch();void board.refetch();void sales.refetch()}}>Refresh orders</Button></div>:null}
-  {!validDates&&reference.data?<p role="alert" className="text-brand-strong">Choose a valid business-day range in Filters.</p>:reference.isPending||board.isPending?<p role="status">Loading orders…</p>:visible.length?<div className="grid gap-3 lg:grid-cols-2">{visible.map(o=><OrderCard key={o.id} order={o} role={profile!.role} busy={busy||!!payment.pending} onOpen={()=>setSelected(o)} onAdvance={()=>advance.mutate(o)}/>)}</div>:<p className="rounded-xl border bg-card p-5 text-muted">No orders match this view.</p>}
-  {current?<OrderDetails key={current.id} order={current} role={profile!.role} busy={busy} paymentBlocked={!!payment.pending} onClose={()=>setSelected(null)} onPayment={p=>payment.send(current.id,p)} onCancel={reason=>cancel.mutateAsync({id:current.id,reason})}/>:null}
-  <Sheet open={filters} onOpenChange={setFilters} title="Order filters" description="Dates use the restaurant’s business day, 06:00–05:59."><div className="space-y-4"><div><label className="mb-2 block text-sm font-semibold" htmlFor="filter-from">From business day</label><Input id="filter-from" type="date" value={from} onChange={e=>setDates({from:e.target.value,to})}/></div><div><label className="mb-2 block text-sm font-semibold" htmlFor="filter-to">To business day</label><Input id="filter-to" type="date" value={to} onChange={e=>setDates({from,to:e.target.value})}/></div>{!validDates?<p role="alert" className="text-sm text-brand-strong">Choose both dates, with From before or equal to To.</p>:null}<div><label className="mb-2 block text-sm font-semibold" htmlFor="filter-channel">Channel</label><select id="filter-channel" className={selectClass} value={channel} onChange={e=>setChannel(e.target.value)}><option value="">All channels</option>{channels.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></div><div><label className="mb-2 block text-sm font-semibold" htmlFor="filter-account">Payment account</label><select id="filter-account" className={selectClass} value={account??''} onChange={e=>setAccount(e.target.value?Number(e.target.value):null)}><option value="">All accounts</option>{reference.data?.accounts.map(a=><option key={a.id} value={a.id}>{a.name}{!a.is_active?' (inactive)':''}</option>)}</select></div><Button className="w-full" disabled={!validDates} onClick={()=>setFilters(false)}>Show orders</Button></div></Sheet>
- </section>
+const tabs = [
+  ['new', 'New'],
+  ['preparing', 'Cooking'],
+  ['ready', 'Ready'],
+  ['all', 'All'],
+] as const
+const selectClass =
+  'h-12 w-full rounded-lg border border-line-strong bg-card px-3 text-base'
+export default function OrdersPage() {
+  const [params, setParams] = useSearchParams()
+  const requestedDate = z.iso.date().safeParse(params.get('date'))
+  const requestedOrder = params.get('order')
+  const { profile } = useAuth()
+  const qc = useQueryClient()
+  const reference = useBoardReference()
+  const payment = usePaymentRetry()
+  const [tab, setTab] = useState<string>(requestedOrder ? 'all' : 'new')
+  const [search, setSearch] = useState('')
+  const [channel, setChannel] = useState('')
+  const [dates, setDates] = useState<{ from: string; to: string } | null>(
+    requestedDate.success
+      ? { from: requestedDate.data, to: requestedDate.data }
+      : null,
+  )
+  const [account, setAccount] = useState<number | null>(null)
+  const [filters, setFilters] = useState(false)
+  const [selected, setSelected] = useState<BoardOrder | null>(null)
+  const [voided, setVoided] = useState<string | null>(null)
+  const from = dates?.from ?? reference.data?.day ?? ''
+  const to = dates?.to ?? reference.data?.day ?? ''
+  const validDates = !!from && !!to && from <= to
+  const board = useQuery({
+    queryKey: ['orders', 'board', from, to, account],
+    enabled: validDates,
+    refetchInterval: 15000,
+    queryFn: () => loadBoard(from, to, account),
+  })
+  const sales = useQuery({
+    queryKey: ['orders', 'sales', from],
+    enabled: validDates && from === to,
+    refetchInterval: 15000,
+    queryFn: () => loadDailySales(from),
+  })
+  const balances = useQuery({
+    queryKey: ['account-balances', 'after-void', voided],
+    enabled: !!voided,
+    queryFn: async () => {
+      const result = await client()
+        .from('v_account_balances')
+        .select('id,name,currency,balance')
+        .order('sort_order')
+      if (result.error) throw new Error(result.error.message)
+      return result.data.map((b) => ({
+        ...b,
+        currency: z.enum(['TRY', 'USD', 'NGN']).parse(b.currency),
+      }))
+    },
+  })
+  const advance = useMutation({
+    mutationFn: async (o: BoardOrder) => {
+      const action = nextAction(o, profile!.role)
+      if (action) await changeStatus(o.id, action.status)
+    },
+    onSuccess: () => {
+      setSelected(null)
+      setParams({})
+    },
+    onSettled: () => refreshOrderData(qc),
+    onError: (e: Error) => toast.error(e.message),
+  })
+  const cancel = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      cancelOrder(id, reason),
+    onSuccess: (_data, { id }) => {
+      setSelected(null)
+      setVoided(id)
+      setParams({})
+      toast.success('Order cancelled')
+    },
+    onSettled: () => refreshOrderData(qc),
+    onError: (e: Error) => toast.error(e.message),
+  })
+  const busy = advance.isPending || cancel.isPending || payment.busy
+  const all = board.data ?? []
+  const matches = all.filter(
+    (o) => (!channel || o.channel === channel) && matchesSearch(o, search),
+  )
+  const visible = matches.filter((o) => tab === 'all' || o.status === tab)
+  const current = requestedOrder
+    ? all.find((o) => o.id === requestedOrder)
+    : selected
+      ? (all.find((o) => o.id === selected.id) ?? selected)
+      : null
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <h1 className="text-[26px] font-extrabold sm:text-[34px]">Orders</h1>
+        <p className="text-sm text-muted">
+          {dates ? `${from} – ${to}` : 'Today'} · {matches.length} orders
+          {!dates &&
+          !channel &&
+          !account &&
+          !search &&
+          sales.data?.net_sales !== null &&
+          sales.data?.net_sales !== undefined
+            ? ` · ${formatMoney(sales.data.net_sales, 'TRY')}`
+            : ''}
+        </p>
+      </div>
+      {payment.pending ? (
+        <div
+          role="alert"
+          className="space-y-3 rounded-xl bg-amber-soft p-4 text-amber-ink"
+        >
+          <p>
+            Payment confirmation pending. Retry this same payment to confirm it
+            safely; adding another payment is paused.
+          </p>
+          <p className="text-sm">
+            Covers{' '}
+            {formatMoney(Number(payment.pending.payment.amount_try), 'TRY')}
+          </p>
+          <Button
+            variant="secondary"
+            disabled={busy}
+            onClick={() => {
+              void payment.retry().catch(() => {})
+            }}
+          >
+            Retry payment confirmation
+          </Button>
+          {payment.error ? (
+            <p className="break-words text-sm">{payment.error}</p>
+          ) : null}
+        </div>
+      ) : null}
+      {voided ? (
+        <section
+          className="space-y-2 rounded-xl border bg-card p-4"
+          aria-label="Balances after cancellation"
+        >
+          <h2 className="font-bold">Account balances after cancellation</h2>
+          {balances.isPending ? (
+            <p role="status">Loading balances…</p>
+          ) : balances.error ? (
+            <div role="alert">
+              <p className="text-brand-strong">
+                Order cancelled; {balances.error.message}
+              </p>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  void balances.refetch()
+                }}
+              >
+                Reload balances
+              </Button>
+            </div>
+          ) : (
+            balances.data?.map((b) => (
+              <div key={b.id} className="flex justify-between gap-3 text-sm">
+                <span>{b.name}</span>
+                <span>
+                  {b.balance === null || !b.currency
+                    ? 'Unavailable'
+                    : formatMoney(b.balance, b.currency)}
+                </span>
+              </div>
+            ))
+          )}
+          <Button
+            variant="secondary"
+            size="secondary"
+            onClick={() => setVoided(null)}
+          >
+            Dismiss
+          </Button>
+        </section>
+      ) : null}
+      <div className="flex gap-2">
+        <label className="min-w-0 flex-1">
+          <span className="sr-only">Search orders</span>
+          <Input
+            type="search"
+            placeholder="Order number or customer"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </label>
+        <Button variant="secondary" onClick={() => setFilters(true)}>
+          Filters
+        </Button>
+      </div>
+      {dates || channel || account ? (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span>Filters applied</span>
+          <Button
+            variant="secondary"
+            size="secondary"
+            onClick={() => {
+              setDates(null)
+              setChannel('')
+              setAccount(null)
+            }}
+          >
+            Reset filters
+          </Button>
+        </div>
+      ) : null}
+      <div
+        className="grid grid-cols-4 gap-1 rounded-xl bg-chip p-1"
+        role="group"
+        aria-label="Order status"
+      >
+        {tabs.map(([status, label]) => (
+          <button
+            key={status}
+            className={cn(
+              'min-h-11 rounded-lg px-1 text-sm font-semibold',
+              tab === status ? 'bg-card text-ink' : 'text-muted',
+            )}
+            aria-pressed={tab === status}
+            onClick={() => setTab(status)}
+          >
+            {label}
+            {status !== 'all'
+              ? ` ${matches.filter((o) => o.status === status).length}`
+              : ''}
+          </button>
+        ))}
+      </div>
+      {reference.error || board.error || sales.error ? (
+        <div role="alert" className="space-y-2 text-brand-strong">
+          <p>{(reference.error ?? board.error ?? sales.error)?.message}</p>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              void reference.refetch()
+              void board.refetch()
+              void sales.refetch()
+            }}
+          >
+            Refresh orders
+          </Button>
+        </div>
+      ) : null}
+      {!validDates && reference.data ? (
+        <p role="alert" className="text-brand-strong">
+          Choose a valid business-day range in Filters.
+        </p>
+      ) : reference.isPending || board.isPending ? (
+        <p role="status">Loading orders…</p>
+      ) : visible.length ? (
+        <div className="grid gap-3 lg:grid-cols-2">
+          {visible.map((o) => (
+            <OrderCard
+              key={o.id}
+              order={o}
+              role={profile!.role}
+              busy={busy || !!payment.pending}
+              onOpen={() => setSelected(o)}
+              onAdvance={() => advance.mutate(o)}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-xl border bg-card p-5 text-muted">
+          No orders match this view.
+        </p>
+      )}
+      {current ? (
+        <OrderDetails
+          key={current.id}
+          order={current}
+          role={profile!.role}
+          busy={busy}
+          paymentBlocked={!!payment.pending}
+          onClose={() => {
+            setSelected(null)
+            setParams({})
+          }}
+          onPayment={(p) => payment.send(current.id, p)}
+          onCancel={(reason) => cancel.mutateAsync({ id: current.id, reason })}
+        />
+      ) : null}
+      <Sheet
+        open={filters}
+        onOpenChange={setFilters}
+        title="Order filters"
+        description="Dates use the restaurant’s business day, 06:00–05:59."
+      >
+        <div className="space-y-4">
+          <div>
+            <label
+              className="mb-2 block text-sm font-semibold"
+              htmlFor="filter-from"
+            >
+              From business day
+            </label>
+            <Input
+              id="filter-from"
+              type="date"
+              value={from}
+              onChange={(e) => setDates({ from: e.target.value, to })}
+            />
+          </div>
+          <div>
+            <label
+              className="mb-2 block text-sm font-semibold"
+              htmlFor="filter-to"
+            >
+              To business day
+            </label>
+            <Input
+              id="filter-to"
+              type="date"
+              value={to}
+              onChange={(e) => setDates({ from, to: e.target.value })}
+            />
+          </div>
+          {!validDates ? (
+            <p role="alert" className="text-sm text-brand-strong">
+              Choose both dates, with From before or equal to To.
+            </p>
+          ) : null}
+          <div>
+            <label
+              className="mb-2 block text-sm font-semibold"
+              htmlFor="filter-channel"
+            >
+              Channel
+            </label>
+            <select
+              id="filter-channel"
+              className={selectClass}
+              value={channel}
+              onChange={(e) => setChannel(e.target.value)}
+            >
+              <option value="">All channels</option>
+              {channels.map(([id, name]) => (
+                <option key={id} value={id}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label
+              className="mb-2 block text-sm font-semibold"
+              htmlFor="filter-account"
+            >
+              Payment account
+            </label>
+            <select
+              id="filter-account"
+              className={selectClass}
+              value={account ?? ''}
+              onChange={(e) =>
+                setAccount(e.target.value ? Number(e.target.value) : null)
+              }
+            >
+              <option value="">All accounts</option>
+              {reference.data?.accounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                  {!a.is_active ? ' (inactive)' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+          <Button
+            className="w-full"
+            disabled={!validDates}
+            onClick={() => setFilters(false)}
+          >
+            Show orders
+          </Button>
+        </div>
+      </Sheet>
+    </section>
+  )
 }

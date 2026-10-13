@@ -597,3 +597,60 @@ Also check phone receipt upload/preview, add/edit/remove draft item lines, accou
 and USD/NGN, supplier suggestions, overspend messaging and too-much-change errors. If a save is
 interrupted, reload and use Retry Logistics confirmation; do not submit a new copy. Never delete
 saved test records; use the established Admin correction functions. No commit/push until approved.
+
+## M7 — debts and go-live setup
+
+Operations/Admin use `/debts`; Admin uses `/setup`. Money links to Debts. Supporting layouts follow
+Setup.dc.html and `docs/DEBT_DESIGN.md`. Opening balances save once per account, including zero;
+opening debts move no money. Loans move money in their account currency. Paying/collecting a debt
+shows a server preview and asks how much debt is cleared when currencies differ. Unpaid customer
+orders stay on orders and open their correct date/details from the debt list.
+
+### Manual Supabase step
+
+Run the complete `supabase/migrations/008_m7_debt_support.sql` once after 007. It was applied to
+`lnolchqycicixjikolfi` during M7 and public types were regenerated from that project. No Edge
+Function deployment is needed. Original schema, Storage and migrations 001–007 remain unchanged.
+
+The private, immutable `account_openings` table preserves existing opening entries and records
+zero openings without weakening the ledger's nonzero constraint. `adjust_balance` retains its
+Admin guard and one-time check, now checking those markers as well. An opening remains recorded
+when its ledger entry is reversed. Existing money history is retained; later corrections are
+adjustments. Zero openings are permanent too, so review intended opening amounts before saving.
+
+Server functions preview openings, debts/loans and settlements, and supply totals from the views.
+The summary separates unpaid customer balances and flags foreign debts without rates. Payments
+lock the debt/account and recheck remaining debt, funds and approval limits. Operations payments
+above the threshold require Admin to settle directly, as approved; no approval queue is added.
+`run_debt_action` delegates to the guarded RPCs and reuses the private hashed recovery table.
+Same actor/request/payload returns the original result; altered payloads are refused. Preview
+changes require review. Cancellation retains debt history and earlier payments without refunds.
+
+Each account opening saves independently; after all active accounts are recorded, enter every
+opening debt and finish setup. This does not erase training records or trigger deployment. The
+opening preview shows existing ledger balance and its balance after the added opening amount.
+
+### Verification and phone acceptance
+
+M7 adds 25 unit tests (206 total) and 50 database checks (341 total), preserving every prior check.
+An upgrade test also preserved an existing opening and its original ledger entry.
+A separate two-session test attempted two payments of 80 against a debt of 100: one succeeded,
+one was refused, and only one settlement existed with 20 outstanding. Browser tests use simulated
+Auth plus real RPCs/RLS in an isolated local PostgreSQL database, with no hosted financial writes.
+
+On a phone, verify every M7 Done when item:
+
+1. Admin records an opening, then sees the row Recorded and cannot enter another. Zero openings
+   also complete once without a ledger entry. Use intended values because these records are permanent.
+2. For a 4200 TRY debt, Operations pays 1500: outstanding becomes 2700, the chosen account falls
+   by 1500, and profit does not change. The database suite verifies report_pnl before/after; the
+   full app P&L screen follows in M9. Above-limit Operations payments must ask Admin.
+3. Admin records a 100 USD loan into SFx, choosing We owe and Loan: SFx rises by 100 USD and the
+   debt list shows a 100 USD liability. A plain debt/opening debt moves no account money.
+
+Also check collections, foreign-currency covers, overdue/status/search controls, unpaid customer
+order navigation, reasoned cancellation and guessed role URLs. A lost response should be confirmed
+by Retry debt confirmation after reload rather than submitting a new copy. Logistics must be denied
+Debts and Setup; Operations can settle but cannot open Setup or record/cancel debts.
+
+No M7 commit/push until the user approves the completed phone review.

@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_openings: {
+        Row: {
+          account_id: number
+          amount: number
+          business_date: string
+          created_at: string
+          created_by: string
+          ledger_entry_id: number | null
+          rate_to_try: number | null
+          reason: string
+        }
+        Insert: {
+          account_id: number
+          amount: number
+          business_date?: string
+          created_at?: string
+          created_by: string
+          ledger_entry_id?: number | null
+          rate_to_try?: number | null
+          reason: string
+        }
+        Update: {
+          account_id?: number
+          amount?: number
+          business_date?: string
+          created_at?: string
+          created_by?: string
+          ledger_entry_id?: number | null
+          rate_to_try?: number | null
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_openings_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: true
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "account_openings_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: true
+            referencedRelation: "v_account_balances"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "account_openings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "account_openings_ledger_entry_id_fkey"
+            columns: ["ledger_entry_id"]
+            isOneToOne: true
+            referencedRelation: "ledger_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       account_transfers: {
         Row: {
           created_at: string
@@ -1640,6 +1702,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      debt_summary: { Args: never; Returns: Json }
       decide_withdrawal: {
         Args: { p_approve: boolean; p_note?: string; p_withdrawal: string }
         Returns: {
@@ -1682,7 +1745,18 @@ export type Database = {
           role: Database["public"]["Enums"]["user_role"]
         }[]
       }
+      get_setup_accounts: { Args: never; Returns: Json }
       import_menu_products: { Args: { p_rows: Json }; Returns: number }
+      list_debts: {
+        Args: {
+          p_direction?: string
+          p_id?: string
+          p_offset?: number
+          p_search?: string
+          p_state?: string
+        }
+        Returns: Json
+      }
       list_delivery_orders: { Args: never; Returns: Json }
       list_logistics_advances: {
         Args: { p_offset?: number; p_state?: string }
@@ -1692,6 +1766,7 @@ export type Database = {
         Args: { p_id?: string; p_offset?: number }
         Returns: Json
       }
+      list_unpaid_customers: { Args: { p_offset?: number }; Returns: Json }
       log_activity: {
         Args: {
           p_action: string
@@ -1751,8 +1826,11 @@ export type Database = {
         }
         Returns: number
       }
+      quote_debt_settlement: { Args: { p: Json }; Returns: Json }
+      quote_opening: { Args: { p: Json }; Returns: Json }
       quote_order: { Args: { p_order: Json }; Returns: Json }
       quote_purchase: { Args: { p: Json }; Returns: Json }
+      quote_record_debt: { Args: { p: Json }; Returns: Json }
       quote_return_change: { Args: { p: Json }; Returns: Json }
       quote_withdrawal: { Args: { p: Json }; Returns: Json }
       record_debt: {
@@ -1842,6 +1920,10 @@ export type Database = {
       reverse_purchase: {
         Args: { p_purchase: string; p_reason: string }
         Returns: undefined
+      }
+      run_debt_action: {
+        Args: { p: Json; p_action: string; p_request_id: string }
+        Returns: Json
       }
       run_logistics_action: {
         Args: { p: Json; p_action: string; p_request_id: string }
