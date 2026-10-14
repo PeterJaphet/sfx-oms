@@ -369,3 +369,20 @@ The user confirmed League Spartan headings, Antic body copy and the guide's main
 palette; conflicting Poppins/purple template references are excluded. Use original logo artwork
 proportionally, its burger symbol in compact locations, and local fonts for offline availability.
 All existing order, money, role and currency-display behaviour remains unchanged.
+
+
+### Approved costing adjustment — 14 October 2026
+
+M14 adds recipe costing now; ingredient stock tracking remains a later feature. Admin edits batch ingredient costs, packaging, operational overhead, yield, price multiplier, rounding and planned weekly batches. Each variant has its own recipe; an extra has one shared recipe whether added to a dish or sold standalone. Inputs are numbers, not currency text.
+
+Suggested price = ceiling(((ingredients + packaging + overhead) × multiplier / yield) / rounding) × rounding. Rounding defaults to ₺10. Saving a recipe changes the suggestion; Apply price explicitly publishes it and keeps existing price history. Cost and planning changes are audited and cannot be deleted.
+
+Order revenue is its actual total after discount, including unpaid orders. Estimated COGS is recipe ingredient/packaging cost divided by yield × each dish/extra's exact count. Gross estimate = revenue − COGS. Net estimate = gross − recipe operational overhead − allocated fixed overhead. Fixed overhead allocation is the same percentage of every order's revenue: planned weekly fixed overhead / planned weekly revenue. Costs are accumulated at database precision then order cost/overhead/allocation totals are rounded to cents. The snapshot saves the exact inputs and versions; later changes do not rewrite it. Cancelled orders retain a clearly labelled original estimate, not active sales.
+
+Forecast revenue follows the workbook: unrounded batch selling price × planned batches. Published prices, rounding and discounts can differ from that forecast; both prices are displayed. Monthly USD fixed costs are converted with the editable planning rate and divided by 52 / 12. This rate does not change account/payment rates. All workbook totals, break-even and editable FX scenarios are database calculations. The overhead comparison reads actual operational expenses for a selected Monday–Sunday week. Forecasts do not post ledger entries or change actual P&L based on purchases/expenses; neither costs nor overheads are counted twice.
+
+The workbook's numeric input cells are authoritative starting values rather than its conflicting notes. With user approval, six Classic Shawarma text costs are normalized (₺177 total), ingredients become ₺708, full batch cost ₺893, full unit cost ₺223.25 and the default suggested price ₺450. Hardcoded weekly totals and payroll conversions are replaced with calculations. Production volumes are placeholders for Admin to review. Fried Rice and Egusi recipes can remain unlinked planning recipes until linked to a menu variant; loading costing never creates menu products or publishes prices.
+
+Extras, Chips, Congolese Shawarma and additional variants have no supplied recipe costs: Admin must enter them. Missing costs are not zero; revenue stays visible while incomplete profit remains unavailable. If planned revenue is zero and fixed overhead is positive, net profit is unavailable; an explicitly zero fixed overhead needs no allocation denominator.
+
+Operations and Admin can view order estimates. Only Admin edits costing and opens its planning/editor/history screens. Logistics and customer receipts do not expose recipes or profits. Customer name/phone remain optional, visible directly on New order; a delivery address is required before checkout/save. Partial delivery drafts survive reload.

@@ -244,3 +244,26 @@ in that order. Put the URL and anon key in `.env`.
 - [ ] Exported PDF reports contain the supplied logo, brand fonts, readable ₺/$/₦ and Turkish text, with no clipped headers or pagination.
 - [ ] An installed app keeps its logo and fonts offline; saving remains blocked offline and drafts survive the update; check on a phone.
 - [ ] Typecheck, lint, unit tests, database checks and build pass. Original database files and guards are untouched.
+
+
+## M14 — Costing and order profit (approved adjustment)
+
+**Scope**
+- Admin-only recipe editor: ingredient costs, packaging, batch operational cost, yield, multiplier, rounding and planned weekly batches; link each dish variant or shared extra recipe.
+- Load ten workbook recipes from the current input cells. Normalize six Classic Shawarma text costs with user approval; compute all dependent totals. No menu price or existing recipe is overwritten by loading presets.
+- Database pricing previews; explicit Apply price publishes the suggestion through existing price history and extra synchronization.
+- Weekly workbook model: production plan, ingredient budget, fixed overheads, monthly USD rent/payroll converted using 52 / 12 weeks, forecast P&L, break-even, actual operational comparison and editable FX scenarios. Forecast CSV/PDF export. Actual P&L remains based on recorded expenses.
+- Revenue, estimated gross and net profit while ordering, checkout, confirmation and internal details. Fixed costs allocated by forecast revenue, as chosen by the user. Missing costs remain unavailable.
+- Immutable order cost snapshots and private costing history. Historical orders and old pending requests retain their original behaviour. No costs in customer receipts or Logistics responses.
+- Customer name/phone and order type visible in the order flow; required delivery address. Partial drafts survive reload; incomplete delivery cannot be submitted.
+- Manually apply 012_costing_profit.sql after 011. No Edge Function or storage changes.
+
+**Done when**
+- [ ] Admin can load workbook starting values, edit individual ingredient costs, packaging, overhead, yields, multiplier, rounding and weekly volume; review on a phone.
+- [ ] Suggested prices recalculate in the database; Save costing leaves prices alone and Apply price records history, including identical plate/standalone extra pricing; review on a phone.
+- [ ] Weekly production totals, ingredient budget, fixed overheads, forecast P&L, break-even and rate scenarios recompute from inputs; actual-overhead comparisons use a matching Monday–Sunday week. CSV/PDF exports are labelled forecasts; review on a phone.
+- [ ] Revenue and estimated gross/net profit appear in cart/order, checkout, confirmation and internal details. Missing dish/variant/extra costs and missing allocation denominator stay clearly unavailable; review on a phone.
+- [ ] Two soups with four total extras cost four extras; discounts and zero-revenue orders retain exact costs and losses. Cancelled orders preserve but label their original estimate.
+- [ ] Editing costs never rewrites an old order; stale new saves roll back, uncertain retries create one order/payment/snapshot, legacy pending requests still use the original RPC. Admin-only edits, private reads, no deletes and closed-day guards remain.
+- [ ] Customer name, phone and delivery address survive draft reload and save; delivery address is required, receipt/delivery details show the customer but omit costs/profit; review on a phone.
+- [ ] Typecheck, lint, unit tests, database checks and build pass. Original schema and financial/report rules are untouched.

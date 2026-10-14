@@ -1,21 +1,21 @@
-import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { formatMoney } from '@/lib/format'
-import { useAuth } from '@/features/auth/auth-context'
-import Dashboard from './Dashboard'
-import { loadPeriods, loadReport } from './report-api'
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { formatMoney } from "@/lib/format";
+import { useAuth } from "@/features/auth/auth-context";
+import Dashboard from "./Dashboard";
+import { loadPeriods, loadReport } from "./report-api";
 import {
   definitions,
   findDefinition,
   periods,
   rangeSchema,
   type Range,
-} from './report-model'
-import { ReportTable } from './ReportTable'
+} from "./report-model";
+import { ReportTable } from "./ReportTable";
 function Detail({
   name,
   range,
@@ -23,24 +23,24 @@ function Detail({
   offset,
   onPage,
 }: {
-  name: string
-  range: Range
-  search: string
-  offset: number
-  onPage: (offset: number) => void
+  name: string;
+  range: Range;
+  search: string;
+  offset: number;
+  onPage: (offset: number) => void;
 }) {
-  const def = findDefinition(name)!
+  const def = findDefinition(name)!;
   const query = useQuery({
-    queryKey: ['reports', 'table', name, range, search, offset],
+    queryKey: ["reports", "table", name, range, search, offset],
     queryFn: () => loadReport(name, range, offset, 100, search),
     refetchInterval: 30000,
     retry: false,
-  })
-  const message = query.error?.message
+  });
+  const message = query.error?.message;
   useEffect(() => {
-    if (message) toast.error(message, { id: 'm9-report-error' })
-  }, [message])
-  if (query.isPending) return <p role="status">Loading report…</p>
+    if (message) toast.error(message, { id: "m9-report-error" });
+  }, [message]);
+  if (query.isPending) return <p role="status">Loading report…</p>;
   if (query.error)
     return (
       <div role="alert" className="space-y-3">
@@ -48,16 +48,16 @@ function Detail({
         <Button
           variant="secondary"
           onClick={() => {
-            void query.refetch()
+            void query.refetch();
           }}
         >
           Retry report
         </Button>
       </div>
-    )
+    );
   return (
     <div className="min-w-0 space-y-3">
-      {name === 'debts' ? (
+      {name === "debts" ? (
         <section className="space-y-2 rounded-xl border bg-card p-4">
           <h2 className="text-sm font-bold">
             Totals · all outstanding debts now
@@ -66,16 +66,16 @@ function Detail({
             <div className="rounded-xl bg-brand-soft p-3 text-brand-deep">
               <p className="text-xs">We owe</p>
               <p className="break-words text-xl font-bold">
-                ≈ {formatMoney(Number(query.data.summary.we_owe ?? 0), 'TRY')}
+                ≈ {formatMoney(Number(query.data.summary.we_owe ?? 0), "TRY")}
               </p>
             </div>
             <div className="rounded-xl bg-ok-soft p-3 text-ok">
               <p className="text-xs">Debt owed to us</p>
               <p className="break-words text-xl font-bold">
-                ≈{' '}
+                ≈{" "}
                 {formatMoney(
                   Number(query.data.summary.debt_owed_to_us ?? 0),
-                  'TRY',
+                  "TRY",
                 )}
               </p>
             </div>
@@ -89,24 +89,24 @@ function Detail({
             </p>
           ) : null}
         </section>
-      ) : name === 'unpaid' ? (
+      ) : name === "unpaid" ? (
         <div
           role="status"
           className="rounded-xl bg-amber-soft p-4 font-bold text-amber-ink"
         >
-          Customer balances due now:{' '}
-          {formatMoney(Number(query.data.summary.due_now ?? 0), 'TRY')} · all
+          Customer balances due now:{" "}
+          {formatMoney(Number(query.data.summary.due_now ?? 0), "TRY")} · all
           unpaid orders
         </div>
       ) : null}
-      {name === 'sales' ? (
+      {name === "sales" ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           {[
-            ['Orders', 'orders'],
-            ['Gross sales', 'gross_sales'],
-            ['Discounts', 'discounts'],
-            ['Net revenue', 'net_revenue'],
-            ['Average order', 'average_order'],
+            ["Orders", "orders"],
+            ["Gross sales", "gross_sales"],
+            ["Discounts", "discounts"],
+            ["Net revenue", "net_revenue"],
+            ["Average order", "average_order"],
           ].map(([label, key]) => (
             <article
               key={key}
@@ -115,21 +115,21 @@ function Detail({
               <h2 className="text-xs text-muted">{label}</h2>
               <p className="break-words font-bold">
                 {query.data.summary[key] == null
-                  ? '—'
-                  : key === 'orders'
+                  ? "—"
+                  : key === "orders"
                     ? String(query.data.summary[key])
-                    : formatMoney(Number(query.data.summary[key]), 'TRY')}
+                    : formatMoney(Number(query.data.summary[key]), "TRY")}
               </p>
             </article>
           ))}
         </div>
-      ) : name === 'expenses' ? (
+      ) : name === "expenses" ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            ['Cost of goods', 'cogs'],
-            ['Operational', 'operational'],
-            ['Fixed', 'fixed'],
-            ['Total expenses', 'total'],
+            ["Cost of goods", "cogs"],
+            ["Operational", "operational"],
+            ["Fixed", "fixed"],
+            ["Total expenses", "total"],
           ].map(([label, key]) => (
             <article
               key={key}
@@ -137,12 +137,12 @@ function Detail({
             >
               <h2 className="text-xs text-muted">{label}</h2>
               <p className="break-words font-bold">
-                {formatMoney(Number(query.data.summary[key] ?? 0), 'TRY')}
+                {formatMoney(Number(query.data.summary[key] ?? 0), "TRY")}
               </p>
             </article>
           ))}
         </div>
-      ) : ['items', 'item_categories', 'extras'].includes(name) ? (
+      ) : ["items", "item_categories", "extras"].includes(name) ? (
         <div
           role="status"
           className="rounded-xl bg-brand-soft p-4 text-brand-deep"
@@ -151,9 +151,9 @@ function Detail({
             {String(query.data.summary.filtered_quantity ?? 0)} sold in matching
             rows
           </p>
-          {name === 'extras' ? (
+          {name === "extras" ? (
             <p className="text-sm">
-              {String(query.data.summary.filtered_on_plate ?? 0)} on a plate ·{' '}
+              {String(query.data.summary.filtered_on_plate ?? 0)} on a plate ·{" "}
               {String(query.data.summary.filtered_standalone ?? 0)} on its own
             </p>
           ) : null}
@@ -166,9 +166,9 @@ function Detail({
         search={search}
         disabled={query.isFetching}
       />
-      {name === 'items' ? (
+      {name === "items" ? (
         <p className="text-xs text-muted">
-          Previous period: {query.data.previous_from} to{' '}
+          Previous period: {query.data.previous_from} to{" "}
           {query.data.previous_to}
         </p>
       ) : null}
@@ -195,60 +195,60 @@ function Detail({
         </Button>
       </div>
     </div>
-  )
+  );
 }
 export default function ReportsPage() {
-  const { profile } = useAuth()
-  const [params, setParams] = useSearchParams()
+  const { profile } = useAuth();
+  const [params, setParams] = useSearchParams();
   const reference = useQuery({
-    queryKey: ['reports', 'periods'],
+    queryKey: ["reports", "periods"],
     queryFn: loadPeriods,
     refetchInterval: 60000,
     retry: false,
-  })
-  const period = params.get('period') ?? 'week'
-  const name = params.get('view') ?? 'dashboard'
-  const view = findDefinition(name) ? name : 'dashboard'
-  const search = params.get('search') ?? ''
-  const rawOffset = Number(params.get('offset'))
+  });
+  const period = params.get("period") ?? "week";
+  const name = params.get("view") ?? "dashboard";
+  const view = findDefinition(name) ? name : "dashboard";
+  const search = params.get("search") ?? "";
+  const rawOffset = Number(params.get("offset"));
   const offset =
-    Number.isSafeInteger(rawOffset) && rawOffset >= 0 ? rawOffset : 0
-  const [from, setFrom] = useState(params.get('from') ?? '')
-  const [to, setTo] = useState(params.get('to') ?? '')
-  const [invalid, setInvalid] = useState('')
+    Number.isSafeInteger(rawOffset) && rawOffset >= 0 ? rawOffset : 0;
+  const [from, setFrom] = useState(params.get("from") ?? "");
+  const [to, setTo] = useState(params.get("to") ?? "");
+  const [invalid, setInvalid] = useState("");
   const chosen =
-    period === 'custom'
+    period === "custom"
       ? rangeSchema.safeParse({
-          from: params.get('from'),
-          to: params.get('to'),
+          from: params.get("from"),
+          to: params.get("to"),
         })
-      : null
+      : null;
   const selectedRange = chosen?.success
     ? chosen.data
-    : period === 'custom'
+    : period === "custom"
       ? undefined
-      : (reference.data?.[period as 'today' | 'week' | 'last_week' | 'month'] ??
-        reference.data?.week)
-  const current = !!findDefinition(view)?.current
-  const range = current ? reference.data?.today : selectedRange
+      : (reference.data?.[period as "today" | "week" | "last_week" | "month"] ??
+        reference.data?.week);
+  const current = !!findDefinition(view)?.current;
+  const range = current ? reference.data?.today : selectedRange;
   function change(values: Record<string, string | undefined>) {
     setParams((old) => {
-      const next = new URLSearchParams(old)
+      const next = new URLSearchParams(old);
       for (const [key, value] of Object.entries(values)) {
-        if (value === undefined) next.delete(key)
-        else next.set(key, value)
+        if (value === undefined) next.delete(key);
+        else next.set(key, value);
       }
-      return next
-    })
+      return next;
+    });
   }
   function onReport(name: string) {
-    change({ view: name, search: undefined, offset: undefined })
+    change({ view: name, search: undefined, offset: undefined });
   }
-  const message = reference.error?.message
+  const message = reference.error?.message;
   useEffect(() => {
-    if (message) toast.error(message, { id: 'm9-period-error' })
-  }, [message])
-  if (reference.isPending) return <p role="status">Loading business dates…</p>
+    if (message) toast.error(message, { id: "m9-period-error" });
+  }, [message]);
+  if (reference.isPending) return <p role="status">Loading business dates…</p>;
   if (reference.error)
     return (
       <div role="alert" className="space-y-3">
@@ -258,13 +258,13 @@ export default function ReportsPage() {
         <Button
           variant="secondary"
           onClick={() => {
-            void reference.refetch()
+            void reference.refetch();
           }}
         >
           Retry report dates
         </Button>
       </div>
-    )
+    );
   return (
     <section className="min-w-0 space-y-5">
       <header className="space-y-3">
@@ -274,14 +274,19 @@ export default function ReportsPage() {
               ? `Outstanding now · business day ${reference.data.business_date}`
               : range
                 ? `${range.from} to ${range.to} · business dates`
-                : 'Choose a date range'}
+                : "Choose a date range"}
           </p>
           <h1 className="text-[26px] font-extrabold sm:text-[34px]">
-            {view === 'dashboard'
-              ? 'Reports and dashboard'
+            {view === "dashboard"
+              ? "Reports and dashboard"
               : findDefinition(view)!.title}
           </h1>
-          {profile!.role === 'operations' ? (
+          {profile!.role === "admin" ? (
+            <Button asChild variant="secondary" className="mt-3">
+              <Link to="/costing">Costing & weekly forecast</Link>
+            </Button>
+          ) : null}
+          {profile!.role === "operations" ? (
             <p className="text-sm text-muted">Read-only reports</p>
           ) : null}
         </div>
@@ -291,16 +296,16 @@ export default function ReportsPage() {
               {periods.map(([value, label]) => (
                 <Button
                   key={value}
-                  variant={period === value ? 'default' : 'secondary'}
+                  variant={period === value ? "default" : "secondary"}
                   size="secondary"
                   className="px-3 text-sm"
                   aria-pressed={period === value}
                   onClick={() => {
-                    if (value === 'custom') {
-                      setFrom(range?.from ?? reference.data!.week.from)
-                      setTo(range?.to ?? reference.data!.week.to)
+                    if (value === "custom") {
+                      setFrom(range?.from ?? reference.data!.week.from);
+                      setTo(range?.to ?? reference.data!.week.to);
                     }
-                    change({ period: value, offset: undefined })
+                    change({ period: value, offset: undefined });
                   }}
                 >
                   {label}
@@ -317,18 +322,18 @@ export default function ReportsPage() {
             historical snapshots.
           </p>
         )}
-        {!current && period === 'custom' ? (
+        {!current && period === "custom" ? (
           <form
             className="flex flex-wrap items-end gap-3"
             onSubmit={(e) => {
-              e.preventDefault()
-              const parsed = rangeSchema.safeParse({ from, to })
+              e.preventDefault();
+              const parsed = rangeSchema.safeParse({ from, to });
               if (!parsed.success) {
-                setInvalid('Choose a valid date range')
-                return
+                setInvalid("Choose a valid date range");
+                return;
               }
-              setInvalid('')
-              change({ from, to, offset: undefined })
+              setInvalid("");
+              change({ from, to, offset: undefined });
             }}
           >
             <label className="min-w-0 flex-1 space-y-1 text-sm font-semibold">
@@ -363,9 +368,9 @@ export default function ReportsPage() {
             className="px-3 text-sm"
             onClick={() =>
               change({
-                view: 'items',
-                period: 'last_week',
-                search: 'BBQ Burger',
+                view: "items",
+                period: "last_week",
+                search: "BBQ Burger",
                 offset: undefined,
               })
             }
@@ -377,9 +382,9 @@ export default function ReportsPage() {
             className="px-3 text-sm"
             onClick={() =>
               change({
-                view: 'extras',
-                period: 'month',
-                search: 'Swallow',
+                view: "extras",
+                period: "month",
+                search: "Swallow",
                 offset: undefined,
               })
             }
@@ -408,7 +413,7 @@ export default function ReportsPage() {
           ))}
         </select>
       </label>
-      {view !== 'dashboard' ? (
+      {view !== "dashboard" ? (
         <label
           className="block space-y-2 text-sm font-semibold"
           htmlFor="report-search"
@@ -425,7 +430,7 @@ export default function ReportsPage() {
         </label>
       ) : null}
       {range ? (
-        view === 'dashboard' ? (
+        view === "dashboard" ? (
           <Dashboard range={range} onReport={onReport} />
         ) : (
           <Detail
@@ -442,5 +447,5 @@ export default function ReportsPage() {
         </p>
       )}
     </section>
-  )
+  );
 }

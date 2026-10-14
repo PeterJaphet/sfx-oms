@@ -103,3 +103,12 @@ and neutral colours in the original screen references; their workflows and layou
 - Local WOFF2 fonts are preloaded and precached with the brand assets. PDF fonts are local too.
   PDFs use League Spartan for non-ASCII cells to preserve ₺, ₦ and Turkish account names; Archivo remains a fallback for existing special characters absent from the brand faces.
 - See `screens/BrandRefresh.dc.html` for the shared login/header/card/form reference.
+
+
+## M14 costing and profit
+
+Use screens/Costing.dc.html and OrderProfit.dc.html with the M13 brand components. Costing is an Admin workspace tool, also linked from Menu and Reports. Recipes / Weekly plan / History are 44px controls. Recipe cards show full cost per portion, multiplier/yield, published and suggested prices. Edit in a labelled sheet; show database previews and an explicit Apply price sheet. Ingredient rows and weekly fixed costs support additions/removal in the unsaved form; saved records and their history have no delete path.
+
+Weekly plan uses contained horizontally scrolling tables, totals/cards and separate sections for fixed overhead, break-even, actual comparison and FX scenarios. Clearly identify forecast prices and placeholder volumes. History shows saved costs, versions, author and time, not raw database identifiers. PDF/CSV forecasts use the shared brand exporter.
+
+New order shows customer name/phone and pickup/delivery/dine-in inline; delivery reveals the required address. Show a responsive three-metric profitability card as items are added: Revenue / Est. gross profit / Est. net profit. Use a clear Updating state; Costing incomplete names missing items and an unavailable net allocation. Cost breakdown explains the assumptions. Keep a compact three-metric version in the fixed order action bar so profit remains visible while scrolling the menu; allow sufficient bottom padding. The same full card appears on checkout, confirmation and internal details. Receipts and Logistics omit costs and profits. Offline blocks all writes; partial customer drafts persist without weakening save validation.

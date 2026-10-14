@@ -1,42 +1,45 @@
-import { lazy, Suspense } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
-import { AppShell } from '@/components/AppShell'
-import { Card, CardContent } from '@/components/ui/card'
-import { useAuth } from '@/features/auth/auth-context'
-import { LoginPage } from '@/features/auth/LoginPage'
-import { RouteGuard } from '@/features/auth/RouteGuard'
-import { homeRoutes, pages } from '@/features/auth/permissions'
-import { StaffPage } from '@/features/admin/StaffPage'
+import { lazy, Suspense } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { AppShell } from "@/components/AppShell";
+import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/features/auth/auth-context";
+import { LoginPage } from "@/features/auth/LoginPage";
+import { RouteGuard } from "@/features/auth/RouteGuard";
+import { homeRoutes, pages } from "@/features/auth/permissions";
+import { StaffPage } from "@/features/admin/StaffPage";
 
-const OrderLayout = lazy(() => import('@/features/orders/OrderLayout'))
-const NewOrderPage = lazy(() => import('@/features/orders/NewOrderPage'))
-const PaymentPage = lazy(() => import('@/features/orders/PaymentPage'))
-const OrdersPage = lazy(() => import('@/features/orders/OrdersPage'))
-const DeliveriesPage = lazy(() => import('@/features/logistics/DeliveriesPage'))
+const OrderLayout = lazy(() => import("@/features/orders/OrderLayout"));
+const NewOrderPage = lazy(() => import("@/features/orders/NewOrderPage"));
+const PaymentPage = lazy(() => import("@/features/orders/PaymentPage"));
+const OrdersPage = lazy(() => import("@/features/orders/OrdersPage"));
+const DeliveriesPage = lazy(
+  () => import("@/features/logistics/DeliveriesPage"),
+);
 const LogisticsLayout = lazy(
-  () => import('@/features/logistics/LogisticsLayout'),
-)
+  () => import("@/features/logistics/LogisticsLayout"),
+);
 const NewPurchasePage = lazy(
-  () => import('@/features/logistics/NewPurchasePage'),
-)
-const AdvancesPage = lazy(() => import('@/features/logistics/AdvancesPage'))
-const PurchasesPage = lazy(() => import('@/features/logistics/PurchasesPage'))
-const MoneyLayout = lazy(() => import('@/features/money/MoneyLayout'))
-const AccountsPage = lazy(() => import('@/features/money/AccountsPage'))
-const WithdrawPage = lazy(() => import('@/features/money/WithdrawPage'))
-const WithdrawalsPage = lazy(() => import('@/features/money/WithdrawalsPage'))
-const AdminToolsPage = lazy(() => import('@/features/money/AdminToolsPage'))
-const ExpensesPage = lazy(() => import('@/features/money/ExpensesPage'))
-const DebtLayout = lazy(() => import('@/features/debts/DebtLayout'))
-const DebtsPage = lazy(() => import('@/features/debts/DebtsPage'))
-const SetupPage = lazy(() => import('@/features/debts/SetupPage'))
-const ReportsPage = lazy(() => import('@/features/reports/ReportsPage'))
-const ClosePage = lazy(() => import('@/features/close/ClosePage'))
-const MenuPage = lazy(() => import('@/features/menu/MenuPage'))
+  () => import("@/features/logistics/NewPurchasePage"),
+);
+const AdvancesPage = lazy(() => import("@/features/logistics/AdvancesPage"));
+const PurchasesPage = lazy(() => import("@/features/logistics/PurchasesPage"));
+const MoneyLayout = lazy(() => import("@/features/money/MoneyLayout"));
+const AccountsPage = lazy(() => import("@/features/money/AccountsPage"));
+const WithdrawPage = lazy(() => import("@/features/money/WithdrawPage"));
+const WithdrawalsPage = lazy(() => import("@/features/money/WithdrawalsPage"));
+const AdminToolsPage = lazy(() => import("@/features/money/AdminToolsPage"));
+const ExpensesPage = lazy(() => import("@/features/money/ExpensesPage"));
+const DebtLayout = lazy(() => import("@/features/debts/DebtLayout"));
+const DebtsPage = lazy(() => import("@/features/debts/DebtsPage"));
+const SetupPage = lazy(() => import("@/features/debts/SetupPage"));
+const ReportsPage = lazy(() => import("@/features/reports/ReportsPage"));
+const ClosePage = lazy(() => import("@/features/close/ClosePage"));
+const CostingPage = lazy(() => import("@/features/costing/CostingPage"));
+const MenuPage = lazy(() => import("@/features/menu/MenuPage"));
 
 function Home() {
-  const { profile } = useAuth()
-  return profile ? <Navigate to={homeRoutes[profile.role]} replace /> : null
+  const { profile } = useAuth();
+  return profile ? <Navigate to={homeRoutes[profile.role]} replace /> : null;
 }
 function Placeholder({ title }: { title: string }) {
   return (
@@ -48,7 +51,7 @@ function Placeholder({ title }: { title: string }) {
         </CardContent>
       </Card>
     </section>
-  )
+  );
 }
 export default function App() {
   return (
@@ -233,12 +236,12 @@ export default function App() {
         {pages
           .filter(
             (page) =>
-              !page.path.startsWith('/money') &&
-              !['/debts', '/setup'].includes(page.path) &&
-              !page.path.startsWith('/purchases') &&
-              !['/advances', '/deliveries'].includes(page.path) &&
-              page.path !== '/order' &&
-              page.path !== '/order/pay',
+              !page.path.startsWith("/money") &&
+              !["/debts", "/setup"].includes(page.path) &&
+              !page.path.startsWith("/purchases") &&
+              !["/advances", "/deliveries"].includes(page.path) &&
+              page.path !== "/order" &&
+              page.path !== "/order/pay",
           )
           .map((page) => (
             <Route
@@ -246,21 +249,25 @@ export default function App() {
               path={page.path}
               element={
                 <RouteGuard path={page.path}>
-                  {page.path === '/orders' ? (
+                  {page.path === "/orders" ? (
                     <Suspense fallback={<p role="status">Loading orders…</p>}>
                       <OrdersPage />
                     </Suspense>
-                  ) : ['/dashboard', '/reports'].includes(page.path) ? (
+                  ) : ["/dashboard", "/reports"].includes(page.path) ? (
                     <Suspense fallback={<p role="status">Loading reports…</p>}>
                       <ReportsPage />
                     </Suspense>
-                  ) : page.path === '/close' ? (
+                  ) : page.path === "/close" ? (
                     <Suspense fallback={<p role="status">Loading close…</p>}>
                       <ClosePage />
                     </Suspense>
-                  ) : page.path === '/staff' ? (
+                  ) : page.path === "/staff" ? (
                     <StaffPage />
-                  ) : page.path === '/menu' ? (
+                  ) : page.path === "/costing" ? (
+                    <Suspense fallback={<p role="status">Loading costing…</p>}>
+                      <CostingPage />
+                    </Suspense>
+                  ) : page.path === "/menu" ? (
                     <Suspense fallback={<p role="status">Loading menu…</p>}>
                       <MenuPage />
                     </Suspense>
@@ -284,5 +291,5 @@ export default function App() {
         />
       </Route>
     </Routes>
-  )
+  );
 }
