@@ -34,6 +34,7 @@ const DebtsPage = lazy(() => import("@/features/debts/DebtsPage"));
 const SetupPage = lazy(() => import("@/features/debts/SetupPage"));
 const ReportsPage = lazy(() => import("@/features/reports/ReportsPage"));
 const ClosePage = lazy(() => import("@/features/close/ClosePage"));
+const WhatsAppPage = lazy(() => import("@/features/whatsapp/WhatsAppPage"));
 const CostingPage = lazy(() => import("@/features/costing/CostingPage"));
 const MenuPage = lazy(() => import("@/features/menu/MenuPage"));
 
@@ -263,6 +264,10 @@ export default function App() {
                     </Suspense>
                   ) : page.path === "/staff" ? (
                     <StaffPage />
+                  ) : page.path === "/whatsapp" ? (
+                    <Suspense fallback={<p role="status">Loading WhatsApp…</p>}>
+                      <WhatsAppPage />
+                    </Suspense>
                   ) : page.path === "/costing" ? (
                     <Suspense fallback={<p role="status">Loading costing…</p>}>
                       <CostingPage />

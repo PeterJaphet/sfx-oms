@@ -14,6 +14,200 @@ export type Database = {
   };
   public: {
     Tables: {
+      whatsapp_settings: {
+        Row: {
+          enabled: boolean;
+          id: boolean;
+          revision: number;
+          sender_phone: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          enabled?: boolean;
+          id?: boolean;
+          revision?: number;
+          sender_phone?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          enabled?: boolean;
+          id?: boolean;
+          revision?: number;
+          sender_phone?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_settings_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      whatsapp_recipients: {
+        Row: {
+          consent_at: string | null;
+          daily: boolean;
+          id: string;
+          is_active: boolean;
+          name: string;
+          phone: string;
+          revision: number;
+          updated_at: string;
+          updated_by: string;
+          weekly: boolean;
+        };
+        ComputedFields: never;
+        Insert: {
+          consent_at?: string | null;
+          daily?: boolean;
+          id?: string;
+          is_active?: boolean;
+          name: string;
+          phone: string;
+          revision?: number;
+          updated_at?: string;
+          updated_by: string;
+          weekly?: boolean;
+        };
+        Update: {
+          consent_at?: string | null;
+          daily?: boolean;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          phone?: string;
+          revision?: number;
+          updated_at?: string;
+          updated_by?: string;
+          weekly?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_recipients_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      whatsapp_reports: {
+        Row: {
+          claim_token: string | null;
+          claimed_at: string | null;
+          client_request_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          error_code: string | null;
+          id: string;
+          kind: string;
+          message_id: string | null;
+          period_from: string;
+          period_to: string;
+          phone: string;
+          recipient_id: string;
+          snapshot: NonNullable<Json>;
+          status: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          claim_token?: string | null;
+          claimed_at?: string | null;
+          client_request_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          error_code?: string | null;
+          id?: string;
+          kind: string;
+          message_id?: string | null;
+          period_from: string;
+          period_to: string;
+          phone: string;
+          recipient_id: string;
+          snapshot: NonNullable<Json>;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          claim_token?: string | null;
+          claimed_at?: string | null;
+          client_request_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          error_code?: string | null;
+          id?: string;
+          kind?: string;
+          message_id?: string | null;
+          period_from?: string;
+          period_to?: string;
+          phone?: string;
+          recipient_id?: string;
+          snapshot?: NonNullable<Json>;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_reports_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "whatsapp_reports_recipient_id_fkey";
+            columns: ["recipient_id"];
+            isOneToOne: false;
+            referencedRelation: "whatsapp_recipients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      whatsapp_report_events: {
+        Row: {
+          error_code: string | null;
+          id: number;
+          message_id: string | null;
+          occurred_at: string;
+          report_id: string;
+          status: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          error_code?: string | null;
+          id?: never;
+          message_id?: string | null;
+          occurred_at?: string;
+          report_id: string;
+          status: string;
+        };
+        Update: {
+          error_code?: string | null;
+          id?: never;
+          message_id?: string | null;
+          occurred_at?: string;
+          report_id?: string;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_report_events_report_id_fkey";
+            columns: ["report_id"];
+            isOneToOne: false;
+            referencedRelation: "whatsapp_reports";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+
       cost_plan: {
         Row: {
           id: boolean;
@@ -1785,6 +1979,79 @@ export type Database = {
       };
     };
     Functions: {
+      get_whatsapp_settings: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      save_whatsapp_recipient: {
+        Args: { p: Json };
+        Returns: {
+          consent_at: string | null;
+          daily: boolean;
+          id: string;
+          is_active: boolean;
+          name: string;
+          phone: string;
+          revision: number;
+          updated_at: string;
+          updated_by: string;
+          weekly: boolean;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "whatsapp_recipients";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      set_whatsapp_enabled: {
+        Args: { p_enabled: boolean; p_revision: number };
+        Returns: undefined;
+      };
+      whatsapp_report_snapshot: {
+        Args: { p_from: string; p_kind: string; p_now: string; p_to: string };
+        Returns: Json;
+      };
+      whatsapp_due_periods: {
+        Args: { p_now: string };
+        Returns: {
+          from_date: string;
+          kind: string;
+          to_date: string;
+        }[];
+      };
+      whatsapp_prepare_at: { Args: { p_now: string }; Returns: number };
+      prepare_whatsapp_reports: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
+      queue_whatsapp_test: {
+        Args: { p_recipient: string; p_request: string };
+        Returns: string;
+      };
+      claim_whatsapp_report: { Args: { p_test?: string }; Returns: Json };
+      finish_whatsapp_report: {
+        Args: {
+          p_claim: string;
+          p_error?: string;
+          p_message?: string;
+          p_report: string;
+          p_status: string;
+        };
+        Returns: undefined;
+      };
+      record_whatsapp_status: {
+        Args: {
+          p_at: string;
+          p_error?: string;
+          p_message: string;
+          p_phone: string;
+          p_report: string;
+          p_status: string;
+        };
+        Returns: undefined;
+      };
+
       apply_cost_price: {
         Args: { p_price: number; p_recipe: string; p_revision: number };
         Returns: undefined;

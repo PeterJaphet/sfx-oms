@@ -11,6 +11,12 @@ export const homeRoutes: Record<Role, string> = {
   admin: "/dashboard",
 };
 export const pages = [
+  {
+    path: "/whatsapp",
+    label: "WhatsApp reports",
+    icon: "reports",
+    roles: ["admin"],
+  },
   { path: "/costing", label: "Costing", icon: "supplies", roles: ["admin"] },
   {
     path: "/order",

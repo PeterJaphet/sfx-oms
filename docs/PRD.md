@@ -386,3 +386,8 @@ The workbook's numeric input cells are authoritative starting values rather than
 Extras, Chips, Congolese Shawarma and additional variants have no supplied recipe costs: Admin must enter them. Missing costs are not zero; revenue stays visible while incomplete profit remains unavailable. If planned revenue is zero and fixed overhead is positive, net profit is unavailable; an explicitly zero fixed overhead needs no allocation denominator.
 
 Operations and Admin can view order estimates. Only Admin edits costing and opens its planning/editor/history screens. Logistics and customer receipts do not expose recipes or profits. Customer name/phone remain optional, visible directly on New order; a delivery address is required before checkout/save. Partial delivery drafts survive reload.
+
+
+### M15 approved WhatsApp report decisions
+
+The deferred scheduled reports use Meta Cloud API, preserving sender +905391375702 in the WhatsApp Business app through coexistence. Admin manages multiple opted-in recipient numbers (initial +905338410938), daily/weekly preferences and deactivation. Daily 23:00 reports are labelled so far; weekly Monday 08:00 covers previous Monday–Sunday business dates. Both schedules follow Europe/Nicosia daylight saving. The message shows original recorded P&L totals, not M14 recipe estimates, plus customer balances outstanding now. Snapshots and status events remain private and permanent. Delivery uncertainty never triggers an automatic resend. Meta setup and actual phone delivery are manual acceptance requirements.

@@ -112,3 +112,8 @@ Use screens/Costing.dc.html and OrderProfit.dc.html with the M13 brand component
 Weekly plan uses contained horizontally scrolling tables, totals/cards and separate sections for fixed overhead, break-even, actual comparison and FX scenarios. Clearly identify forecast prices and placeholder volumes. History shows saved costs, versions, author and time, not raw database identifiers. PDF/CSV forecasts use the shared brand exporter.
 
 New order shows customer name/phone and pickup/delivery/dine-in inline; delivery reveals the required address. Show a responsive three-metric profitability card as items are added: Revenue / Est. gross profit / Est. net profit. Use a clear Updating state; Costing incomplete names missing items and an unavailable net allocation. Cost breakdown explains the assumptions. Keep a compact three-metric version in the fixed order action bar so profit remains visible while scrolling the menu; allow sufficient bottom padding. The same full card appears on checkout, confirmation and internal details. Receipts and Logistics omit costs and profits. Offline blocks all writes; partial customer drafts persist without weakening save validation.
+
+
+## M15 WhatsApp reports
+
+`docs/screens/WhatsApp.dc.html` is the approved supporting design for Admin `/whatsapp`: sender/schedule card, labelled recipient fields, consent and daily/weekly controls, recipient cards with edit/test actions and delivery history. Use League Spartan/Antic and shared brand components. Keep 44px touch targets, wrap number/status labels at 360px and distinguish Accepted by Meta from Delivered and Delivery uncertain. Operations and Logistics do not have this route/tool.

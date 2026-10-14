@@ -1,0 +1,7 @@
+# Only these new endpoints use their own authentication. Existing staff functions retain JWT verification.
+[functions.send-whatsapp-reports]
+verify_jwt = false
+# Dispatch verifies either an active Admin session or a long server-only cron secret.
+[functions.whatsapp-status]
+verify_jwt = false
+# Meta webhook verifies GET token / POST HMAC with the Meta app secret.

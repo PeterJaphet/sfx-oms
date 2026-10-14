@@ -107,6 +107,16 @@ export function AppShell() {
                   <NavLink to="/costing">Costing</NavLink>
                 </Button>
               ) : null}
+              {profile.role === "admin" ? (
+                <Button
+                  asChild
+                  variant="secondary"
+                  size="secondary"
+                  className="px-4 text-sm"
+                >
+                  <NavLink to="/whatsapp">WhatsApp reports</NavLink>
+                </Button>
+              ) : null}
               {canVisit(profile.role, "/menu") ? (
                 <Button
                   asChild

@@ -267,3 +267,22 @@ in that order. Put the URL and anon key in `.env`.
 - [ ] Editing costs never rewrites an old order; stale new saves roll back, uncertain retries create one order/payment/snapshot, legacy pending requests still use the original RPC. Admin-only edits, private reads, no deletes and closed-day guards remain.
 - [ ] Customer name, phone and delivery address survive draft reload and save; delivery address is required, receipt/delivery details show the customer but omit costs/profit; review on a phone.
 - [ ] Typecheck, lint, unit tests, database checks and build pass. Original schema and financial/report rules are untouched.
+
+
+## M15 — WhatsApp reports (approved deferred work)
+
+**Scope**
+- Meta Cloud API sender +905391375702 with Business app coexistence preserved. Initial Admin recipient +905338410938; up to 20 active recipients, consent, daily/weekly preferences and deactivation.
+- Admin-only branded settings and delivery history; supporting design approved. Server secrets stay in Edge Functions and Vault.
+- Canonical recorded P&L and sales summaries via approved template. Daily 23:00 so far and weekly Monday 08:00 previous Monday–Sunday business dates, Europe/Nicosia/DST.
+- Additive 013 recipient configuration, immutable snapshots/events, atomic claims and signed delivery webhooks. No financial writes or existing rule changes.
+- Manual Meta coexistence/template/secrets, migration, two Edge Functions and Vault/Cron setup. Enable scheduling after a delivered test.
+
+**Done when**
+- [ ] Admin can add multiple numbers and adjust each recipient's daily/weekly and Active choices; phone review.
+- [ ] Daily/weekly dates and DST are correct; actual scheduled receipt verified on a phone.
+- [ ] Report figures match canonical P&L/sales and outstanding-now customer balances, with correct decimal presentation.
+- [ ] One report per recipient/period; atomic send claim, signed statuses, immutable snapshots and no blind resend after uncertainty.
+- [ ] Operations/Logistics/anonymous callers cannot access settings or send reports; existing guards remain.
+- [ ] Meta coexistence/template/functions/secrets/webhook/Vault/Cron and delivered test are confirmed manually; ordinary Business app access is retained.
+- [ ] Typecheck, lint, unit/database tests and build pass; preview reviewed before commit/push.
