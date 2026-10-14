@@ -360,3 +360,12 @@ For example, 2 Vegetable Soup with 4 Swallow contains 4 Swallow in total, not 4 
 each included extra and the dish count can be 1–999. Changing the dish count keeps extra counts unchanged.
 Prices and full line totals come from the database. Receipts, delivery instructions and extras reports show the
 total extra counts. Older orders retain their original per-dish extra pricing and quantities.
+
+
+### Approved brand adjustment — 14 October 2026
+
+Use the supplied SFx Burger logos and Mini Brand Identity Design throughout the app and PDF reports.
+The user confirmed League Spartan headings, Antic body copy and the guide's main red/cream/charcoal
+palette; conflicting Poppins/purple template references are excluded. Use original logo artwork
+proportionally, its burger symbol in compact locations, and local fonts for offline availability.
+All existing order, money, role and currency-display behaviour remains unchanged.

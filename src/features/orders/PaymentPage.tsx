@@ -4,6 +4,7 @@ import { Link, Navigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
+import { BrandLogo } from '@/components/BrandLogo'
 import { Button } from '@/components/ui/button'
 import { Sheet } from '@/components/ui/sheet'
 import { extraText } from './extra-model'
@@ -38,7 +39,7 @@ export default function PaymentPage() {
     } catch (e) { toast.error((e as Error).message, { id: 'order-payment-error' }); throw e } finally { setChecking(false) }
   }
   return <section className="pb-[calc(132px+env(safe-area-inset-bottom))]">
-    <header className="flex items-center gap-3 border-b bg-card p-4"><Button asChild variant="secondary" size="secondary" className="px-3"><Link to="/order" aria-label="Back to order"><ArrowLeft aria-hidden="true" className="h-5 w-5" /></Link></Button><div><p className="text-xs text-muted">{channels.find(([v]) => v === order.draft.channel)?.[1]} · {orderTypes.find(([v]) => v === order.draft.details.order_type)?.[1]}</p><h1 className="text-2xl font-extrabold">Payment</h1></div></header>
+    <header className="flex items-center gap-3 border-b bg-card p-4"><Button asChild variant="secondary" size="secondary" className="px-3"><Link to="/order" aria-label="Back to order"><ArrowLeft aria-hidden="true" className="h-5 w-5" /></Link></Button><div><p className="text-xs text-muted">{channels.find(([v]) => v === order.draft.channel)?.[1]} · {orderTypes.find(([v]) => v === order.draft.details.order_type)?.[1]}</p><h1 className="text-2xl font-extrabold">Payment</h1></div><BrandLogo variant="mark" decorative className="ml-auto w-11" /></header>
     <div className="space-y-4 p-4 sm:p-6"><OrderNotices />
       <section className="space-y-3 rounded-xl border bg-card p-4" aria-label="Order summary">{quote.isPending ? <p role="status">Calculating total…</p> : quote.error ? <div role="alert" className="space-y-3"><p className="text-brand-strong">{quote.error.message}</p><Button variant="secondary" size="secondary" onClick={() => { void quote.refetch() }}>Try again</Button><Button asChild variant="secondary" size="secondary"><Link to="/order">Review items</Link></Button></div> : <>
         {quote.data.items.map(item => <div key={item.position}><div className="flex justify-between gap-3 text-sm"><span className="break-words">{item.quantity} × {item.product_name}</span><span className="shrink-0 font-semibold">{formatMoney(item.line_total, 'TRY')}</span></div>{item.variant_name !== 'Regular' || item.addons.length ? <p className="mt-1 text-xs text-muted">{item.variant_name}{item.addons.length ? ` · ${extraText(item.addons, item.quantity)}` : ''}</p> : null}</div>)}

@@ -225,3 +225,22 @@ in that order. Put the URL and anon key in `.env`.
 - [ ] Item and extras reports count 2 soups / 4 swallow and include their exact revenue; cancellations exclude them.
 - [ ] Historical data and legacy quotes remain unchanged; uncertain-save retries create one order/payment; cents remain exact.
 - [ ] Typecheck, lint, unit tests and database checks pass; original schema and all financial/security guards remain intact.
+
+
+## M13 — Brand refresh (approved adjustment)
+
+**Scope**
+- Apply the supplied SVG logos and approved League Spartan / Antic fonts across the app.
+- Refresh shared theme, responsive header, navigation, cards, forms, sheets and status displays.
+- Update favicon, install icons, offline font/brand caching and PDF report branding.
+- Update design references and document original asset provenance. No Supabase changes.
+- Preserve all existing routes, permissions, financial RPCs, calculations, snapshots and drafts.
+
+**Done when**
+- [ ] Supplied logo appears proportionally on login, desktop header, phone mark and installed app icon; review on a phone.
+- [ ] Brand fonts and palette are consistent across order, menu, money, Logistics, debts, close, reports and staff screens at 360–430px and 1280px; review on a phone.
+- [ ] Navigation and form controls fit, remain readable, retain 44px touch targets and accessible contrast; review on a phone.
+- [ ] Extra counts, quotes, saves, permissions and financial values remain unchanged through the revised UI.
+- [ ] Exported PDF reports contain the supplied logo, brand fonts, readable ₺/$/₦ and Turkish text, with no clipped headers or pagination.
+- [ ] An installed app keeps its logo and fonts offline; saving remains blocked offline and drafts survive the update; check on a phone.
+- [ ] Typecheck, lint, unit tests, database checks and build pass. Original database files and guards are untouched.

@@ -8,20 +8,20 @@
 <body>
 <x-dc>
 <helmet>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&amp;family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="brand-reference.css">
 <style>
-body{margin:0;background:#FBF7F4}
+body{margin:0;background:#FFF7EB}
 a{color:#B01E31}a:hover{color:#8C1727}
 button{font:inherit;cursor:pointer}
 </style>
 </helmet>
-<div style="min-height: 100vh; background: #FBF7F4; font-family: Archivo, system-ui, sans-serif; color: #1C1615">
+<div style="min-height: 100vh; background: #FFF7EB; font-family: Antic, 'League Spartan', system-ui, sans-serif; color: #2C2C2C">
 
-  <header style="background: #FFFFFF; border-bottom: 1px solid #EDE6E1">
+  <header style="background: #FFFFFF; border-bottom: 1px solid #EBE2D4">
     <div style="max-width: 1280px; margin: 0 auto; padding: 12px 24px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
       <div style="display: flex; align-items: center; gap: 10px">
-        <div style="width: 40px; height: 40px; border-radius: 10px; background: #D7263D; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 14px" aria-hidden="true">SFx</div>
-        <span style="font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 18px">SFx Burger OMS</span>
+        <div style="width: 40px; height: 40px; border-radius: 10px; background: #FFF7EB; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'League Spartan', sans-serif; font-weight: 800; font-size: 14px" aria-hidden="true"><img src="../../public/brand/burger-mark.svg" alt="" style="width: 100%; height: auto"></div>
+        <span style="font-family: 'League Spartan', sans-serif; font-weight: 800; font-size: 18px">SFx Burger OMS</span>
       </div>
       <a href="Dashboard.dc.html" style="font-size: 14px; font-weight: 600">Back to dashboard</a>
     </div>
@@ -29,69 +29,69 @@ button{font:inherit;cursor:pointer}
 
   <main style="max-width: 1280px; margin: 0 auto; padding: 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
     <div style="display: flex; flex-direction: column; gap: 6px; max-width: 720px">
-      <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6B605C">Admin · one time, on go-live day</span>
-      <h1 style="margin: 0; font-family: 'Bricolage Grotesque', Archivo, sans-serif; font-size: 34px; font-weight: 800; letter-spacing: -0.01em">Start fresh: balances and debts</h1>
-      <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #4A403C">Count what is in each account right now and list everything owed either way. Past sales are not entered; from today every order and expense goes through the app.</p>
+      <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #645B50">Admin · one time, on go-live day</span>
+      <h1 style="margin: 0; font-family: 'League Spartan', Antic, sans-serif; font-size: 34px; font-weight: 800; letter-spacing: -0.01em">Start fresh: balances and debts</h1>
+      <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #5B4C40">Count what is in each account right now and list everything owed either way. Past sales are not entered; from today every order and expense goes through the app.</p>
     </div>
 
     <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
 
-      <section style="flex: 1 1 420px; min-width: 0; background: #FFFFFF; border: 1px solid #EDE6E1; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px" aria-label="Opening balances">
+      <section style="flex: 1 1 420px; min-width: 0; background: #FFFFFF; border: 1px solid #EBE2D4; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px" aria-label="Opening balances">
         <div style="display: flex; align-items: center; gap: 10px">
-          <span style="width: 28px; height: 28px; border-radius: 14px; background: #1C1615; color: #FFFFFF; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-size: 14px">1</span>
+          <span style="width: 28px; height: 28px; border-radius: 14px; background: #2C2C2C; color: #FFFFFF; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-size: 14px">1</span>
           <h2 style="margin: 0; font-size: 20px; font-weight: 700">Opening balances</h2>
         </div>
-        <p style="margin: 0; font-size: 14px; color: #6B605C">Enter each in the account's own currency. Each account takes one opening balance; later fixes are adjustments with a reason.</p>
+        <p style="margin: 0; font-size: 14px; color: #645B50">Enter each in the account's own currency. Each account takes one opening balance; later fixes are adjustments with a reason.</p>
         <sc-for list="{{accounts}}" as="a" hint-placeholder-count="7">
-          <label style="display: grid; grid-template-columns: minmax(0, 1fr) 160px; gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid #EDE6E1">
-            <span style="display: flex; flex-direction: column"><span style="font-weight: 600">{{a.name}}</span><span style="font-size: 12px; color: #6B605C">{{a.hint}}</span></span>
-            <span style="display: flex; align-items: center; height: 44px; border: 1px solid #E2D8D2; border-radius: 10px; padding: 0 12px; gap: 6px; background: #FFFFFF">
-              <span style="font-weight: 700; color: #6B605C">{{a.sym}}</span>
-              <input value="{{a.value}}" inputmode="decimal" aria-label="{{a.name}} opening balance" style="border: 0; outline: 0; width: 100%; font: inherit; font-size: 16px; font-weight: 600; color: #1C1615; text-align: right; background: transparent">
+          <label style="display: grid; grid-template-columns: minmax(0, 1fr) 160px; gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid #EBE2D4">
+            <span style="display: flex; flex-direction: column"><span style="font-weight: 600">{{a.name}}</span><span style="font-size: 12px; color: #645B50">{{a.hint}}</span></span>
+            <span style="display: flex; align-items: center; height: 44px; border: 1px solid #9B8976; border-radius: 10px; padding: 0 12px; gap: 6px; background: #FFFFFF">
+              <span style="font-weight: 700; color: #645B50">{{a.sym}}</span>
+              <input value="{{a.value}}" inputmode="decimal" aria-label="{{a.name}} opening balance" style="border: 0; outline: 0; width: 100%; font: inherit; font-size: 16px; font-weight: 600; color: #2C2C2C; text-align: right; background: transparent">
             </span>
           </label>
         </sc-for>
-        <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid #1C1615; padding-top: 12px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid #2C2C2C; padding-top: 12px">
           <span style="font-weight: 700">Total in lira</span>
           <span style="font-size: 22px; font-weight: 700">≈ ₺23,016</span>
         </div>
-        <p style="margin: 0; font-size: 13px; color: #6B605C">Rates: ₺47.90 per $ (from the costing sheet), ₺0.027 per ₦. Change them in Settings.</p>
+        <p style="margin: 0; font-size: 13px; color: #645B50">Rates: ₺47.90 per $ (from the costing sheet), ₺0.027 per ₦. Change them in Settings.</p>
       </section>
 
-      <section style="flex: 1 1 520px; min-width: 0; background: #FFFFFF; border: 1px solid #EDE6E1; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px" aria-label="Outstanding debts">
+      <section style="flex: 1 1 520px; min-width: 0; background: #FFFFFF; border: 1px solid #EBE2D4; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px" aria-label="Outstanding debts">
         <div style="display: flex; align-items: center; gap: 10px">
-          <span style="width: 28px; height: 28px; border-radius: 14px; background: #1C1615; color: #FFFFFF; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-size: 14px">2</span>
+          <span style="width: 28px; height: 28px; border-radius: 14px; background: #2C2C2C; color: #FFFFFF; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-size: 14px">2</span>
           <h2 style="margin: 0; font-size: 20px; font-weight: 700">Outstanding debts</h2>
         </div>
 
-        <form style="display: flex; flex-direction: column; gap: 12px; background: #FBF7F4; border-radius: 12px; padding: 14px">
-          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; background: #F3EDE9; padding: 4px; border-radius: 10px" role="radiogroup" aria-label="Direction">
+        <form style="display: flex; flex-direction: column; gap: 12px; background: #FFF7EB; border-radius: 12px; padding: 14px">
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; background: #F3E9DA; padding: 4px; border-radius: 10px" role="radiogroup" aria-label="Direction">
             <button type="button" role="radio" aria-checked="true" style="height: 40px; border: 0; border-radius: 8px; background: #FFFFFF; font-weight: 700; color: #8C1727">We owe</button>
-            <button type="button" role="radio" aria-checked="false" style="height: 40px; border: 0; border-radius: 8px; background: transparent; font-weight: 600; color: #4A403C">Owed to us</button>
+            <button type="button" role="radio" aria-checked="false" style="height: 40px; border: 0; border-radius: 8px; background: transparent; font-weight: 600; color: #5B4C40">Owed to us</button>
           </div>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px">
             <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600">Who
-              <input value="Hilary" style="height: 44px; border: 1px solid #E2D8D2; border-radius: 10px; padding: 0 12px; font: inherit; font-size: 15px; color: #1C1615; background: #FFFFFF"></label>
+              <input value="Hilary" style="height: 44px; border: 1px solid #9B8976; border-radius: 10px; padding: 0 12px; font: inherit; font-size: 15px; color: #2C2C2C; background: #FFFFFF"></label>
             <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600">What for
-              <input value="Loan to the business" style="height: 44px; border: 1px solid #E2D8D2; border-radius: 10px; padding: 0 12px; font: inherit; font-size: 15px; color: #1C1615; background: #FFFFFF"></label>
+              <input value="Loan to the business" style="height: 44px; border: 1px solid #9B8976; border-radius: 10px; padding: 0 12px; font: inherit; font-size: 15px; color: #2C2C2C; background: #FFFFFF"></label>
           </div>
           <div style="display: grid; grid-template-columns: 90px minmax(0, 1fr) minmax(0, 1fr); gap: 10px">
             <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600">Currency
-              <select style="height: 44px; border: 1px solid #E2D8D2; border-radius: 10px; padding: 0 8px; font: inherit; font-size: 15px; color: #1C1615; background: #FFFFFF"><option>₺</option><option selected>$</option><option>₦</option></select></label>
+              <select style="height: 44px; border: 1px solid #9B8976; border-radius: 10px; padding: 0 8px; font: inherit; font-size: 15px; color: #2C2C2C; background: #FFFFFF"><option>₺</option><option selected>$</option><option>₦</option></select></label>
             <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600">Amount
-              <input value="45.00" inputmode="decimal" style="height: 44px; border: 1px solid #E2D8D2; border-radius: 10px; padding: 0 12px; font: inherit; font-size: 15px; font-weight: 600; color: #1C1615; background: #FFFFFF"></label>
+              <input value="45.00" inputmode="decimal" style="height: 44px; border: 1px solid #9B8976; border-radius: 10px; padding: 0 12px; font: inherit; font-size: 15px; font-weight: 600; color: #2C2C2C; background: #FFFFFF"></label>
             <label style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 600">Due (optional)
-              <input type="date" style="height: 44px; border: 1px solid #E2D8D2; border-radius: 10px; padding: 0 10px; font: inherit; font-size: 15px; color: #1C1615; background: #FFFFFF"></label>
+              <input type="date" style="height: 44px; border: 1px solid #9B8976; border-radius: 10px; padding: 0 10px; font: inherit; font-size: 15px; color: #2C2C2C; background: #FFFFFF"></label>
           </div>
-          <button type="button" style="height: 48px; border-radius: 10px; border: 0; background: #1C1615; color: #FFFFFF; font-weight: 700">Add debt</button>
+          <button type="button" style="height: 48px; border-radius: 10px; border: 0; background: #2C2C2C; color: #FFFFFF; font-weight: 700">Add debt</button>
         </form>
 
         <div style="display: flex; flex-direction: column">
           <sc-for list="{{debts}}" as="d" hint-placeholder-count="3">
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid #EDE6E1">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid #EBE2D4">
               <span style="display: flex; flex-direction: column; gap: 2px">
                 <span style="font-weight: 600">{{d.who}}</span>
-                <span style="font-size: 13px; color: #6B605C">{{d.what}}</span>
+                <span style="font-size: 13px; color: #645B50">{{d.what}}</span>
               </span>
               <span style="display: flex; align-items: center; gap: 10px">
                 <span style="{{d.tagStyle}}">{{d.tag}}</span>
@@ -107,8 +107,8 @@ button{font:inherit;cursor:pointer}
       </section>
     </div>
 
-    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; background: #FFFFFF; border: 1px solid #EDE6E1; border-radius: 16px; padding: 16px 20px">
-      <p style="margin: 0; font-size: 15px; color: #4A403C; max-width: 640px">Debts entered here move no money and never count as revenue or expense. Paying or collecting them later is recorded from the Debts page.</p>
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; background: #FFFFFF; border: 1px solid #EBE2D4; border-radius: 16px; padding: 16px 20px">
+      <p style="margin: 0; font-size: 15px; color: #5B4C40; max-width: 640px">Debts entered here move no money and never count as revenue or expense. Paying or collecting them later is recorded from the Debts page.</p>
       <a href="Dashboard.dc.html" style="height: 52px; padding: 0 24px; border-radius: 12px; background: #D7263D; color: #FFFFFF; font-weight: 700; display: inline-flex; align-items: center; text-decoration: none">Save and go live</a>
     </div>
   </main>

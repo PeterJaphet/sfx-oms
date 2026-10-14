@@ -1,6 +1,15 @@
 @import "tailwindcss";
 @config "../tailwind.config.ts";
 
+@font-face {
+  font-family: 'Antic'; src: url('/fonts/Antic-Regular.woff2') format('woff2');
+  font-style: normal; font-weight: 400; font-display: swap;
+}
+@font-face {
+  font-family: 'League Spartan'; src: url('/fonts/LeagueSpartan-Variable.woff2') format('woff2');
+  font-style: normal; font-weight: 100 900; font-display: swap;
+}
+
 @layer base {
   :root {
     /* docs/DESIGN.md: RGB channels allow Tailwind opacity modifiers. */
@@ -11,13 +20,13 @@
     --amber: 244 163 0;
     --amber-soft: 255 241 209;
     --amber-ink: 122 75 0;
-    --ink: 28 22 21;
-    --ink-2: 74 64 60;
-    --muted: 107 96 92;
-    --line: 237 230 225;
-    --line-strong: 226 216 210;
-    --chip: 243 237 233;
-    --ground: 251 247 244;
+    --ink: 44 44 44;
+    --ink-2: 91 76 64;
+    --muted: 100 91 80;
+    --line: 235 226 212;
+    --line-strong: 155 137 118;
+    --chip: 243 233 218;
+    --ground: 255 247 235;
     --card: 255 255 255;
     --ok: 31 107 69;
     --ok-soft: 227 243 234;
@@ -28,7 +37,14 @@
 
   * { @apply border-line; }
   body { @apply m-0 min-w-[320px] bg-ground font-sans text-base text-ink antialiased; }
-  h1, h2, h3 { @apply font-heading; }
+  h1, h2, h3, h4, h5, h6 { @apply font-heading; }
+  /* Antic is a regular face. Use the brand heading family for deliberate emphasis. */
+  .font-medium, .font-semibold, .font-bold, .font-extrabold, strong, b, th { @apply font-heading; }
+  body { font-synthesis: none; }
+  h1 { text-wrap: balance; }
+  p { overflow-wrap: break-word; }
+  button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+  input, textarea, select { font-variant-numeric: tabular-nums; }
   button, input, textarea, select { font: inherit; }
   a { @apply text-brand-strong; }
   a:hover { @apply text-brand-deep; }

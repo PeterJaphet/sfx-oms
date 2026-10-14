@@ -19,7 +19,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider><ConnectionNotice /><PwaNotice /><InstallNotice /><App /></AuthProvider>
-        <Toaster position="top-center" theme="light" toastOptions={{ duration: 6000, style: { fontFamily: 'Archivo, sans-serif', boxShadow: 'none', background: 'rgb(var(--card))', color: 'rgb(var(--ink))', borderColor: 'rgb(var(--line-strong))' } }} />
+        <Toaster position="top-center" theme="light" toastOptions={{ duration: 6000, style: { fontFamily: 'Antic, League Spartan, system-ui, sans-serif', boxShadow: 'none', background: 'rgb(var(--card))', color: 'rgb(var(--ink))', borderColor: 'rgb(var(--line-strong))' } }} />
       </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>,

@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
+import { BrandLogo } from '@/components/BrandLogo'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input, FieldError } from '@/components/ui/input'
@@ -25,12 +26,12 @@ export function LoginPage() {
     try { await auth.signIn(values.phone, values.pin); form.reset() }
     catch (error) { toast.error(error instanceof Error ? error.message : 'Sign-in failed') }
   }
-  return <main className="flex min-h-svh flex-col items-center justify-center px-4 py-8">
-    <div className="mb-6 flex items-center gap-3">
-      <span aria-hidden="true" className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand font-heading text-lg font-extrabold text-card">SFx</span>
-      <span className="font-heading text-xl font-extrabold">SFx Burger OMS</span>
+  return <main className="flex min-h-svh flex-col items-center justify-center border-t-4 border-brand px-4 py-10">
+    <div className="mb-6 flex max-w-sm flex-col items-center gap-3">
+      <BrandLogo className="w-[280px] max-w-full" />
+      <p className="font-heading text-base font-semibold text-ink-2">Order &amp; money management</p>
     </div>
-    <Card className="w-full max-w-sm">
+    <Card className="w-full max-w-sm border-line-strong">
       <CardHeader><CardTitle className="text-[26px]">Sign in</CardTitle><p className="text-sm text-muted">Use your phone number and six-digit PIN.</p></CardHeader>
       <CardContent>
         {!supabase ? <p role="alert" className="mb-4 rounded-lg bg-amber-soft p-3 text-sm text-amber-ink">Sign-in is not configured yet. Ask Admin to finish setup.</p> : null}

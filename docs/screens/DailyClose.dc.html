@@ -8,33 +8,33 @@
 <body>
 <x-dc>
 <helmet>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&amp;family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="brand-reference.css">
 <style>
-body{margin:0;background:#FBF7F4}
+body{margin:0;background:#FFF7EB}
 a{color:#B01E31}a:hover{color:#8C1727}
 button{font:inherit;cursor:pointer}
 </style>
 </helmet>
-<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FBF7F4; font-family: Archivo, system-ui, sans-serif; color: #1C1615; display: flex; flex-direction: column; overflow: hidden">
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFF7EB; font-family: Antic, 'League Spartan', system-ui, sans-serif; color: #2C2C2C; display: flex; flex-direction: column; overflow: hidden">
 
-  <header style="padding: 20px 16px 14px; background: #FFFFFF; border-bottom: 1px solid #EDE6E1; display: flex; flex-direction: column; gap: 2px">
-    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6B605C">Business day Mon 12 Oct</span>
-    <h1 style="margin: 0; font-family: 'Bricolage Grotesque', Archivo, sans-serif; font-size: 26px; font-weight: 800">Close the day</h1>
+  <header style="padding: 20px 16px 14px; background: #FFFFFF; border-bottom: 1px solid #EBE2D4; display: flex; flex-direction: column; gap: 2px">
+    <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #645B50">Business day Mon 12 Oct</span>
+    <h1 style="margin: 0; font-family: 'League Spartan', Antic, sans-serif; font-size: 26px; font-weight: 800">Close the day</h1>
   </header>
 
   <div style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px">
 
-    <section style="background: #FFFFFF; border: 1px solid #EDE6E1; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 8px" aria-label="Expected cash">
-      <h2 style="margin: 0 0 4px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6B605C">Cash expected in the till</h2>
+    <section style="background: #FFFFFF; border: 1px solid #EBE2D4; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 8px" aria-label="Expected cash">
+      <h2 style="margin: 0 0 4px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #645B50">Cash expected in the till</h2>
       <sc-for list="{{lines}}" as="l" hint-placeholder-count="5">
         <div style="display: flex; justify-content: space-between; font-size: 15px"><span>{{l.label}}</span><span style="font-weight: 600; color: {{l.color}}">{{l.amount}}</span></div>
       </sc-for>
-      <div style="height: 1px; background: #EDE6E1"></div>
+      <div style="height: 1px; background: #EBE2D4"></div>
       <div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-weight: 700">Expected</span><span style="font-size: 24px; font-weight: 700">₺2,450</span></div>
     </section>
 
     <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600">Cash counted (₺)
-      <input value="2,400" inputmode="decimal" style="height: 56px; border: 1px solid #E2D8D2; border-radius: 12px; padding: 0 14px; font: inherit; font-size: 24px; font-weight: 700; color: #1C1615; background: #FFFFFF"></label>
+      <input value="2,400" inputmode="decimal" style="height: 56px; border: 1px solid #9B8976; border-radius: 12px; padding: 0 14px; font: inherit; font-size: 24px; font-weight: 700; color: #2C2C2C; background: #FFFFFF"></label>
 
     <div style="display: flex; justify-content: space-between; align-items: center; background: #FBE3E6; border-radius: 12px; padding: 14px">
       <span style="font-weight: 700; color: #8C1727">Short</span>
@@ -42,7 +42,7 @@ button{font:inherit;cursor:pointer}
     </div>
 
     <section style="display: flex; flex-direction: column; gap: 8px" aria-label="Before you close">
-      <h2 style="margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6B605C">Before you close</h2>
+      <h2 style="margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #645B50">Before you close</h2>
       <a href="Orders.dc.html" style="display: flex; justify-content: space-between; align-items: center; background: #FFF1D1; border-radius: 12px; padding: 12px 14px; text-decoration: none; color: #5C3A00">
         <span style="display: flex; flex-direction: column"><span style="font-weight: 700">1 order not fully paid</span><span style="font-size: 13px">#014 · ₺30 due</span></span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></a>
@@ -53,23 +53,23 @@ button{font:inherit;cursor:pointer}
     </section>
 
     <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600">Note on the difference
-      <textarea rows="2" placeholder="e.g. gave ₺50 change twice on order #009" style="border: 1px solid #E2D8D2; border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 15px; color: #1C1615; background: #FFFFFF; resize: none"></textarea></label>
+      <textarea rows="2" placeholder="e.g. gave ₺50 change twice on order #009" style="border: 1px solid #9B8976; border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 15px; color: #2C2C2C; background: #FFFFFF; resize: none"></textarea></label>
   </div>
 
-  <div style="padding: 12px 16px 16px; background: #FFFFFF; border-top: 1px solid #EDE6E1">
+  <div style="padding: 12px 16px 16px; background: #FFFFFF; border-top: 1px solid #EBE2D4">
     <button type="button" style="width: 100%; height: 52px; border-radius: 12px; border: 0; background: #D7263D; color: #FFFFFF; font-weight: 700; font-size: 16px">Close day</button>
   </div>
 
-  <nav style="height: 64px; background: #FFFFFF; border-top: 1px solid #EDE6E1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))" aria-label="Main">
-    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 500; color: #6B605C; text-decoration: none">
+  <nav style="height: 64px; background: #FFFFFF; border-top: 1px solid #EBE2D4; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr))" aria-label="Main">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 500; color: #645B50; text-decoration: none">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>New order</a>
-    <a href="Orders.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 500; color: #6B605C; text-decoration: none">
+    <a href="Orders.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 500; color: #645B50; text-decoration: none">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="M8 9h8M8 13h8M8 17h5"></path></svg>Orders</a>
-    <a href="Withdraw.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 500; color: #6B605C; text-decoration: none">
+    <a href="Withdraw.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 500; color: #645B50; text-decoration: none">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"></rect><path d="M3 10h18M16 15h2"></path></svg>Money</a>
     <a href="DailyClose.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 700; color: #D7263D; text-decoration: none">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path></svg>Close day</a>
-    <a href="Dashboard.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 500; color: #6B605C; text-decoration: none">
+    <a href="Dashboard.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 500; color: #645B50; text-decoration: none">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 19V11M12 19V5M19 19v-6"></path></svg>Reports</a>
   </nav>
 </div>
@@ -77,7 +77,7 @@ button{font:inherit;cursor:pointer}
 <script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
 class Component extends DCLogic {
   renderVals() {
-    var ink = '#1C1615', red = '#B01E31';
+    var ink = '#2C2C2C', red = '#B01E31';
     return {
       lines: [
         { label: 'Opening float', amount: '₺2,000', color: ink },

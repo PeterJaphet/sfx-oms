@@ -8,21 +8,21 @@
 <body>
 <x-dc>
 <helmet>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&amp;family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="brand-reference.css">
 <style>
-body{margin:0;background:#FBF7F4}
+body{margin:0;background:#FFF7EB}
 a{color:#B01E31}a:hover{color:#8C1727}
 button{font:inherit;cursor:pointer}
 </style>
 </helmet>
-<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FBF7F4; font-family: Archivo, system-ui, sans-serif; color: #1C1615; display: flex; flex-direction: column; overflow: hidden">
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFF7EB; font-family: Antic, 'League Spartan', system-ui, sans-serif; color: #2C2C2C; display: flex; flex-direction: column; overflow: hidden">
 
-  <header style="padding: 20px 16px 14px; background: #FFFFFF; border-bottom: 1px solid #EDE6E1; display: flex; flex-direction: column; gap: 12px">
+  <header style="padding: 20px 16px 14px; background: #FFFFFF; border-bottom: 1px solid #EBE2D4; display: flex; flex-direction: column; gap: 12px">
     <div style="display: flex; flex-direction: column; gap: 2px">
-      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6B605C">Musa · Logistics</span>
-      <h1 style="margin: 0; font-family: 'Bricolage Grotesque', Archivo, sans-serif; font-size: 26px; font-weight: 800">Ready orders</h1>
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #645B50">Musa · Logistics</span>
+      <h1 style="margin: 0; font-family: 'League Spartan', Antic, sans-serif; font-size: 26px; font-weight: 800">Ready orders</h1>
     </div>
-    <section style="background: #1C1615; color: #FFFFFF; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px" aria-label="My open advance">
+    <section style="background: #2C2C2C; color: #FFFFFF; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px" aria-label="My open advance">
       <div style="display: flex; justify-content: space-between; align-items: baseline">
         <span style="font-size: 13px; font-weight: 600; color: #E8DDD7">Advance · Chicken and burger bread</span>
         <span style="font-size: 13px; color: #E8DDD7">today</span>
@@ -33,7 +33,7 @@ button{font:inherit;cursor:pointer}
         <div style="display: flex; flex-direction: column"><span style="font-size: 12px; color: #C9BCB4">You hold</span><span style="font-size: 18px; font-weight: 700; color: #F4A300">₺100</span></div>
       </div>
       <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
-        <a href="LogPurchase.dc.html" style="height: 44px; border-radius: 10px; background: #F4A300; color: #1C1615; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none">Log supplies</a>
+        <a href="LogPurchase.dc.html" style="height: 44px; border-radius: 10px; background: #F4A300; color: #2C2C2C; font-weight: 700; display: flex; align-items: center; justify-content: center; text-decoration: none">Log supplies</a>
         <button type="button" style="height: 44px; border-radius: 10px; border: 1px solid #5A4E4A; background: transparent; color: #FFFFFF; font-weight: 700">Return change</button>
       </div>
     </section>
@@ -41,19 +41,19 @@ button{font:inherit;cursor:pointer}
 
   <div style="flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px">
     <sc-for list="{{orders}}" as="o" hint-placeholder-count="3">
-      <article style="background: #FFFFFF; border: 1px solid #EDE6E1; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+      <article style="background: #FFFFFF; border: 1px solid #EBE2D4; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
         <div style="display: flex; justify-content: space-between; align-items: center">
           <div style="display: flex; align-items: baseline; gap: 8px">
-            <span style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 22px; font-weight: 800">#{{o.num}}</span>
-            <span style="font-size: 13px; color: #6B605C">{{o.since}}</span>
+            <span style="font-family: 'League Spartan', sans-serif; font-size: 22px; font-weight: 800">#{{o.num}}</span>
+            <span style="font-size: 13px; color: #645B50">{{o.since}}</span>
           </div>
           <span style="{{o.payStyle}}">{{o.pay}}</span>
         </div>
         <span style="font-size: 16px; font-weight: 600">{{o.name}}</span>
-        <span style="font-size: 15px; color: #4A403C">{{o.address}}</span>
-        <span style="font-size: 14px; color: #6B605C">{{o.items}}</span>
+        <span style="font-size: 15px; color: #5B4C40">{{o.address}}</span>
+        <span style="font-size: 14px; color: #645B50">{{o.items}}</span>
         <div style="display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 8px; margin-top: 4px">
-          <a href="tel:+905000000000" aria-label="Call {{o.name}}" style="height: 48px; border-radius: 10px; border: 1px solid #E2D8D2; display: flex; align-items: center; justify-content: center; color: #1C1615">
+          <a href="tel:+905000000000" aria-label="Call {{o.name}}" style="height: 48px; border-radius: 10px; border: 1px solid #9B8976; display: flex; align-items: center; justify-content: center; color: #2C2C2C">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"></path></svg></a>
           <button type="button" style="height: 48px; border-radius: 10px; border: 0; background: {{o.btnBg}}; color: #FFFFFF; font-weight: 700; font-size: 15px">{{o.action}}</button>
         </div>
@@ -61,12 +61,12 @@ button{font:inherit;cursor:pointer}
     </sc-for>
   </div>
 
-  <nav style="height: 64px; background: #FFFFFF; border-top: 1px solid #EDE6E1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr))" aria-label="Main">
+  <nav style="height: 64px; background: #FFFFFF; border-top: 1px solid #EBE2D4; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr))" aria-label="Main">
     <a href="Deliveries.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 700; color: #D7263D; text-decoration: none">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"></path><circle cx="7" cy="18" r="1.8"></circle><circle cx="17" cy="18" r="1.8"></circle></svg>Deliveries</a>
-    <a href="LogPurchase.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 500; color: #6B605C; text-decoration: none">
+    <a href="LogPurchase.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 500; color: #645B50; text-decoration: none">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"></path></svg>Log supplies</a>
-    <a href="Deliveries.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 500; color: #6B605C; text-decoration: none">
+    <a href="Deliveries.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 500; color: #645B50; text-decoration: none">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"></rect><path d="M3 10h18"></path></svg>My advances</a>
   </nav>
 </div>
@@ -78,7 +78,7 @@ class Component extends DCLogic {
     var collect = 'font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 6px; background: #FFF1D1; color: #7A4B00';
     return {
       orders: [
-        { num: '012', since: 'ready 6 min', name: 'Amaka', address: 'EMU Dorm 3, room 214', items: '3 × Native Rice + Chicken', pay: 'Paid', payStyle: paid, action: 'Picked up', btnBg: '#1C1615' },
+        { num: '012', since: 'ready 6 min', name: 'Amaka', address: 'EMU Dorm 3, room 214', items: '3 × Native Rice + Chicken', pay: 'Paid', payStyle: paid, action: 'Picked up', btnBg: '#2C2C2C' },
         { num: '009', since: 'out 18 min', name: 'Kerem', address: 'Salamis Yolu, Sakarya apt. 5', items: '2 × Zinger Burger, 1 × Classic Shawarma', pay: 'Collect ₺1,170', payStyle: collect, action: 'Delivered', btnBg: '#D7263D' }
       ]
     };

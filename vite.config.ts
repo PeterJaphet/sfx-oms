@@ -19,7 +19,7 @@ export default defineConfig({
         scope: '/',
         display: 'standalone',
         theme_color: '#D7263D',
-        background_color: '#FBF7F4',
+        background_color: '#FFF7EB',
         icons: [
           {
             src: '/icons/pwa-192.png',
@@ -42,7 +42,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ttf}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,ttf,woff2}'],
         cleanupOutdatedCaches: true,
         importScripts: ['/sw-safety.js'],
         navigateFallbackDenylist: [

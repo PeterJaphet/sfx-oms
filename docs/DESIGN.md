@@ -17,22 +17,22 @@ Set these once in `tailwind.config` / CSS variables and use the names, never raw
 | `amber` | #F4A300 | Accent on dark cards, chart bars |
 | `amber-soft` | #FFF1D1 | Warnings: unpaid, needs rate, approval info |
 | `amber-ink` | #7A4B00 | Text on `amber-soft` |
-| `ink` | #1C1615 | Main text, dark buttons |
-| `ink-2` | #4A403C | Secondary text |
-| `muted` | #6B605C | Captions, labels |
-| `line` | #EDE6E1 | Card borders, dividers |
-| `line-strong` | #E2D8D2 | Input borders |
-| `chip` | #F3EDE9 | Segmented control background |
-| `ground` | #FBF7F4 | Page background |
+| `ink` | #2C2C2C | Main text, dark buttons |
+| `ink-2` | #5B4C40 | Secondary text |
+| `muted` | #645B50 | Captions, labels |
+| `line` | #EBE2D4 | Card borders, dividers |
+| `line-strong` | #9B8976 | Input borders |
+| `chip` | #F3E9DA | Segmented control background |
+| `ground` | #FFF7EB | Page background |
 | `card` | #FFFFFF | Cards, inputs, bars |
 | `ok` / `ok-soft` | #1F6B45 / #E3F3EA | Paid, settled, "owed to us" |
 | `chart-operational` | #C98500 | Operational costs in charts |
 
 ## Type
 
-- Headings, order numbers, wordmark: **Bricolage Grotesque** 700/800 (Google Fonts).
-- Everything else: **Archivo** 400/500/600/700.
-- Sizes: page title 26 px (phone) / 34 px (desktop); card title 18–20 px; body 15–16 px; captions 12–13 px;
+- Headings, order numbers, wordmark: **League Spartan** 600/700/800 (bundled locally).
+- Body copy: **Antic** 400 (bundled locally). Controls, labels and emphasis use League Spartan 500–800, rather than synthesizing bold Antic. League Spartan also supplies the currency and Turkish glyphs missing from Antic.
+- Sizes: page title 26 px (phone) / 34 px (desktop); card title 18–20 px; body 16 px; secondary copy 15 px; captions 13 px;
   key amounts 22–30 px bold. Section labels: 12–13 px, uppercase, 0.08em letter-spacing, `muted`.
 
 ## Shape and spacing
@@ -82,3 +82,24 @@ item line. Changing dish quantity keeps these counts.” Label the main control 
 least 44px; inputs have labels, numeric keyboards and inline whole-number validation (0–999).
 Use “4 × Swallow” in the cart, checkout, saved confirmation, order details, delivery card and receipt.
 Read full charged line totals from the database. Historical snapshots display their original total extra counts.
+
+
+## M13 brand refresh (approved 14 October 2026)
+
+The supplied SFx Burger Mini Brand Identity Design and vector logos are the brand source.
+The user resolved the guide's contradictory Poppins/purple references: use League Spartan,
+Antic and the primary red/cream/charcoal palette. These rules supersede the older typography
+and neutral colours in the original screen references; their workflows and layout remain the reference.
+
+- Use the supplied primary wordmark on login, desktop header, confirmations and PDF reports.
+- Use its original burger symbol in the phone header, checkout and install icons. Never redraw,
+  recolour, distort or add shadows to the logo. SVG adaptations fit its viewport or isolate
+  the existing symbol; original source SVGs are kept in `public/brand/source/`.
+- Primary red `#D7263D`, soft cream `#FFF7EB`, charcoal `#2C2C2C`, amber `#F4A300`.
+  Green and brown from the logo remain secondary. Dark semantic shades preserve text contrast.
+- White cards, warm borders and restrained red active states; no gradients or shadows.
+- The phone header keeps sign-out accessible, with Menu/Deliveries tools in a separate wrapping row.
+  The bottom navigation preserves the existing role routes and adds a visible selected background.
+- Local WOFF2 fonts are preloaded and precached with the brand assets. PDF fonts are local too.
+  PDFs use League Spartan for non-ASCII cells to preserve ₺, ₦ and Turkish account names; Archivo remains a fallback for existing special characters absent from the brand faces.
+- See `screens/BrandRefresh.dc.html` for the shared login/header/card/form reference.
