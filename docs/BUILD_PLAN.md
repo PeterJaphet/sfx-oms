@@ -206,3 +206,22 @@ in that order. Put the URL and anon key in `.env`.
 - [ ] Turning off Wi-Fi shows the offline banner and no order is half-saved.
 - [ ] Supabase project upgraded to Pro (daily backups, no pausing) before real go-live.
 - [ ] Go-live day: opening balances and debts entered from `/setup`; paper books retired.
+
+
+## M12 — Extra quantities (approved adjustment)
+
+**Scope**
+- Give each allowed extra its own 0–999 quantity control inside the main dish sheet; zero removes it.
+- Extra quantities are totals for the entire cart line: 2 vegetable soups + 4 swallow means 4 swallow total.
+- Editing dish quantity keeps the entered extra counts. Repeated matching configurations add both counts.
+- Quote, save, snapshots, receipts, delivery details and item/extra reports use the database's exact amounts and counts.
+- Preserve historical orders, installed legacy clients and pending save payloads. Keep every existing role, RLS, no-delete, closed-day and retry guard.
+- Apply `011_extra_quantities.sql` manually after `010`; no Edge Function or storage changes.
+
+**Done when**
+- [ ] On a phone, add 1 Vegetable Soup with 4 Swallow and another allowed extra; each count can be changed or removed independently.
+- [ ] On a phone, change the dish quantity to 2: Swallow stays 4, and the displayed database total charges it once.
+- [ ] On a phone, edit the cart, reload the draft, then save; checkout, confirmation, order details, receipt and Logistics show the entered counts.
+- [ ] Item and extras reports count 2 soups / 4 swallow and include their exact revenue; cancellations exclude them.
+- [ ] Historical data and legacy quotes remain unchanged; uncertain-save retries create one order/payment; cents remain exact.
+- [ ] Typecheck, lint, unit tests and database checks pass; original schema and all financial/security guards remain intact.

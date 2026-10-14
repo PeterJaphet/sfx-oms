@@ -18,3 +18,15 @@ describe('M4 snapshots, receipts, search and payment status',()=>{
  it('fractions have two decimals on receipt',()=>{expect(receiptText({...order,discount_amount:12.5,discount_reason:'Staff discount'})).toContain('Discount: ₺12.50 · Staff discount')})
  it('elapsed ready and pickup time cannot be negative',()=>{expect(deliveryAge(order,Date.parse('2026-10-13T13:16:00Z'))).toBe('ready 6 min');expect(deliveryAge({...order,status:'picked_up',picked_up_at:'2026-10-13T13:11:00Z'},Date.parse('2026-10-13T13:16:00Z'))).toBe('out 5 min');expect(deliveryAge(order,0)).toBe('ready 0 min')})
 })
+
+describe('M12 extra quantities on order receipts',()=>{
+ it('shows four total extras alongside two dishes and database line total',()=>{
+  const soup={...order.items[0],product_name:'Vegetable Soup',quantity:2,line_total:900,addons:[{name:'Swallow',price:50,quantity:4}]}
+  const text=receiptText({...order,items:[soup],subtotal:900,total:900,paid_try:900,balance_due:0})
+  expect(text).toContain('2 × Vegetable Soup + 4 × Swallow — ₺900');expect(text).not.toContain('8 × Swallow')
+  expect(boardOrderSchema.parse({...order,items:[soup]}).items[0].addons[0].quantity).toBe(4)
+ })
+ it('continues showing historical per-dish extras correctly',()=>{
+  expect(receiptText({...order,items:[{...order.items[0],addons:[{name:'Swallow',price:50}]}]})).toContain('2 × Swallow')
+ })
+})

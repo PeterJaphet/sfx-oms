@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { addDraftItem, amountSchema, detailsSchema, discountSchema, emptyDraft, impliedRate, quotePayload, savePayload, workspaceSchema, type DraftItem } from './order-model'
+import { extraSelectionSchema, extraText } from './extra-model'
+import { addDraftItem, amountSchema, detailsSchema, discountSchema, emptyDraft, getDraftExtras, impliedRate, quotePayload, savePayload, workspaceSchema, type DraftItem } from './order-model'
 
 const line: DraftItem = { id: '40000000-0000-4000-8000-000000000001', product_id: 'burger', variant_id: 'regular', quantity: 1, addon_ids: [], note: '' }
 describe('order drafts and safe save payloads', () => {
@@ -62,4 +63,59 @@ describe('entered amounts and order metadata', () => {
   })
   it('shows an implied rate without changing the submitted amounts', () => expect(impliedRate('410', '15,000')).toBeCloseTo(0.027333333))
   it('does not show a rate for invalid or zero receipts', () => { expect(impliedRate('410', '0')).toBeNull(); expect(impliedRate('bad', '100')).toBeNull() })
+})
+
+describe('M12 independent total extra quantities', () => {
+  const soup = { ...line, quantity: 2, extras: [{ addon_id: 'swallow', quantity: 4 }] }
+  it('sends total counts independent of dish quantity with no prices', () => {
+    const draft = emptyDraft(); draft.items = [soup]
+    expect(quotePayload(draft).items).toEqual([{ variant_id: 'regular', quantity: 2, extras: [{ addon_id: 'swallow', quantity: 4 }], note: '' }])
+    expect(quotePayload({ ...draft, items: [{ ...soup, quantity: 3 }] }).items).toEqual([{ variant_id: 'regular', quantity: 3, extras: [{ addon_id: 'swallow', quantity: 4 }], note: '' }])
+  })
+  it('merges matching configurations by adding dish and extra counts', () => {
+    const once = { ...line, extras: [{ addon_id: 'swallow', quantity: 4 }] }
+    const twice = addDraftItem([once], { ...once, id: crypto.randomUUID() })
+    expect(twice).toHaveLength(1); expect(twice[0].quantity).toBe(2); expect(twice[0].extras?.[0].quantity).toBe(8)
+    const thrice = addDraftItem(twice, { ...once, id: crypto.randomUUID() })
+    expect(thrice[0].quantity).toBe(3); expect(thrice[0].extras?.[0].quantity).toBe(12)
+    expect(once.extras[0].quantity).toBe(4)
+  })
+  it('keeps configurations with different extras per dish separate', () => {
+    expect(addDraftItem([soup], { ...soup, id: crypto.randomUUID(), quantity: 1 })).toHaveLength(2)
+  })
+  it('merges multiple extras regardless of selection order', () => {
+    const a = { ...line, extras: [{ addon_id: 'fish', quantity: 1 }, { addon_id: 'swallow', quantity: 4 }] }
+    const merged = addDraftItem([a], { ...a, id: crypto.randomUUID(), extras: [...a.extras].reverse() })
+    expect(merged[0].extras).toEqual([{ addon_id: 'fish', quantity: 2 }, { addon_id: 'swallow', quantity: 8 }])
+  })
+  it('does not merge beyond dish or extra quantity limits', () => {
+    expect(addDraftItem([{ ...line, quantity: 999 }], line)).toHaveLength(2)
+    const many = { ...line, extras: [{ addon_id: 'swallow', quantity: 500 }] }
+    expect(addDraftItem([many], { ...many, id: crypto.randomUUID() })).toHaveLength(2)
+  })
+  it('converts old selected extras to their original total count when editing', () => {
+    expect(getDraftExtras({ ...line, quantity: 3, addon_ids: ['swallow', 'fish', 'swallow'] })).toEqual([{ addon_id: 'swallow', quantity: 3 }, { addon_id: 'fish', quantity: 3 }])
+    expect(getDraftExtras(soup)).toEqual(soup.extras)
+  })
+  it('merges an old and new compatible line without losing extra counts', () => {
+    const merged = addDraftItem([{ ...line, addon_ids: ['swallow'] }], { ...soup, id: crypto.randomUUID(), extras: [{ addon_id: 'swallow', quantity: 2 }] })
+    expect(merged[0].quantity).toBe(3); expect(merged[0].extras).toEqual([{ addon_id: 'swallow', quantity: 3 }]); expect(merged[0].addon_ids).toEqual([])
+  })
+  it('restores new pending requests unchanged just like old pending requests', () => {
+    const draft = emptyDraft(); draft.items = [soup]
+    const state = { draft, savedId: null, attempt: { unpaid: true, payload: savePayload(draft, 'server-quote', true) } }
+    expect(workspaceSchema.parse(JSON.parse(JSON.stringify(state)))).toEqual(state)
+  })
+  it.each([0, -1, 1.5, 1000, NaN])('rejects invalid restored extra count %s', quantity => {
+    const draft = emptyDraft(); draft.items = [{ ...soup, extras: [{ addon_id: 'swallow', quantity }] }]
+    expect(workspaceSchema.safeParse({ draft, savedId: null, attempt: null }).success).toBe(false)
+  })
+  it('allows removing extras with zero in the picker but not negative or fractional counts', () => {
+    expect(extraSelectionSchema.safeParse({ addon_id: 'swallow', quantity: 0 }).success).toBe(true)
+    for (const quantity of [-1, 1.5, 1000, NaN]) expect(extraSelectionSchema.safeParse({ addon_id: 'swallow', quantity }).success).toBe(false)
+  })
+  it('labels explicit and historical counts without multiplying new quantities', () => {
+    expect(extraText([{ name: 'Swallow', price: 50, quantity: 4 }, { name: 'Fish', price: 180, quantity: 1 }], 2)).toBe('4 × Swallow, Fish')
+    expect(extraText([{ name: 'Swallow', price: 50 }], 2)).toBe('2 × Swallow')
+  })
 })

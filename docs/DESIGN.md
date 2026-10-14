@@ -71,3 +71,14 @@ Set these once in `tailwind.config` / CSS variables and use the names, never raw
 
 Screens without a design yet (menu editor, accounts, approvals, staff, activity log, reports detail,
 settings): follow the same components and ask before inventing new patterns.
+
+
+## M12 extra quantity adjustment
+
+Use `screens/ExtraQuantities.dc.html` as the supporting item-sheet reference, with the existing brand components.
+Replace the extras checkboxes with a named extra, price per unit and minus / numeric input / plus controls.
+Start each extra at 0; included extras have independent total counts. Show “Extra quantities are totals for this
+item line. Changing dish quantity keeps these counts.” Label the main control “Dish quantity”. Buttons are at
+least 44px; inputs have labels, numeric keyboards and inline whole-number validation (0–999).
+Use “4 × Swallow” in the cart, checkout, saved confirmation, order details, delivery card and receipt.
+Read full charged line totals from the database. Historical snapshots display their original total extra counts.

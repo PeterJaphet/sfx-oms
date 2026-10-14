@@ -1,3 +1,4 @@
+import { extraSnapshotSchema } from './extra-model'
 import { assertOnline } from '@/lib/connectivity'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
@@ -33,7 +34,7 @@ export async function loadSavedOrder(id: string) {
   const paid = payment.data!.paid_try, due = payment.data!.balance_due
   if (paid === null || due === null) throw new Error('Saved payment confirmation is missing')
   return { order: order.data!, payment: { ...payment.data!, paid_try: paid, balance_due: due }, items: items.data!.map(item => {
-    if (item.line_total === null) throw new Error('Saved item total is missing')
-    return { ...item, line_total: item.line_total }
+    if (item.charged_total === null) throw new Error('Saved item total is missing')
+    return { ...item, line_total: item.charged_total, addons: z.array(extraSnapshotSchema).parse(item.addons) }
   }) }
 }

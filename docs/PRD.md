@@ -351,3 +351,12 @@ An AI coding agent builds it milestone by milestone from the build kit (CLAUDE.m
 - [x] Native Rice + Chicken is the sheet's Village Rice.
 - [x] Extras are sold on their own as well as added to a dish.
 - [x] Built with an AI coding agent, following the build kit in the project folder.
+
+
+### Approved order adjustment — 14 October 2026
+
+Extras on a main dish have independent whole-number quantities, entered as totals for that order-item line.
+For example, 2 Vegetable Soup with 4 Swallow contains 4 Swallow in total, not 4 per soup. Zero removes an extra;
+each included extra and the dish count can be 1–999. Changing the dish count keeps extra counts unchanged.
+Prices and full line totals come from the database. Receipts, delivery instructions and extras reports show the
+total extra counts. Older orders retain their original per-dish extra pricing and quantities.

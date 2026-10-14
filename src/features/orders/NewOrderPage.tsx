@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Sheet } from '@/components/ui/sheet'
+import { extraText } from './extra-model'
 import { formatMoney } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/features/auth/auth-context'
@@ -35,7 +36,7 @@ export default function NewOrderPage() {
     const variants = active!.variants.filter(v => v.product_id === product.id)
     const extras = active!.links.some(l => l.product_id === product.id)
     if (variants.length > 1 || extras || active!.categories.find(c => c.id === product.category_id)?.name === 'Rice & Soup') setSelection({ product })
-    else order.update(d => ({ ...d, items: addDraftItem(d.items, { id: photoId(), product_id: product.id, variant_id: variants[0].id, quantity: 1, addon_ids: [], note: '' }) }))
+    else order.update(d => ({ ...d, items: addDraftItem(d.items, { id: photoId(), product_id: product.id, variant_id: variants[0].id, quantity: 1, addon_ids: [], extras: [], note: '' }) }))
   }
   return <section className="space-y-3 pb-24">
     <div><p className="text-xs font-semibold uppercase tracking-wide text-muted">{reference.data ? `${date.format(new Date(reference.data.businessDate + 'T12:00:00Z'))} · ` : ''}{profile?.full_name}</p><h1 className="mt-1 text-[26px] font-extrabold sm:text-[34px]">New order</h1></div>
@@ -64,7 +65,7 @@ export default function NewOrderPage() {
     <Sheet open={cart} onOpenChange={setCart} title="Order items" description="Change a quantity, choose extras or remove an unsaved item."><div className="space-y-3">{order.draft.items.length === 0 ? <p>Your cart is empty.</p> : order.draft.items.map((item, index) => {
       const product = products.find(p => p.id === item.product_id)
       const priced = quote.data?.items[index]
-      return <div key={item.id} className="space-y-2 rounded-xl border bg-card p-3"><p className="break-words font-semibold">{item.quantity} × {product?.name ?? priced?.product_name ?? 'Unavailable item'}</p><p className="text-sm text-muted">{priced?.variant_name}{priced?.addons.length ? ` · ${priced.addons.map(a => a.name).join(', ')}` : ''}</p>{item.note ? <p className="text-sm text-muted">{item.note}</p> : null}{priced ? <p className="font-bold">{formatMoney(priced.line_total, 'TRY')}</p> : null}<div className="flex gap-2"><Button variant="secondary" size="secondary" className="text-sm" disabled={locked || !product} onClick={() => { if (product) { setCart(false); setSelection({ product, item }) } }}>Edit</Button><Button variant="secondary" size="secondary" className="text-sm" disabled={locked} onClick={() => order.update(d => ({ ...d, items: d.items.filter(it => it.id !== item.id) }))}>Remove</Button></div></div>
+      return <div key={item.id} className="space-y-2 rounded-xl border bg-card p-3"><p className="break-words font-semibold">{item.quantity} × {product?.name ?? priced?.product_name ?? 'Unavailable item'}</p><p className="text-sm text-muted">{priced?.variant_name}{priced?.addons.length ? ` · ${extraText(priced.addons, priced.quantity)}` : ''}</p>{item.note ? <p className="text-sm text-muted">{item.note}</p> : null}{priced ? <p className="font-bold">{formatMoney(priced.line_total, 'TRY')}</p> : null}<div className="flex gap-2"><Button variant="secondary" size="secondary" className="text-sm" disabled={locked || !product} onClick={() => { if (product) { setCart(false); setSelection({ product, item }) } }}>Edit</Button><Button variant="secondary" size="secondary" className="text-sm" disabled={locked} onClick={() => order.update(d => ({ ...d, items: d.items.filter(it => it.id !== item.id) }))}>Remove</Button></div></div>
     })}</div></Sheet>
   </section>
 }

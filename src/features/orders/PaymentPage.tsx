@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Sheet } from '@/components/ui/sheet'
+import { extraText } from './extra-model'
 import { formatMoney } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useOrderReference, quoteOrder } from './order-api'
@@ -40,7 +41,7 @@ export default function PaymentPage() {
     <header className="flex items-center gap-3 border-b bg-card p-4"><Button asChild variant="secondary" size="secondary" className="px-3"><Link to="/order" aria-label="Back to order"><ArrowLeft aria-hidden="true" className="h-5 w-5" /></Link></Button><div><p className="text-xs text-muted">{channels.find(([v]) => v === order.draft.channel)?.[1]} · {orderTypes.find(([v]) => v === order.draft.details.order_type)?.[1]}</p><h1 className="text-2xl font-extrabold">Payment</h1></div></header>
     <div className="space-y-4 p-4 sm:p-6"><OrderNotices />
       <section className="space-y-3 rounded-xl border bg-card p-4" aria-label="Order summary">{quote.isPending ? <p role="status">Calculating total…</p> : quote.error ? <div role="alert" className="space-y-3"><p className="text-brand-strong">{quote.error.message}</p><Button variant="secondary" size="secondary" onClick={() => { void quote.refetch() }}>Try again</Button><Button asChild variant="secondary" size="secondary"><Link to="/order">Review items</Link></Button></div> : <>
-        {quote.data.items.map(item => <div key={item.position}><div className="flex justify-between gap-3 text-sm"><span className="break-words">{item.quantity} × {item.product_name}</span><span className="shrink-0 font-semibold">{formatMoney(item.line_total, 'TRY')}</span></div>{item.variant_name !== 'Regular' || item.addons.length ? <p className="mt-1 text-xs text-muted">{item.variant_name}{item.addons.length ? ` · ${item.addons.map(a => a.name).join(', ')}` : ''}</p> : null}</div>)}
+        {quote.data.items.map(item => <div key={item.position}><div className="flex justify-between gap-3 text-sm"><span className="break-words">{item.quantity} × {item.product_name}</span><span className="shrink-0 font-semibold">{formatMoney(item.line_total, 'TRY')}</span></div>{item.variant_name !== 'Regular' || item.addons.length ? <p className="mt-1 text-xs text-muted">{item.variant_name}{item.addons.length ? ` · ${extraText(item.addons, item.quantity)}` : ''}</p> : null}</div>)}
         <div className="flex items-center justify-between gap-2 border-t pt-2"><span className="text-sm text-muted">Discount{quote.data.discount_amount ? ` · ${formatMoney(quote.data.discount_amount, 'TRY')}` : ''}</span><Button variant="secondary" size="secondary" className="px-3 text-sm" disabled={locked} onClick={() => setDiscount(true)}>{order.draft.discount.kind === 'none' ? 'Add discount' : 'Edit discount'}</Button></div>{order.draft.discount.reason ? <p className="text-xs text-muted">{order.draft.discount.reason}</p> : null}
         <div className="flex items-baseline justify-between gap-3"><span className="font-semibold">Total</span><span className="text-[26px] font-bold">{formatMoney(quote.data.total, 'TRY')}</span></div>{quote.isFetching ? <p role="status" className="text-xs text-muted">Updating total…</p> : null}
       </>}</section>
