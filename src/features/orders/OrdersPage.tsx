@@ -19,15 +19,19 @@ import {
   refreshOrderData,
   useBoardReference,
 } from './board-api'
-import { matchesSearch, nextAction, type BoardOrder } from './board-model'
+import {
+  matchesSearch,
+  nextAction,
+  statusGroup,
+  type BoardOrder,
+} from './board-model'
 import { OrderCard } from './OrderCard'
 import { OrderDetails } from './OrderDetails'
 import { usePaymentRetry } from './usePaymentRetry'
 
 const tabs = [
-  ['new', 'New'],
-  ['preparing', 'Cooking'],
-  ['ready', 'Ready'],
+  ['accepted', 'Accepted'],
+  ['completed', 'Delivered'],
   ['all', 'All'],
 ] as const
 const selectClass =
@@ -40,7 +44,7 @@ export default function OrdersPage() {
   const qc = useQueryClient()
   const reference = useBoardReference()
   const payment = usePaymentRetry()
-  const [tab, setTab] = useState<string>(requestedOrder ? 'all' : 'new')
+  const [tab, setTab] = useState<string>(requestedOrder ? 'all' : 'accepted')
   const [search, setSearch] = useState('')
   const [channel, setChannel] = useState('')
   const [dates, setDates] = useState<{ from: string; to: string } | null>(
@@ -85,7 +89,7 @@ export default function OrdersPage() {
   const advance = useMutation({
     mutationFn: async (o: BoardOrder) => {
       const action = nextAction(o, profile!.role)
-      if (action) await changeStatus(o.id, action.status)
+      if (action) await changeStatus(o.id, action.status, !!o.settlement)
     },
     onSuccess: () => {
       setSelected(null)
@@ -111,7 +115,9 @@ export default function OrdersPage() {
   const matches = all.filter(
     (o) => (!channel || o.channel === channel) && matchesSearch(o, search),
   )
-  const visible = matches.filter((o) => tab === 'all' || o.status === tab)
+  const visible = matches.filter(
+    (o) => tab === 'all' || statusGroup(o.status) === tab,
+  )
   const current = requestedOrder
     ? all.find((o) => o.id === requestedOrder)
     : selected
@@ -146,7 +152,8 @@ export default function OrdersPage() {
             Covers{' '}
             {formatMoney(Number(payment.pending.payment.amount_try), 'TRY')}
           </p>
-          <Button requiresOnline
+          <Button
+            requiresOnline
             variant="secondary"
             disabled={busy}
             onClick={() => {
@@ -234,7 +241,7 @@ export default function OrdersPage() {
         </div>
       ) : null}
       <div
-        className="grid grid-cols-4 gap-1 rounded-xl bg-chip p-1"
+        className="grid grid-cols-3 gap-1 rounded-xl bg-chip p-1"
         role="group"
         aria-label="Order status"
       >
@@ -250,7 +257,7 @@ export default function OrdersPage() {
           >
             {label}
             {status !== 'all'
-              ? ` ${matches.filter((o) => o.status === status).length}`
+              ? ` ${matches.filter((o) => statusGroup(o.status) === status).length}`
               : ''}
           </button>
         ))}

@@ -267,3 +267,22 @@ in that order. Put the URL and anon key in `.env`.
 - [ ] Editing costs never rewrites an old order; stale new saves roll back, uncertain retries create one order/payment/snapshot, legacy pending requests still use the original RPC. Admin-only edits, private reads, no deletes and closed-day guards remain.
 - [ ] Customer name, phone and delivery address survive draft reload and save; delivery address is required, receipt/delivery details show the customer but omit costs/profit; review on a phone.
 - [ ] Typecheck, lint, unit tests, database checks and build pass. Original schema and financial/report rules are untouched.
+
+## M16 — dated orders and simplified trading (approved 16 October 2026)
+
+Scope: the owner's confirmed Delivery/Pickup, Accepted/Delivered, automatic selected-account
+settlement, Admin earlier-order dates, daily snapshot-profit totals and reference-only PDF
+history. M15 stays paused on its own branch. Migration 014 is independent of 013.
+
+Done when:
+- [x] Delivery is first/default; Pickup only other choice; date persists with drafts.
+- [x] Earlier dates require Admin, future dates fail; dates drive daily numbering/sales.
+- [x] Account selected at entry; foreign amounts explicit; Delivered atomically pays once.
+- [x] Old requests/records retain original behaviour; closed days, role guards and no deletes pass.
+- [x] Home totals aggregate daily saved estimates in SQL, exclude cancellations, expose missing costs.
+- [x] June–September reference totals match PDF; no year/profit/transactions invented or balances changed.
+- [x] Typecheck, lint, unit tests, database checks and production build pass.
+- [ ] Phone layout/end-to-end local review completed; hosted migration and owner phone acceptance recorded.
+
+Hosted rollout: owner takes a fresh backup, manually applies `014_simple_orders.sql`,
+then approves production release. Do not apply the paused WhatsApp migration as part of this work.

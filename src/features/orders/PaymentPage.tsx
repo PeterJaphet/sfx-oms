@@ -2,26 +2,19 @@ import { ProfitSummary } from "@/features/costing/ProfitSummary";
 import { useFinancialDay } from "@/features/close/financial-day";
 import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
-import { toast } from "sonner";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Sheet } from "@/components/ui/sheet";
 import { extraText } from "./extra-model";
 import { formatMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { useOrderReference, quoteOrder } from "./order-api";
+import { useOrderReference } from "./order-api";
 import { useOrder } from "./order-context";
 import { useOrderQuote } from "./order-hooks";
-import {
-  channels,
-  detailsSchema,
-  orderTypes,
-  quotePayload,
-  type DraftPayment,
-} from "./order-model";
-import { DiscountForm, PaymentForm } from "./OrderForms";
+import { channels, detailsSchema, orderTypes } from "./order-model";
+import { DiscountForm } from "./OrderForms";
 import { OrderNotices } from "./OrderNotices";
 import { SavedOrder } from "./SavedOrder";
 
@@ -29,44 +22,26 @@ export default function PaymentPage() {
   const financial = useFinancialDay();
   const order = useOrder(),
     reference = useOrderReference(),
-    quote = useOrderQuote(),
-    queries = useQueryClient();
-  const [selected, setSelected] = useState<number | null>(null);
+    quote = useOrderQuote();
+
   const [discount, setDiscount] = useState(false);
-  const [checking, setChecking] = useState(false);
+
   if (order.savedId) return <SavedOrder id={order.savedId} />;
   if (order.draft.items.length === 0) return <Navigate to="/order" replace />;
-  const locked =
-    financial.blocked || !!order.attempt || order.saving || checking;
+  const locked = financial.blocked || !!order.attempt || order.saving;
   const detailsValid = detailsSchema.safeParse(order.draft.details).success;
+  const selected = order.draft.settlement_account;
   const account = reference.data?.accounts.find((a) => a.id === selected);
-  const latestRate = account
-    ? reference.data?.rates.find(
-        (rate) =>
-          rate.currency === account.currency &&
-          rate.effective_date <= reference.data!.businessDate,
-      )
-    : undefined;
-  async function addPayment(payment: DraftPayment) {
-    setChecking(true);
-    try {
-      const next = {
-        ...order.draft,
-        payments: [...order.draft.payments, payment],
-      };
-      const payload = quotePayload(next),
-        result = await quoteOrder(payload);
-      queries.setQueryData(["order-quote", payload], result);
-      toast.dismiss("order-payment-error");
-      order.update((d) => ({ ...d, payments: [...d.payments, payment] }));
-      setSelected(null);
-    } catch (e) {
-      toast.error((e as Error).message, { id: "order-payment-error" });
-      throw e;
-    } finally {
-      setChecking(false);
-    }
-  }
+  const canSave =
+    !locked &&
+    detailsValid &&
+    !!account &&
+    !!quote.data?.cost_token &&
+    !quote.isFetching &&
+    (quote.data?.total === 0 ||
+      account.currency === "TRY" ||
+      (/^\d+(\.\d{1,2})?$/.test(order.draft.settlement_amount) &&
+        Number(order.draft.settlement_amount) > 0));
   return (
     <section className="pb-[calc(132px+env(safe-area-inset-bottom))]">
       <header className="flex items-center gap-3 border-b bg-card p-4">
@@ -84,7 +59,10 @@ export default function PaymentPage() {
               )?.[1]
             }
           </p>
-          <h1 className="text-2xl font-extrabold">Payment</h1>
+          <h1 className="text-2xl font-extrabold">Review order</h1>
+          <p className="text-xs text-muted">
+            Order date {order.draft.order_date || reference.data?.businessDate}
+          </p>
         </div>
         <BrandLogo variant="mark" decorative className="ml-auto w-11" />
       </header>
@@ -230,7 +208,14 @@ export default function PaymentPage() {
                   key={a.id}
                   aria-pressed={selected === a.id}
                   disabled={locked || !quote.data}
-                  onClick={() => setSelected(a.id)}
+                  onClick={() =>
+                    order.update((d) => ({
+                      ...d,
+                      settlement_account: a.id,
+                      settlement_amount: "",
+                      payments: [],
+                    }))
+                  }
                   className={cn(
                     "flex min-h-[60px] min-w-0 flex-col items-center justify-center gap-1 rounded-lg border p-1 disabled:opacity-50",
                     selected === a.id
@@ -253,131 +238,62 @@ export default function PaymentPage() {
             </div>
           )}
         </section>
-        {account && quote.data ? (
-          <PaymentForm
-            key={`${account.id}:${order.draft.payments.length}`}
-            account={account}
-            due={quote.data.balance_due}
-            defaultRate={latestRate}
-            onAdd={addPayment}
-            disabled={locked}
-          />
-        ) : null}
-        <section className="space-y-2" aria-label="Payments added">
-          <h2 className="text-xs font-bold uppercase tracking-wide text-muted">
-            Payments
-          </h2>
-          {order.draft.payments.length === 0 ? (
-            <p className="text-sm text-muted">
-              No payments added. You can save this order as unpaid.
+        <p className="rounded-xl bg-amber-soft p-3 text-sm text-amber-ink">
+          Choose where payment will be received. Marking Delivered confirms
+          receipt and records the full payment automatically. Accepting the
+          order does not record payment.
+        </p>
+        {account &&
+        account.currency !== "TRY" &&
+        quote.data &&
+        quote.data.total > 0 ? (
+          <div className="space-y-2">
+            <label htmlFor="settlement-amount" className="block font-semibold">
+              Amount to receive ({account.currency})
+            </label>
+            <Input
+              id="settlement-amount"
+              inputMode="decimal"
+              disabled={locked}
+              value={order.draft.settlement_amount}
+              onChange={(e) =>
+                order.update((d) => ({
+                  ...d,
+                  settlement_amount: e.target.value,
+                }))
+              }
+            />
+            <p className="text-xs text-muted">
+              Covers the whole order. The database records the implied exchange
+              rate.
             </p>
-          ) : (
-            order.draft.payments.map((payment, index) => {
-              const line = quote.data?.payments[index];
-              const a = reference.data?.accounts.find(
-                (a) => a.id === payment.account_id,
-              );
-              return (
-                <div
-                  key={payment.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border bg-card p-3"
-                >
-                  <div className="min-w-0">
-                    <p className="font-semibold">{a?.name ?? "Payment"}</p>
-                    {line && line.currency !== "TRY" ? (
-                      <p className="text-xs text-muted">
-                        {formatMoney(line.amount, line.currency)}
-                      </p>
-                    ) : null}
-                  </div>
-                  <span className="ml-auto shrink-0 font-bold">
-                    {formatMoney(line?.amount_try ?? payment.amount_try, "TRY")}
-                  </span>
-                  <Button
-                    variant="secondary"
-                    size="secondary"
-                    className="px-2 text-xs"
-                    disabled={locked}
-                    aria-label={`Remove ${a?.name ?? "payment"} payment`}
-                    onClick={() =>
-                      order.update((d) => ({
-                        ...d,
-                        payments: d.payments.filter((p) => p.id !== payment.id),
-                      }))
-                    }
-                  >
-                    Remove
-                  </Button>
-                </div>
-              );
-            })
-          )}
-          {quote.data ? (
-            <div
-              className={cn(
-                "flex items-center justify-between gap-3 rounded-xl p-4 font-bold",
-                quote.data.balance_due > 0
-                  ? "bg-amber-soft text-amber-ink"
-                  : "bg-ok-soft text-ok",
-              )}
-            >
-              <span>{quote.data.balance_due > 0 ? "Still due" : "Paid"}</span>
-              <span className="text-lg">
-                {formatMoney(quote.data.balance_due, "TRY")}
-                {quote.data.balance_due > 0 ? " due" : ""}
-              </span>
-            </div>
-          ) : null}
-        </section>
-      </div>
-      <footer className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-3xl space-y-2 border-t bg-card p-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
-        {order.draft.payments.length > 0 ? (
-          <p className="text-xs text-muted">
-            Save as unpaid excludes the payments above.
+          </div>
+        ) : null}
+        {order.draft.order_date &&
+        order.draft.order_date !== reference.data?.businessDate ? (
+          <p className="text-sm text-amber-ink">
+            Earlier order: {order.draft.order_date}. Accept, then mark Delivered
+            to record the payment on that business date. Check opening balances
+            first to avoid counting old receipts twice.
           </p>
         ) : null}
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            requiresOnline
-            variant="secondary"
-            className="px-2 text-sm"
-            disabled={
-              locked ||
-              !detailsValid ||
-              !reference.data ||
-              !quote.data ||
-              !quote.data.cost_token ||
-              quote.isFetching
-            }
-            onClick={() => {
-              if (quote.data)
-                void order.save(
-                  quote.data.quote_token,
-                  true,
-                  quote.data.cost_token,
-                );
-            }}
-          >
-            Save as unpaid
-          </Button>
-          <Button
-            requiresOnline
-            className="px-2 text-sm"
-            disabled={
-              locked || !reference.data || !quote.data || quote.isFetching
-            }
-            onClick={() => {
-              if (quote.data)
-                void order.save(
-                  quote.data.quote_token,
-                  false,
-                  quote.data.cost_token,
-                );
-            }}
-          >
-            {order.saving ? "Saving…" : "Send to kitchen"}
-          </Button>
-        </div>
+      </div>
+      <footer className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-3xl space-y-2 border-t bg-card p-4 pb-[calc(16px+env(safe-area-inset-bottom))]">
+        <Button
+          requiresOnline
+          className="w-full"
+          disabled={!canSave}
+          onClick={() => {
+            if (quote.data)
+              void order.save(
+                quote.data.quote_token,
+                true,
+                quote.data.cost_token,
+              );
+          }}
+        >
+          {order.saving ? "Saving…" : "Accept order"}
+        </Button>
       </footer>
       <Sheet
         open={discount}

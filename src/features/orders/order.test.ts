@@ -15,7 +15,7 @@ describe('order drafts and safe save payloads', () => {
   })
   it('matches extras regardless of selection order', () => expect(addDraftItem([{ ...line, addon_ids: ['fish', 'swallow'] }], { ...line, addon_ids: ['swallow', 'fish'] })[0].quantity).toBe(2))
   it('sends item IDs and entered payment amounts, never client totals or prices', () => {
-    const draft = emptyDraft(); draft.items = [{ ...line, quantity: 2 }]; draft.payments = [{ id: line.id, account_id: 7, amount_try: '410', amount: '15000' }]
+    const draft = emptyDraft(); draft.details.order_type = "pickup"; draft.items = [{ ...line, quantity: 2 }]; draft.payments = [{ id: line.id, account_id: 7, amount_try: '410', amount: '15000' }]
     const payload = savePayload(draft, 'server-quote')
     expect(payload.items).toEqual([{ variant_id: 'regular', quantity: 2, addon_ids: [], note: '' }])
     expect(payload.payments).toEqual([{ account_id: 7, amount_try: '410', amount: '15000' }])
@@ -23,26 +23,26 @@ describe('order drafts and safe save payloads', () => {
     expect(payload.client_request_id).toBe(draft.request_id)
   })
   it('unpaid saves exclude all draft payments', () => {
-    const draft = emptyDraft(); draft.items = [line]; draft.payments = [{ id: line.id, account_id: 1, amount_try: '100' }]
+    const draft = emptyDraft(); draft.details.order_type = "pickup"; draft.items = [line]; draft.payments = [{ id: line.id, account_id: 1, amount_try: '100' }]
     expect(savePayload(draft, 'server-quote', true).payments).toEqual([])
     expect(draft.payments).toHaveLength(1)
   })
   it('sends a percent without converting it to a money amount', () => {
-    const draft = emptyDraft(); draft.discount = { kind: 'percent', value: '10', reason: 'Loyal customer' }
+    const draft = emptyDraft(); draft.details.order_type = "pickup"; draft.discount = { kind: 'percent', value: '10', reason: 'Loyal customer' }
     expect(quotePayload(draft)).toHaveProperty('discount_percent', '10')
     expect(quotePayload(draft)).not.toHaveProperty('discount_amount')
   })
   it('removes a stale delivery address from pickup saves', () => {
-    const draft = emptyDraft(); draft.details.delivery_address = 'Old address'
+    const draft = emptyDraft(); draft.details.order_type = "pickup"; draft.details.delivery_address = 'Old address'
     expect(savePayload(draft, 'server-quote').delivery_address).toBe('')
   })
   it('preserves pending save payloads across local draft restoration', () => {
-    const draft = emptyDraft(); draft.items = [line]
+    const draft = emptyDraft(); draft.details.order_type = "pickup"; draft.items = [line]
     const state = { draft, savedId: null, attempt: { unpaid: false, payload: savePayload(draft, 'server-quote') } }
     expect(workspaceSchema.parse(JSON.parse(JSON.stringify(state)))).toEqual(state)
   })
   it('rejects invalid restored draft quantities', () => {
-    const draft = emptyDraft(); draft.items = [{ ...line, quantity: -1 }]
+    const draft = emptyDraft(); draft.details.order_type = "pickup"; draft.items = [{ ...line, quantity: -1 }]
     expect(workspaceSchema.safeParse({ draft, savedId: null, attempt: null }).success).toBe(false)
   })
 })
@@ -51,7 +51,7 @@ describe('entered amounts and order metadata', () => {
   it.each(['0', '-1', '', '1.001', '1e3', 'NaN', 'Infinity', '12,3', '1,00.00'])('rejects invalid amount %s', amount => expect(amountSchema.safeParse(amount).success).toBe(false))
   it('normalizes correctly grouped currency input', () => expect(amountSchema.parse(' 15,000.50 ')).toBe('15000.50'))
   it('requires a delivery address only for delivery', () => {
-    const details = emptyDraft().details
+    const details = { ...emptyDraft().details, order_type: "pickup" }
     expect(detailsSchema.safeParse(details).success).toBe(true)
     expect(detailsSchema.safeParse({ ...details, order_type: 'delivery' }).success).toBe(false)
     expect(detailsSchema.safeParse({ ...details, order_type: 'delivery', delivery_address: 'EMU dorm 3' }).success).toBe(true)
@@ -68,7 +68,7 @@ describe('entered amounts and order metadata', () => {
 describe('M12 independent total extra quantities', () => {
   const soup = { ...line, quantity: 2, extras: [{ addon_id: 'swallow', quantity: 4 }] }
   it('sends total counts independent of dish quantity with no prices', () => {
-    const draft = emptyDraft(); draft.items = [soup]
+    const draft = emptyDraft(); draft.details.order_type = "pickup"; draft.items = [soup]
     expect(quotePayload(draft).items).toEqual([{ variant_id: 'regular', quantity: 2, extras: [{ addon_id: 'swallow', quantity: 4 }], note: '' }])
     expect(quotePayload({ ...draft, items: [{ ...soup, quantity: 3 }] }).items).toEqual([{ variant_id: 'regular', quantity: 3, extras: [{ addon_id: 'swallow', quantity: 4 }], note: '' }])
   })
@@ -102,12 +102,12 @@ describe('M12 independent total extra quantities', () => {
     expect(merged[0].quantity).toBe(3); expect(merged[0].extras).toEqual([{ addon_id: 'swallow', quantity: 3 }]); expect(merged[0].addon_ids).toEqual([])
   })
   it('restores new pending requests unchanged just like old pending requests', () => {
-    const draft = emptyDraft(); draft.items = [soup]
+    const draft = emptyDraft(); draft.details.order_type = "pickup"; draft.items = [soup]
     const state = { draft, savedId: null, attempt: { unpaid: true, payload: savePayload(draft, 'server-quote', true) } }
     expect(workspaceSchema.parse(JSON.parse(JSON.stringify(state)))).toEqual(state)
   })
   it.each([0, -1, 1.5, 1000, NaN])('rejects invalid restored extra count %s', quantity => {
-    const draft = emptyDraft(); draft.items = [{ ...soup, extras: [{ addon_id: 'swallow', quantity }] }]
+    const draft = emptyDraft(); draft.details.order_type = "pickup"; draft.items = [{ ...soup, extras: [{ addon_id: 'swallow', quantity }] }]
     expect(workspaceSchema.safeParse({ draft, savedId: null, attempt: null }).success).toBe(false)
   })
   it('allows removing extras with zero in the picker but not negative or fractional counts', () => {

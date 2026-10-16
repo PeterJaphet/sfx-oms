@@ -12,9 +12,8 @@ export const channels = [
   ["event", "Event"],
 ] as const;
 export const orderTypes = [
-  ["pickup", "Pickup"],
   ["delivery", "Delivery"],
-  ["dine_in", "Dine-in"],
+  ["pickup", "Pickup"],
 ] as const;
 const moneyText = /^\d+(\.\d{1,2})?$|^\d{1,3}(,\d{3})+(\.\d{1,2})?$/;
 export const amountSchema = z
@@ -75,6 +74,9 @@ export const paymentSchema = z.object({
   amount: amountSchema.optional(),
 });
 export const draftSchema = z.object({
+  order_date: z.string().default(""),
+  settlement_account: z.number().int().nullable().default(null),
+  settlement_amount: z.string().default(""),
   request_id: z.string().uuid(),
   channel: z.enum([
     "walk_in",
@@ -107,10 +109,13 @@ export const workspaceSchema = z.object({
 export type Workspace = z.infer<typeof workspaceSchema>;
 export function emptyDraft(): Draft {
   return {
+    order_date: "",
+    settlement_account: null,
+    settlement_amount: "",
     request_id: photoId(),
     channel: "walk_in",
     details: {
-      order_type: "pickup",
+      order_type: "delivery",
       customer_name: "",
       customer_phone: "",
       delivery_address: "",
@@ -169,6 +174,10 @@ export function savePayload(
         ? draft.details.delivery_address.trim()
         : "",
     channel: draft.channel,
+    workflow: "simple",
+    order_date: draft.order_date,
+    settlement_account: draft.settlement_account,
+    settlement_amount: draft.settlement_amount,
     client_request_id: draft.request_id,
     quote_token: token,
   };

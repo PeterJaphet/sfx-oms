@@ -1,5 +1,6 @@
+import { DailyOrderTotals } from "@/features/reports/DailyOrderTotals";
 import { CustomerFields } from "@/features/costing/CustomerFields";
-import { ProfitStrip } from '@/features/costing/ProfitStrip'
+import { ProfitStrip } from "@/features/costing/ProfitStrip";
 import { ProfitSummary } from "@/features/costing/ProfitSummary";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -93,7 +94,27 @@ export default function NewOrderPage() {
           New order
         </h1>
       </div>
+      <DailyOrderTotals />
       <OrderNotices />
+      <div className="rounded-xl border bg-card p-3 space-y-2">
+        <label htmlFor="order-date" className="block text-sm font-semibold">
+          Order date
+        </label>
+        <Input
+          id="order-date"
+          type="date"
+          disabled={locked || profile?.role !== "admin"}
+          max={reference.data?.businessDate}
+          value={order.draft.order_date || reference.data?.businessDate || ""}
+          onChange={(e) =>
+            order.update((d) => ({ ...d, order_date: e.target.value }))
+          }
+        />
+        <p className="text-xs text-muted">
+          Business date · 06:00–05:59. Admin can enter earlier orders. Earlier
+          orders use today’s menu prices and recipe costs; review before saving.
+        </p>
+      </div>
       <div
         className="flex gap-2 overflow-x-auto pb-1"
         role="group"
@@ -288,7 +309,13 @@ export default function NewOrderPage() {
           </Button>
         </div>
       ) : null}
-      <div className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-20 border-t bg-card sm:bottom-0 sm:pb-[env(safe-area-inset-bottom)]">{quote.data?.costing?<ProfitStrip profit={quote.data.costing} updating={quote.isFetching}/>:null}
+      <div className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-20 border-t bg-card sm:bottom-0 sm:pb-[env(safe-area-inset-bottom)]">
+        {quote.data?.costing ? (
+          <ProfitStrip
+            profit={quote.data.costing}
+            updating={quote.isFetching}
+          />
+        ) : null}
         <div className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-3 sm:px-6">
           <button
             className="min-h-12 min-w-0 flex-1 text-left"
@@ -328,7 +355,7 @@ export default function NewOrderPage() {
                   e.preventDefault();
               }}
             >
-              Charge
+              Review order
             </Link>
           </Button>
         </div>
@@ -337,7 +364,7 @@ export default function NewOrderPage() {
         open={details}
         onOpenChange={setDetails}
         title="Order details"
-        description="Choose pickup, delivery or dine-in and add customer details."
+        description="Choose delivery or pickup and add customer details."
       >
         <DetailsForm onSaved={() => setDetails(false)} />
       </Sheet>

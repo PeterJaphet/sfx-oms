@@ -257,6 +257,13 @@ export function OrderDetails({
       ) : mode === "payment" ? (
         <div className="space-y-4">
           <PaymentBadge order={order} />
+          {order.settlement &&
+          order.status !== "completed" &&
+          order.status !== "cancelled" ? (
+            <p className="text-sm text-muted">
+              Payment will be recorded automatically when marked Delivered.
+            </p>
+          ) : null}
           <p className="text-sm text-muted">
             Each payment is recorded immediately. Saved payments cannot be
             removed here.
@@ -363,7 +370,9 @@ export function OrderDetails({
           >
             Receipt
           </Button>
-          {order.status !== "cancelled" && order.balance_due > 0 ? (
+          {!order.settlement &&
+          order.status !== "cancelled" &&
+          order.balance_due > 0 ? (
             <Button
               className="w-full"
               disabled={busy || paymentBlocked || financial.blocked}

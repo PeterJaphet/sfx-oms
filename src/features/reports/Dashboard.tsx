@@ -1,3 +1,5 @@
+import { DailyOrderTotals } from './DailyOrderTotals'
+import { HistoricalRecords } from './HistoricalRecords'
 import { toast } from 'sonner'
 import { lazy, Suspense, useEffect } from 'react'
 import { Link } from 'react-router-dom'
@@ -47,6 +49,8 @@ export default function Dashboard({
     s = d.sales.summary
   return (
     <div className="space-y-5">
+      <DailyOrderTotals />
+      {profile?.role === 'admin' ? <HistoricalRecords /> : null}
       <p className="text-sm text-muted">
         Gross sales {formatMoney(Number(s.gross_sales ?? 0), 'TRY')} − discounts{' '}
         {formatMoney(Number(s.discounts ?? 0), 'TRY')} = net revenue{' '}

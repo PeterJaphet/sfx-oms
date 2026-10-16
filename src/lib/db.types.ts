@@ -14,6 +14,37 @@ export type Database = {
   };
   public: {
     Tables: {
+      historical_sales_records: {
+        Row: {
+          id: string;
+          months: NonNullable<Json>;
+          notes: string;
+          payment_mix: NonNullable<Json>;
+          source_name: string;
+          source_year: number | null;
+          title: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          id: string;
+          months: NonNullable<Json>;
+          notes: string;
+          payment_mix: NonNullable<Json>;
+          source_name: string;
+          source_year?: number | null;
+          title: string;
+        };
+        Update: {
+          id?: string;
+          months?: NonNullable<Json>;
+          notes?: string;
+          payment_mix?: NonNullable<Json>;
+          source_name?: string;
+          source_year?: number | null;
+          title?: string;
+        };
+        Relationships: [];
+      };
       cost_plan: {
         Row: {
           id: boolean;
@@ -964,6 +995,7 @@ export type Database = {
           preparing_at: string | null;
           ready_at: string | null;
           status: Database["public"]["Enums"]["order_status"];
+          settlement: Json | null;
           subtotal: number;
           total: number;
         };
@@ -992,6 +1024,7 @@ export type Database = {
           preparing_at?: string | null;
           ready_at?: string | null;
           status?: Database["public"]["Enums"]["order_status"];
+          settlement?: Json | null;
           subtotal?: number;
           total?: number;
         };
@@ -1020,6 +1053,7 @@ export type Database = {
           preparing_at?: string | null;
           ready_at?: string | null;
           status?: Database["public"]["Enums"]["order_status"];
+          settlement?: Json | null;
           subtotal?: number;
           total?: number;
         };
@@ -1785,6 +1819,83 @@ export type Database = {
       };
     };
     Functions: {
+      create_trading_order: {
+        Args: { p_order: Json };
+        Returns: {
+          business_date: string;
+          cancel_reason: string | null;
+          cancelled_at: string | null;
+          cancelled_by: string | null;
+          channel: Database["public"]["Enums"]["order_channel"];
+          client_request_hash: string | null;
+          client_request_id: string | null;
+          completed_at: string | null;
+          created_at: string;
+          created_by: string;
+          customer_name: string | null;
+          customer_phone: string | null;
+          daily_number: number;
+          delivery_address: string | null;
+          discount_amount: number;
+          discount_reason: string | null;
+          id: string;
+          note: string | null;
+          order_type: Database["public"]["Enums"]["order_type"];
+          picked_up_at: string | null;
+          picked_up_by: string | null;
+          preparing_at: string | null;
+          ready_at: string | null;
+          settlement: Json | null;
+          status: Database["public"]["Enums"]["order_status"];
+          subtotal: number;
+          total: number;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "orders";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      deliver_trading_order: {
+        Args: { p_order: string };
+        Returns: {
+          business_date: string;
+          cancel_reason: string | null;
+          cancelled_at: string | null;
+          cancelled_by: string | null;
+          channel: Database["public"]["Enums"]["order_channel"];
+          client_request_hash: string | null;
+          client_request_id: string | null;
+          completed_at: string | null;
+          created_at: string;
+          created_by: string;
+          customer_name: string | null;
+          customer_phone: string | null;
+          daily_number: number;
+          delivery_address: string | null;
+          discount_amount: number;
+          discount_reason: string | null;
+          id: string;
+          note: string | null;
+          order_type: Database["public"]["Enums"]["order_type"];
+          picked_up_at: string | null;
+          picked_up_by: string | null;
+          preparing_at: string | null;
+          ready_at: string | null;
+          settlement: Json | null;
+          status: Database["public"]["Enums"]["order_status"];
+          subtotal: number;
+          total: number;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "orders";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      daily_order_profit: { Args: Record<PropertyKey, never>; Returns: Json };
       apply_cost_price: {
         Args: { p_price: number; p_recipe: string; p_revision: number };
         Returns: undefined;

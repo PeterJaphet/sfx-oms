@@ -16,7 +16,7 @@ export function useBoardReference(){return useQuery({queryKey:['orders','referen
 async function readPages<T>(load:(offset:number)=>PromiseLike<{data:T[]|null;error:{message:string}|null}>){const rows:T[]=[];let offset=0;while(true){const result=await load(offset);if(result.error)throw new Error(result.error.message);if(!result.data)throw new Error('Order data is missing');rows.push(...result.data);if(result.data.length<1000)return rows;offset+=1000}}
 export async function loadBoard(from:string,to:string,account:number|null){
  const db=client()
- const orders=await readPages(offset=>db.from('orders').select('id,business_date,daily_number,channel,order_type,status,customer_name,customer_phone,delivery_address,note,subtotal,discount_amount,discount_reason,total,created_at,ready_at,picked_up_at,cancel_reason').gte('business_date',from).lte('business_date',to).order('created_at',{ascending:false}).order('id').range(offset,offset+999))
+ const orders=await readPages(offset=>db.from('orders').select('id,business_date,daily_number,channel,order_type,status,customer_name,customer_phone,delivery_address,note,subtotal,discount_amount,discount_reason,total,created_at,ready_at,picked_up_at,cancel_reason,settlement').gte('business_date',from).lte('business_date',to).order('created_at',{ascending:false}).order('id').range(offset,offset+999))
  const paymentRows=[];const itemRows=[];const accountsForOrders=new Set<string>()
  // Bounded GET URLs; drain each result so larger orders are never truncated.
  for(let start=0;start<orders.length;start+=50){const ids=orders.slice(start,start+50).map(o=>o.id);const [payments,items,entries]=await Promise.all([
@@ -29,8 +29,15 @@ export async function loadBoard(from:string,to:string,account:number|null){
 }
 export async function loadDailySales(day:string){const result=await client().from('v_sales_daily').select('orders,net_sales').eq('business_date',day).maybeSingle();if(result.error)throw new Error(result.error.message);return result.data}
 export async function loadDeliveries(){const result=await client().rpc('list_delivery_orders');if(result.error)throw new Error(result.error.message);return z.array(boardOrderSchema).parse(result.data)}
-export async function changeStatus(id:string,status:'new'|'preparing'|'ready'|'picked_up'|'completed'|'cancelled'){
-  assertOnline();const result=await client().rpc('set_order_status',{p_order:id,p_status:status});if(result.error)throw new Error(result.error.message);if(!result.data?.id)throw new Error('Status confirmation was not received; refresh the order')}
+export async function changeStatus(id:string,status:'new'|'preparing'|'ready'|'picked_up'|'completed'|'cancelled',automatic=false){
+  assertOnline();
+  if(automatic){
+    const r=await client().rpc('deliver_trading_order',{p_order:id})
+    if(r.error)throw new Error(r.error.message)
+    if(!r.data?.id)throw new Error('Delivery confirmation was not received; refresh and retry')
+    return
+  }
+  const result=await client().rpc('set_order_status',{p_order:id,p_status:status});if(result.error)throw new Error(result.error.message);if(!result.data?.id)throw new Error('Status confirmation was not received; refresh the order')}
 export async function cancelOrder(id:string,reason:string){
   assertOnline();const result=await client().rpc('cancel_order',{p_order:id,p_reason:reason});if(result.error)throw new Error(result.error.message);if(!result.data?.id)throw new Error('Cancellation confirmation was not received; refresh the order')}
 export async function addSavedPayment(id:string,payment:DraftPayment){

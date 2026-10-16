@@ -37,7 +37,15 @@ export function SavedOrder({ id }: { id: string }) {
   return (
     <section className="space-y-4 p-4 sm:p-6">
       <BrandLogo className="w-56" />
-      <p className="text-sm font-semibold text-ok">Order saved</p>
+      <p className="text-sm font-semibold text-ok">
+        {order.settlement ? "Order accepted" : "Order saved"}
+      </p>
+      {order.settlement ? (
+        <p className="text-sm text-muted">
+          Mark Delivered in Orders to confirm receipt and record payment
+          automatically.
+        </p>
+      ) : null}
       <h1 className="text-[26px] font-extrabold">
         Order{" "}
         <span className="text-brand-strong">
@@ -109,7 +117,7 @@ export function SavedOrder({ id }: { id: string }) {
       ) : null}
       <SavedProfit id={id} />
       <Button asChild variant="secondary" className="w-full">
-        <Link to="/orders">View orders</Link>
+        <Link to={`/orders?date=${order.business_date}`}>View orders</Link>
       </Button>
       <Button asChild className="w-full">
         <Link to="/order" onClick={workspace.clear}>

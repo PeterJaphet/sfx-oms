@@ -13,6 +13,7 @@ import {
   deliveryAge,
   itemText,
   nextAction,
+  statusGroup,
   orderNumber,
   type BoardOrder,
 } from '@/features/orders/board-model'
@@ -32,20 +33,20 @@ export default function DeliveriesPage() {
   const mutation = useMutation({
     mutationFn: async (o: BoardOrder) => {
       const action = nextAction(o, profile!.role)
-      if (action) await changeStatus(o.id, action.status)
+      if (action) await changeStatus(o.id, action.status, !!o.settlement)
     },
     onSettled: () => refreshOrderData(qc),
     onError: (e: Error) => toast.error(e.message),
   })
   const orders = query.data ?? []
-  const visible = orders.filter((o) => tab === 'all' || o.status === tab)
+  const visible = orders.filter(
+    (o) => tab === 'all' || statusGroup(o.status) === tab,
+  )
   return (
     <section className="space-y-4">
-      <h1 className="text-[26px] font-extrabold sm:text-[34px]">
-        Ready orders
-      </h1>
+      <h1 className="text-[26px] font-extrabold sm:text-[34px]">Deliveries</h1>
       <p className="text-sm text-muted">
-        Delivery orders · oldest ready first · updates every 15 seconds
+        Accepted delivery orders · oldest first · updates every 15 seconds
       </p>
       <AdvancesSummary />
       <div
@@ -55,8 +56,7 @@ export default function DeliveriesPage() {
       >
         {[
           ['all', 'All'],
-          ['ready', 'Ready'],
-          ['picked_up', 'Out'],
+          ['accepted', 'Accepted'],
         ].map(([id, label]) => (
           <button
             key={id}
@@ -68,7 +68,10 @@ export default function DeliveriesPage() {
             )}
           >
             {label}{' '}
-            {orders.filter((o) => id === 'all' || o.status === id).length}
+            {
+              orders.filter((o) => id === 'all' || statusGroup(o.status) === id)
+                .length
+            }
           </button>
         ))}
       </div>
@@ -138,7 +141,8 @@ export default function DeliveriesPage() {
                     </span>
                   )}
                   {action ? (
-                    <Button requiresOnline
+                    <Button
+                      requiresOnline
                       className={cn(
                         'min-w-0 flex-1',
                         o.status === 'ready' ? 'bg-ink hover:bg-ink-2' : '',

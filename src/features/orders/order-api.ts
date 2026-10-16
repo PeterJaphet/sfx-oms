@@ -27,9 +27,14 @@ export async function createOrder(payload: Json) {
     typeof payload === "object" &&
       payload !== null &&
       !Array.isArray(payload) &&
-      "cost_token" in payload
-      ? "create_costed_order"
-      : "create_order",
+      "workflow" in payload
+      ? "create_trading_order"
+      : typeof payload === "object" &&
+          payload !== null &&
+          !Array.isArray(payload) &&
+          "cost_token" in payload
+        ? "create_costed_order"
+        : "create_order",
     { p_order: payload },
   );
   if (error)

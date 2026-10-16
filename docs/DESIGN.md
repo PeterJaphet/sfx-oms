@@ -112,3 +112,18 @@ Use screens/Costing.dc.html and OrderProfit.dc.html with the M13 brand component
 Weekly plan uses contained horizontally scrolling tables, totals/cards and separate sections for fixed overhead, break-even, actual comparison and FX scenarios. Clearly identify forecast prices and placeholder volumes. History shows saved costs, versions, author and time, not raw database identifiers. PDF/CSV forecasts use the shared brand exporter.
 
 New order shows customer name/phone and pickup/delivery/dine-in inline; delivery reveals the required address. Show a responsive three-metric profitability card as items are added: Revenue / Est. gross profit / Est. net profit. Use a clear Updating state; Costing incomplete names missing items and an unavailable net allocation. Cost breakdown explains the assumptions. Keep a compact three-metric version in the fixed order action bar so profit remains visible while scrolling the menu; allow sufficient bottom padding. The same full card appears on checkout, confirmation and internal details. Receipts and Logistics omit costs and profits. Offline blocks all writes; partial customer drafts persist without weakening save validation.
+
+## M16 — approved workflow adjustment
+
+Reuse Main, Checkout, Orders, Deliveries, Dashboard and OrderProfit screen components with
+M13 branding. Delivery appears before Pickup; no Dine-in choice. Order date is a labelled
+44px date input above customer fields, editable by Admin. Explain business-day boundaries,
+current pricing/cost assumptions for earlier orders, and historical balance implications.
+Checkout keeps summary, discount and profit cards; replace payment lines with receiving-account
+selection, foreign amount where needed, and one Accept order action. Explain that Delivered
+confirms receipt and posts payment. Order tabs are Accepted, Delivered and All (including
+cancelled history). Preserve legacy correction/payment details where needed.
+Add three responsive daily KPI cells on New order and Dashboard, labelled Revenue / Est. gross
+profit / Est. net profit, with date, order count, incomplete-cost notice and refresh behaviour.
+Admin historical records use a collapsible white card and horizontally contained reference table;
+show year unstated and explain that balances and live reports are unaffected.

@@ -386,3 +386,38 @@ The workbook's numeric input cells are authoritative starting values rather than
 Extras, Chips, Congolese Shawarma and additional variants have no supplied recipe costs: Admin must enter them. Missing costs are not zero; revenue stays visible while incomplete profit remains unavailable. If planned revenue is zero and fixed overhead is positive, net profit is unavailable; an explicitly zero fixed overhead needs no allocation denominator.
 
 Operations and Admin can view order estimates. Only Admin edits costing and opens its planning/editor/history screens. Logistics and customer receipts do not expose recipes or profits. Customer name/phone remain optional, visible directly on New order; a delivery address is required before checkout/save. Partial delivery drafts survive reload.
+
+## M16 — dated orders and simplified trading (owner approved 16 October 2026)
+
+This adjustment supersedes O-2/O-4/O-5 for new orders. Delivery is first/default;
+Pickup is the only other type. New orders are Accepted, then Delivered. Cancellation
+remains an audited correction, not a third trading stage. Older records and in-flight
+legacy requests retain their original RPCs, payments and stored statuses.
+
+Staff select the receiving account while entering an order. TRY payment uses the
+server's full order total. Foreign-currency accounts require the amount to receive;
+the server derives and stores the implied rate. Accepting posts no money. Marking
+Delivered confirms receipt and atomically posts the selected payment and completion,
+with idempotent retries. Logistics may confirm delivery only for Delivery orders,
+using the immutable payment plan, without any general payment-editing permission.
+Existing closed-day, active-role, RLS, refund and no-delete guards remain.
+
+Order date defaults to the database business day (06:00 Europe/Nicosia). Admin may
+enter earlier business dates, never future dates. Numbering and sales use that date.
+Historical entries use current menu prices and saved current recipe estimates, clearly
+warned in the form; no invented historical prices/costs. For an earlier entry, its
+completion payment is posted on that historical date by Admin. Ordinary orders paid
+on a later day retain the actual payment day. Review opening balances before entering
+historical paid orders so old receipts are not counted twice.
+
+Admin Dashboard and Operations New order show today's cumulative saved order revenue,
+estimated gross profit and estimated net profit. Include accepted and delivered orders,
+exclude cancellations; missing snapshots/costs make the corresponding profit unavailable.
+The server aggregates snapshots. Realtime order events invalidate reads, with a 10-second
+fallback and server business-day rollover. Existing purchase-based P&L stays separate.
+
+The supplied DOC-20261016-WA0154.pdf is a reference-only summer review: June–September,
+58 trading days, 509 orders and TRY 189062 revenue. Its year is unstated. Preserve its
+monthly totals and payment mix in Admin historical records, separate from live reports,
+ledger and order items. Do not invent individual transactions, dates, expenses or profit.
+WhatsApp M15 remains paused and unmerged.

@@ -122,7 +122,7 @@ describe("costing inputs and server boundaries", () => {
 });
 describe("visible customer fields and saved request compatibility", () => {
   it("restores an unfinished delivery draft without losing its items", () => {
-    const draft = emptyDraft();
+    const draft = emptyDraft(); draft.details.order_type = "pickup";
     draft.details.order_type = "delivery";
     draft.items = [
       {
@@ -143,7 +143,7 @@ describe("visible customer fields and saved request compatibility", () => {
     expect(() => savePayload(restored.draft, "quote")).toThrow();
   });
   it("includes a cost token only for the new save protocol, preserving old pending payloads", () => {
-    const d = emptyDraft();
+    const d = emptyDraft(); d.details.order_type = "pickup";
     expect(savePayload(d, "price")).not.toHaveProperty("cost_token");
     expect(savePayload(d, "price", false, "profit")).toHaveProperty(
       "cost_token",
@@ -155,7 +155,7 @@ describe("visible customer fields and saved request compatibility", () => {
     ).toEqual(attempt);
   });
   it("saves trimmed name and phone, and removes an irrelevant address", () => {
-    const d = emptyDraft();
+    const d = emptyDraft(); d.details.order_type = "pickup";
     d.details.customer_name = " Peter ";
     d.details.customer_phone = " +9050000 ";
     d.details.delivery_address = "Old delivery";
