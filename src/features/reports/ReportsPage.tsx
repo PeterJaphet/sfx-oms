@@ -206,7 +206,7 @@ export default function ReportsPage() {
     refetchInterval: 60000,
     retry: false,
   });
-  const period = params.get("period") ?? "week";
+  const period = params.get("period") ?? (profile?.role === "admin" ? "month" : "week");
   const name = params.get("view") ?? "dashboard";
   const view = findDefinition(name) ? name : "dashboard";
   const search = params.get("search") ?? "";
@@ -267,7 +267,7 @@ export default function ReportsPage() {
     );
   return (
     <section className="min-w-0 space-y-5">
-      <header className="space-y-3">
+      <header className="space-y-3 lg:flex lg:items-end lg:justify-between lg:gap-4 lg:space-y-0">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-muted">
             {current
@@ -278,11 +278,11 @@ export default function ReportsPage() {
           </p>
           <h1 className="text-[26px] font-extrabold sm:text-[34px]">
             {view === "dashboard"
-              ? "Reports and dashboard"
+              ? "Business overview"
               : findDefinition(view)!.title}
           </h1>
           {profile!.role === "admin" ? (
-            <Button asChild variant="secondary" className="mt-3">
+            <Button asChild variant="secondary" className="mt-3 lg:hidden">
               <Link to="/costing">Costing & weekly forecast</Link>
             </Button>
           ) : null}
@@ -362,7 +362,7 @@ export default function ReportsPage() {
             ) : null}
           </form>
         ) : null}
-        <div className="flex flex-wrap gap-2">
+        {view !== "dashboard" ? <div className="flex flex-wrap gap-2">
           <Button
             variant="secondary"
             className="px-3 text-sm"
@@ -391,17 +391,17 @@ export default function ReportsPage() {
           >
             Swallow this month
           </Button>
-        </div>
+        </div> : null}
       </header>
       <label
-        className="block space-y-2 text-sm font-semibold"
+        className="flex flex-wrap items-center gap-3 text-sm font-semibold"
         htmlFor="report-choice"
       >
         <span id="report-choice-label">Report</span>
         <select
           id="report-choice"
           aria-labelledby="report-choice-label"
-          className="h-12 w-full rounded-lg border border-line-strong bg-card px-3 text-base"
+          className="h-11 w-full rounded-lg border border-line-strong bg-card px-3 text-sm sm:w-auto sm:min-w-64"
           value={view}
           onChange={(e) => onReport(e.target.value)}
         >

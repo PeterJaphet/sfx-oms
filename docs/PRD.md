@@ -73,7 +73,7 @@ Each payment method is an account with its own currency and a running balance; e
 | Cash | TRY | Till cash; counted at daily close |
 | İşbank | TRY | Bank transfer / card |
 | Koop | TRY | Bank transfer / card |
-| SFx | USD | SFx Money App wallet |
+| SFx | TRY | SFx Money App wallet (corrected 20 October 2026) |
 | RedotPay | USD |  |
 | Crypto | USD | Stablecoins, tracked in dollars |
 | Naira | NGN | Nigerian account, received into and spent from; always needs a rate |
@@ -108,7 +108,7 @@ Only the two highlighted boxes reduce profit; advances and returned change just 
 
 - Reports are in TRY. Every entry stores its amount in the account's currency plus the TRY value and the rate used.
 - For non-TRY payments, the order taker confirms the rate at payment time; the form pre-fills the last rate used for that currency, and Admin can update default rates daily.
-- Dollar (SFx, RedotPay, Crypto) and Naira balances are shown in their own currency, with a TRY estimate at today's default rate. The starting dollar rate is 47.90 ₺/$, taken from the Weekly P&L tab.
+- Dollar (RedotPay, Crypto) and Naira balances are shown in their own currency, with a TRY estimate at today's default rate. The starting dollar rate is 47.90 ₺/$, taken from the Weekly P&L tab.
 
 **Go-live: start fresh, carry over balances and debts**
 
@@ -342,7 +342,7 @@ An AI coding agent builds it milestone by milestone from the build kit (CLAUDE.m
 
 **Open questions**
 
-- [x] SFx, RedotPay and Crypto all hold US dollars.
+- [x] Corrected 20 October 2026: SFx receives TRY; RedotPay and Crypto hold USD. Existing USD-labelled SFx entries require reconciliation.
 - [x] Approval limit is on at launch: ₺2,000 (change in settings).
 - [x] Start fresh at go-live, with opening balances for all 7 accounts and every outstanding debt entered.
 - [x] Menu and prices come from the printed menu; cost categories from the costing sheet.
@@ -421,3 +421,21 @@ The supplied DOC-20261016-WA0154.pdf is a reference-only summer review: June–S
 monthly totals and payment mix in Admin historical records, separate from live reports,
 ledger and order items. Do not invent individual transactions, dates, expenses or profit.
 WhatsApp M15 remains paused and unmerged.
+
+## M17 — reporting corrections, order pricing and desktop refresh (20 October 2026)
+
+Owner confirms SFx receives TRY, not USD. Preserve all existing ledger entries and old
+settlements; provide an Admin-reviewed transition to a new SFx TRY account, retaining
+the old USD account for reconciliation. Never relabel or convert historical amounts silently.
+Display combined extras counts (on plates plus standalone), with dated order-level evidence.
+Dashboard profit uses saved recipe estimates; reconstruct missing/incomplete estimates
+using current recipes as explicitly authorized, without changing snapshots or money.
+Missing recipe inputs remain unknown, with the affected items named. Show purchase-based
+P&L separately from estimates. Admin and Operations may override an item's unit price
+for this order with a reason; no global menu change. Add a 20% staff discount shortcut.
+Use the owner's supplied desktop screenshot as layout reference: desktop sidebar, restrained
+header, KPI cards, chart and useful tables. Preserve SFx branding, mobile role navigation,
+touch targets, accessibility and all existing authorisation guards. Reduce duplicate reads
+and measure bundle/load changes; no new feature areas or WhatsApp work.
+
+Turkey cost input confirmed by owner on 20 October 2026: TRY 250 total per portion. Store as a supplied combined cost, not an invented ingredients/packaging/operating breakdown. Never overwrite an existing recipe without review.

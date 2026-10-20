@@ -127,3 +127,14 @@ Add three responsive daily KPI cells on New order and Dashboard, labelled Revenu
 profit / Est. net profit, with date, order count, incomplete-cost notice and refresh behaviour.
 Admin historical records use a collapsible white card and horizontally contained reference table;
 show year unstated and explain that balances and live reports are unaffected.
+
+## M17 visual reference (owner supplied 20 October 2026)
+
+Use the attached desktop dashboard as layout reference, keeping SFx red, cream, charcoal
+and existing fonts. At 1024px+, Admin uses a persistent white sidebar with grouped links,
+a restrained header, generous content canvas and a four-column KPI row. On phones keep
+bottom role navigation. Cards use consistent borders, whitespace and clear metric hierarchy;
+avoid decorative fake statistics. Put recipe-based profit first, purchase P&L in an explicitly
+labelled expandable detail. Move reference-only history below operational metrics. Price overrides
+use an optional labelled item-sheet section with unit price and reason; staff discount is a
+44px shortcut at review. Missing-cost and currency-reconciliation notices are actionable.

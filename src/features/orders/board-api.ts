@@ -21,7 +21,7 @@ export async function loadBoard(from:string,to:string,account:number|null){
  // Bounded GET URLs; drain each result so larger orders are never truncated.
  for(let start=0;start<orders.length;start+=50){const ids=orders.slice(start,start+50).map(o=>o.id);const [payments,items,entries]=await Promise.all([
   readPages(offset=>db.from('v_order_payments').select('*').in('id',ids).order('id').range(offset,offset+999)),
-  readPages(offset=>db.from('order_items').select('id,order_id,product_name,variant_name,quantity,line_total:charged_total,addons,note').in('order_id',ids).order('id').range(offset,offset+999)),
+  readPages(offset=>db.from('order_items').select('id,order_id,product_name,variant_name,quantity,line_total:charged_total,addons,note,catalogue_unit_price,price_override_reason').in('order_id',ids).order('id').range(offset,offset+999)),
   account!==null?readPages(offset=>db.from('ledger_entries').select('id,order_id').in('order_id',ids).eq('account_id',account).eq('entry_type','order_payment').order('id').range(offset,offset+999)):Promise.resolve([])
  ]);paymentRows.push(...payments);itemRows.push(...items);for(const entry of entries)if(entry.order_id)accountsForOrders.add(entry.order_id)}
  const paymentsById=new Map(paymentRows.map(p=>[p.id,p]));const itemsById=new Map<string,typeof itemRows>();for(const item of itemRows){const group=itemsById.get(item.order_id)??[];group.push(item);itemsById.set(item.order_id,group)}

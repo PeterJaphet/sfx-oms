@@ -91,8 +91,8 @@ export const definitions: ReportDefinition[] = [
   },
   {
     name: 'pnl',
-    title: 'Weekly P&L',
-    note: 'Costs are supplies bought in this period, including credit purchases. Advances, debt money and transfers do not affect profit.',
+    title: 'Purchase-based P&L',
+    note: 'Accounting view of purchases and recorded expenses, not recipe consumption. For recipe-based gross and net estimates, use Overview. Advances, debt money and transfers do not affect profit.',
     columns: [
       c('metric', 'Metric'),
       money('amount', 'Amount / margin', 'unit'),
@@ -401,3 +401,52 @@ export function displayCell(row: ReportRow, column: Column): string {
 export function findDefinition(name: string) {
   return definitions.find((d) => d.name === name)
 }
+
+export const recipeReportSchema = z.object({
+  revenue: z.number(),
+  cogs: z.number().nullable(),
+  gross_profit: z.number().nullable(),
+  net_profit: z.number().nullable(),
+  operational: z.number().nullable(),
+  fixed: z.number().nullable(),
+  orders: z.number(),
+  missing: z.array(z.string()),
+  missing_gross: z.number(),
+  missing_net: z.number(),
+  reconstructed: z.number(),
+  rows: z
+    .array(
+      z.object({
+        id: z.string(),
+        business_date: z.string(),
+        daily_number: z.number(),
+        revenue: z.number(),
+        gross_profit: z.number().nullable(),
+        net_profit: z.number().nullable(),
+        reconstructed: z.boolean(),
+        missing: z.array(z.string()),
+      }),
+    )
+    .default([]),
+})
+export const workspaceSchema = dashboardSchema.extend({
+  accounting_expenses: z.number(),
+  recipe_profit: recipeReportSchema,
+  extras: reportSchema,
+  sfx_needs_transition: z.boolean().optional(),
+  turkey: z.object({
+    quantity: z.number(),
+    standalone: z.number(),
+    on_plate: z.number(),
+    rows: z.array(
+      z.object({
+        id: z.string(),
+        business_date: z.string(),
+        daily_number: z.number(),
+        product_name: z.string(),
+        source: z.string(),
+        quantity: z.number(),
+      }),
+    ),
+  }),
+})

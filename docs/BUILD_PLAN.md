@@ -286,3 +286,13 @@ Done when:
 
 Hosted rollout: owner takes a fresh backup, manually applies `014_simple_orders.sql`,
 then approves production release. Do not apply the paused WhatsApp migration as part of this work.
+
+## M17 — reporting, pricing and desktop refresh (20 October 2026)
+
+- [x] Reviewed SFx TRY transition preserves historical USD entries and pending settlements.
+- [x] Combined extras counts reconcile to an order-level breakdown (test 4 standalone + 6 on plates = 10).
+- [x] Range recipe-profit totals use saved estimates or explicitly labelled current-recipe reconstruction; missing inputs remain unknown.
+- [x] 20% staff discount and reasoned per-order unit-price overrides recalculate quotes/payments/profit in SQL.
+- [x] Admin desktop sidebar/dashboard; mobile layouts/accessibility preserved; performance measured.
+- [x] Typecheck, lint, 314 unit tests, 718 database checks, build and local browser checks pass.
+- [ ] Hosted migration, SFx transition, actual count reconciliation and physical phone acceptance (owner).

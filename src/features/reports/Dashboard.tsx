@@ -1,14 +1,16 @@
 import { DailyOrderTotals } from './DailyOrderTotals'
+import { SfxAccountTransition } from './SfxAccountTransition'
 import { HistoricalRecords } from './HistoricalRecords'
 import { toast } from 'sonner'
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/auth-context'
 import { formatMoney } from '@/lib/format'
 import { loadDashboard } from './report-api'
-import { findDefinition, type Range } from './report-model'
+import { client } from '@/features/menu/menu-api'
+import { recipeReportSchema, findDefinition, type Range } from './report-model'
 import { ReportTable } from './ReportTable'
 const RevenueChart = lazy(() => import('./RevenueChart'))
 export default function Dashboard({
@@ -19,9 +21,25 @@ export default function Dashboard({
   onReport: (name: string) => void
 }) {
   const { profile } = useAuth()
+  const [showProfit, setShowProfit] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
+  const audit = useQuery({
+    queryKey: ['reports', 'order-profit-audit', range],
+    enabled: showProfit,
+    staleTime: 15000,
+    queryFn: async () => {
+      const r = await client().rpc('order_profit_report', {
+        p_from: range.from,
+        p_to: range.to,
+      })
+      if (r.error) throw new Error(r.error.message)
+      return recipeReportSchema.parse(r.data)
+    },
+  })
   const data = useQuery({
     queryKey: ['reports', 'dashboard', range],
     queryFn: () => loadDashboard(range),
+    staleTime: 15000,
     refetchInterval: 30000,
     retry: false,
   })
@@ -45,12 +63,11 @@ export default function Dashboard({
       </div>
     )
   const d = data.data,
-    p = d.pnl.summary,
+    p = d.recipe_profit,
     s = d.sales.summary
   return (
     <div className="space-y-5">
-      <DailyOrderTotals />
-      {profile?.role === 'admin' ? <HistoricalRecords /> : null}
+      {d.sfx_needs_transition ? <SfxAccountTransition /> : null}
       <p className="text-sm text-muted">
         Gross sales {formatMoney(Number(s.gross_sales ?? 0), 'TRY')} − discounts{' '}
         {formatMoney(Number(s.discounts ?? 0), 'TRY')} = net revenue{' '}
@@ -63,41 +80,63 @@ export default function Dashboard({
         {[
           [
             'Net revenue',
-            p.net_revenue ?? 0,
+            p.revenue,
             `${s.orders ?? 0} orders · average ${s.average_order == null ? '—' : formatMoney(Number(s.average_order), 'TRY')}`,
           ],
           [
-            'Cost of goods',
-            p.cost_of_goods ?? 0,
-            `Gross margin ${p.gross_margin == null ? '—' : `${(Number(p.gross_margin) * 100).toFixed(2)}%`}`,
+            'Est. gross profit',
+            p.gross_profit,
+            'Revenue less recipe ingredient and packaging costs',
           ],
           [
-            'Operational + fixed',
-            d.operational_fixed,
-            `${formatMoney(Number(p.operational_expenses ?? 0), 'TRY')} operational · ${formatMoney(Number(p.fixed_overheads ?? 0), 'TRY')} fixed`,
+            'Recipe cost of goods',
+            p.cogs,
+            'Calculated from saved recipes and recorded quantities',
           ],
           [
-            'Net profit',
-            p.net_profit ?? 0,
-            `Net margin ${p.net_margin == null ? '—' : `${(Number(p.net_margin) * 100).toFixed(2)}%`}`,
+            'Est. net profit',
+            p.net_profit,
+            'After recipe operating costs and allocated fixed overhead',
           ],
         ].map(([label, amount, sub]) => (
           <article
             key={String(label)}
-            className={`min-w-0 space-y-2 rounded-xl border p-4 ${label === 'Net profit' ? 'bg-brand text-card' : 'bg-card'}`}
+            className={`min-w-0 space-y-2 rounded-xl border p-4 ${label === 'Est. net profit' ? 'bg-brand text-card' : 'bg-card'}`}
           >
             <h2 className="text-sm font-semibold">{String(label)}</h2>
             <p className="break-words text-2xl font-bold sm:text-3xl">
-              {formatMoney(Number(amount), 'TRY')}
+              {amount == null ? '—' : formatMoney(Number(amount), 'TRY')}
             </p>
             <p
-              className={`text-xs ${label === 'Net profit' ? 'text-card' : 'text-muted'}`}
+              className={`text-xs ${label === 'Est. net profit' ? 'text-card' : 'text-muted'}`}
             >
               {String(sub)}
             </p>
           </article>
         ))}
       </section>
+      <p className="text-sm text-muted">
+        {range.from} to {range.to} · recipe-based estimates. {p.reconstructed}{' '}
+        orders reconstructed using current recipe costs; complete saved
+        estimates stay unchanged.
+      </p>
+      {p.missing_net ? (
+        <div className="rounded-xl border border-amber bg-amber-soft p-4 space-y-2">
+          <p className="font-semibold">
+            {p.missing_net} orders need cost inputs before total net profit can
+            be calculated.
+          </p>
+          <p className="text-sm">
+            {p.missing.join(', ') ||
+              'Set a valid fixed-overhead allocation in Costing.'}
+          </p>
+          {profile?.role === 'admin' ? (
+            <Button asChild variant="secondary">
+              <Link to="/costing">Complete recipe costs</Link>
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
       <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div className="min-w-0 space-y-5">
           <Suspense fallback={<p role="status">Loading chart…</p>}>
@@ -116,6 +155,37 @@ export default function Dashboard({
           >
             View all items and category totals
           </Button>
+          <section className="rounded-xl border bg-card p-4 space-y-2">
+            <h2 className="font-semibold">
+              Turkey · {d.turkey.quantity} total sold
+            </h2>
+            <p className="text-sm text-muted">
+              {d.turkey.standalone} on its own + {d.turkey.on_plate} on plates ·{' '}
+              {range.from} to {range.to}
+            </p>
+            <details>
+              <summary className="min-h-11 cursor-pointer">
+                Reconcile Turkey by order
+              </summary>
+              {d.turkey.rows.map((r, i) => (
+                <p className="border-t py-2 text-sm" key={`${r.id}:${i}`}>
+                  <Link to={`/orders?date=${r.business_date}&order=${r.id}`}>
+                    {r.business_date} #{r.daily_number}
+                  </Link>{' '}
+                  · {r.quantity} × {r.source} · {r.product_name}
+                </p>
+              ))}
+            </details>
+          </section>
+          <ReportTable
+            data={d.extras}
+            definition={findDefinition('extras')!}
+            range={range}
+            disabled={data.isFetching}
+          />
+          <Button variant="secondary" onClick={() => onReport('extras')}>
+            All extras, including on plates
+          </Button>
           <ReportTable
             data={d.expenses}
             definition={findDefinition('expenses')!}
@@ -131,6 +201,7 @@ export default function Dashboard({
           </Button>
         </div>
         <aside className="min-w-0 space-y-5">
+          <DailyOrderTotals />
           <section className="space-y-3 rounded-xl border bg-card p-4">
             <h2 className="text-lg font-bold">Needs your attention</h2>
             {profile!.role === 'admin' ? (
@@ -234,6 +305,96 @@ export default function Dashboard({
           </section>
         </aside>
       </div>
+      <details
+        className="rounded-xl border bg-card p-4"
+        onToggle={(e) => setShowProfit(e.currentTarget.open)}
+      >
+        <summary className="min-h-11 cursor-pointer font-semibold">
+          Profit calculation by order
+        </summary>
+        {showProfit ? (
+          <div className="max-h-96 overflow-auto">
+            {audit.error ? (
+              <p role="alert">{audit.error.message}</p>
+            ) : audit.isPending ? (
+              <p role="status">Loading order calculations…</p>
+            ) : null}
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr>
+                  {[
+                    'Date / order',
+                    'Revenue',
+                    'Gross',
+                    'Net',
+                    'Cost basis',
+                  ].map((h) => (
+                    <th className="p-2" key={h}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {audit.data?.rows.map((r) => (
+                  <tr key={r.id}>
+                    <td className="p-2">
+                      <Link
+                        to={`/orders?date=${r.business_date}&order=${r.id}`}
+                      >
+                        {r.business_date} #{r.daily_number}
+                      </Link>
+                    </td>
+                    <td className="p-2">{formatMoney(r.revenue, 'TRY')}</td>
+                    <td className="p-2">
+                      {r.gross_profit == null
+                        ? '—'
+                        : formatMoney(r.gross_profit, 'TRY')}
+                    </td>
+                    <td className="p-2">
+                      {r.net_profit == null
+                        ? '—'
+                        : formatMoney(r.net_profit, 'TRY')}
+                    </td>
+                    <td className="p-2">
+                      {r.reconstructed ? 'Current recipe' : 'Saved estimate'}
+                      {r.missing.length
+                        ? ` · Missing: ${r.missing.join(', ')}`
+                        : ''}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
+      </details>
+      <details className="rounded-xl border bg-card p-4">
+        <summary className="min-h-11 cursor-pointer font-semibold">
+          Purchase-based P&amp;L · separate accounting view
+        </summary>
+        <p className="text-sm text-muted">
+          Uses recorded purchases and expenses, not recipe consumption. Without
+          expense entries, this calculation can equal revenue.
+        </p>
+        <p className="mt-2">
+          Net revenue{' '}
+          {formatMoney(Number(d.pnl.summary.net_revenue ?? 0), 'TRY')} ·
+          Recorded expenses {formatMoney(d.accounting_expenses, 'TRY')} · Net{' '}
+          {formatMoney(Number(d.pnl.summary.net_profit ?? 0), 'TRY')}
+        </p>
+      </details>
+      {profile?.role === 'admin' ? (
+        <details
+          className="rounded-xl border bg-card p-4"
+          onToggle={(e) => setShowHistory(e.currentTarget.open)}
+        >
+          <summary className="min-h-11 cursor-pointer font-semibold">
+            Historical records · reference only
+          </summary>
+          {showHistory ? <HistoricalRecords /> : null}
+        </details>
+      ) : null}
     </div>
   )
 }

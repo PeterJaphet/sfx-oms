@@ -76,7 +76,14 @@ export function useOrderReference() {
       for (const result of [accounts, rates, day, privacy])
         if (result.error) throw new Error(result.error.message);
       return {
-        accounts: z.array(accountSchema).parse(accounts.data),
+        accounts: z
+          .array(accountSchema)
+          .parse(accounts.data)
+          .filter(
+            (a) =>
+              a.name !== "SFx (legacy USD; review)" &&
+              !(a.name.toLowerCase() === "sfx" && a.currency !== "TRY"),
+          ),
         rates: rates.data!,
         businessDate: day.data!,
       };

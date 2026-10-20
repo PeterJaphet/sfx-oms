@@ -854,6 +854,8 @@ export type Database = {
           product_id: string;
           product_name: string;
           quantity: number;
+          catalogue_unit_price: number | null;
+          price_override_reason: string | null;
           unit_price: number;
           variant_id: string;
           variant_name: string;
@@ -871,6 +873,8 @@ export type Database = {
           product_id: string;
           product_name: string;
           quantity: number;
+          catalogue_unit_price?: number | null;
+          price_override_reason?: string | null;
           unit_price: number;
           variant_id: string;
           variant_name: string;
@@ -888,6 +892,8 @@ export type Database = {
           product_id?: string;
           product_name?: string;
           quantity?: number;
+          catalogue_unit_price?: number | null;
+          price_override_reason?: string | null;
           unit_price?: number;
           variant_id?: string;
           variant_name?: string;
@@ -1819,6 +1825,19 @@ export type Database = {
       };
     };
     Functions: {
+      order_profit_report: {
+        Args: { p_from: string; p_to: string };
+        Returns: Json;
+      };
+      extra_sales_audit: {
+        Args: { p_from: string; p_name?: string; p_to: string };
+        Returns: Json;
+      };
+      prepare_sfx_try_account: { Args: { p_apply?: boolean }; Returns: Json };
+      get_workspace_dashboard: {
+        Args: { p_from: string; p_to: string };
+        Returns: Json;
+      };
       create_trading_order: {
         Args: { p_order: Json };
         Returns: {
@@ -2516,12 +2535,20 @@ export type Database = {
         | "delivery_app"
         | "event";
       order_status:
-        "new" | "preparing" | "ready" | "picked_up" | "completed" | "cancelled";
+        | "new"
+        | "preparing"
+        | "ready"
+        | "picked_up"
+        | "completed"
+        | "cancelled";
       order_type: "pickup" | "delivery" | "dine_in";
       user_role: "operations" | "logistics" | "admin";
       withdrawal_kind: "advance" | "direct_expense";
       withdrawal_status:
-        "pending_approval" | "approved" | "rejected" | "reversed";
+        | "pending_approval"
+        | "approved"
+        | "rejected"
+        | "reversed";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -2540,12 +2567,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -2567,12 +2594,13 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -2591,12 +2619,13 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -2615,12 +2644,13 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    keyof DefaultSchema["Enums"] | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never) = never,
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -2633,11 +2663,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never) = never,
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }

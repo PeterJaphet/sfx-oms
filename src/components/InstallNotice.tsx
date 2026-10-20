@@ -1,73 +1,78 @@
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
-import { Button } from './ui/button'
-import { Sheet } from './ui/sheet'
+import { useAuth } from "@/features/auth/auth-context";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Button } from "./ui/button";
+import { Sheet } from "./ui/sheet";
 interface InstallPrompt extends Event {
-  prompt(): Promise<void>
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 export function InstallNotice() {
-  const [prompt, setPrompt] = useState<InstallPrompt | null>(null)
-  const [help, setHelp] = useState(false)
-  const [busy, setBusy] = useState(false)
+  const { profile } = useAuth();
+  const [prompt, setPrompt] = useState<InstallPrompt | null>(null);
+  const [help, setHelp] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [hidden, setHidden] = useState(() => {
     try {
-      return sessionStorage.getItem('sfx-install-dismissed-v1') === 'yes'
+      return sessionStorage.getItem("sfx-install-dismissed-v1") === "yes";
     } catch {
-      return false
+      return false;
     }
-  })
+  });
   const [installed, setInstalled] = useState(
     () =>
-      window.matchMedia('(display-mode: standalone)').matches ||
+      window.matchMedia("(display-mode: standalone)").matches ||
       (navigator as Navigator & { standalone?: boolean }).standalone === true,
-  )
+  );
   useEffect(() => {
     const capture = (event: Event) => {
-      event.preventDefault()
-      setPrompt(event as InstallPrompt)
-    }
+      event.preventDefault();
+      setPrompt(event as InstallPrompt);
+    };
     const complete = () => {
-      setInstalled(true)
-      setPrompt(null)
-      setHelp(false)
-    }
-    const display = window.matchMedia('(display-mode: standalone)')
+      setInstalled(true);
+      setPrompt(null);
+      setHelp(false);
+    };
+    const display = window.matchMedia("(display-mode: standalone)");
     const changed = () =>
       setInstalled(
         display.matches ||
           (navigator as Navigator & { standalone?: boolean }).standalone ===
             true,
-      )
-    window.addEventListener('beforeinstallprompt', capture)
-    window.addEventListener('appinstalled', complete)
-    display.addEventListener('change', changed)
+      );
+    window.addEventListener("beforeinstallprompt", capture);
+    window.addEventListener("appinstalled", complete);
+    display.addEventListener("change", changed);
     return () => {
-      window.removeEventListener('beforeinstallprompt', capture)
-      window.removeEventListener('appinstalled', complete)
-      display.removeEventListener('change', changed)
-    }
-  }, [])
-  if (installed || hidden || !window.isSecureContext) return null
+      window.removeEventListener("beforeinstallprompt", capture);
+      window.removeEventListener("appinstalled", complete);
+      display.removeEventListener("change", changed);
+    };
+  }, []);
+  if (installed || hidden || !window.isSecureContext) return null;
   async function install() {
     if (!prompt) {
-      setHelp(true)
-      return
+      setHelp(true);
+      return;
     }
-    setBusy(true)
+    setBusy(true);
     try {
-      await prompt.prompt()
-      await prompt.userChoice
-      setPrompt(null)
+      await prompt.prompt();
+      await prompt.userChoice;
+      setPrompt(null);
     } catch (e) {
-      toast.error((e as Error).message)
+      toast.error((e as Error).message);
     } finally {
-      setBusy(false)
+      setBusy(false);
     }
   }
   return (
     <>
-      <section aria-label="Install app" className="border-b bg-card px-4 py-3">
+      <section
+        aria-label="Install app"
+        className={`border-b bg-card px-4 py-3 ${profile?.role === "admin" ? "lg:hidden" : ""}`}
+      >
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3">
           <img
             src="/icons/pwa-192.png"
@@ -88,19 +93,19 @@ export function InstallNotice() {
             className="text-sm"
             disabled={busy}
             onClick={() => {
-              void install()
+              void install();
             }}
           >
-            {prompt ? 'Install app' : 'How to install'}
+            {prompt ? "Install app" : "How to install"}
           </Button>
           <Button
             variant="secondary"
             size="secondary"
             className="text-sm"
             onClick={() => {
-              setHidden(true)
+              setHidden(true);
               try {
-                sessionStorage.setItem('sfx-install-dismissed-v1', 'yes')
+                sessionStorage.setItem("sfx-install-dismissed-v1", "yes");
               } catch {
                 /* Dismiss for this visit. */
               }
@@ -136,5 +141,5 @@ export function InstallNotice() {
         </p>
       </Sheet>
     </>
-  )
+  );
 }

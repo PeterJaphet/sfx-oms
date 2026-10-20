@@ -309,7 +309,12 @@ export default function NewOrderPage() {
           </Button>
         </div>
       ) : null}
-      <div className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-20 border-t bg-card sm:bottom-0 sm:pb-[env(safe-area-inset-bottom)]">
+      <div
+        className={cn(
+          "fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-20 border-t bg-card sm:bottom-0 sm:pb-[env(safe-area-inset-bottom)]",
+          profile?.role === "admin" && "lg:left-[248px]",
+        )}
+      >
         {quote.data?.costing ? (
           <ProfitStrip
             profit={quote.data.costing}

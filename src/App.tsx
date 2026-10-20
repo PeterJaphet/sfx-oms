@@ -6,7 +6,11 @@ import { useAuth } from "@/features/auth/auth-context";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { RouteGuard } from "@/features/auth/RouteGuard";
 import { homeRoutes, pages } from "@/features/auth/permissions";
-import { StaffPage } from "@/features/admin/StaffPage";
+const StaffPage = lazy(() =>
+  import("@/features/admin/StaffPage").then((module) => ({
+    default: module.StaffPage,
+  })),
+);
 
 const OrderLayout = lazy(() => import("@/features/orders/OrderLayout"));
 const NewOrderPage = lazy(() => import("@/features/orders/NewOrderPage"));
@@ -262,7 +266,9 @@ export default function App() {
                       <ClosePage />
                     </Suspense>
                   ) : page.path === "/staff" ? (
-                    <StaffPage />
+                    <Suspense fallback={<p role="status">Loading staff…</p>}>
+                      <StaffPage />
+                    </Suspense>
                   ) : page.path === "/costing" ? (
                     <Suspense fallback={<p role="status">Loading costing…</p>}>
                       <CostingPage />

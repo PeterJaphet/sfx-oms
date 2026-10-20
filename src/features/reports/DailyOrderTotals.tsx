@@ -11,6 +11,7 @@ const totalsSchema = z.object({
   gross_profit: z.number().nullable(),
   net_profit: z.number().nullable(),
   missing: z.number(),
+  reconstructed: z.number().optional(),
 });
 export function DailyOrderTotals() {
   const qc = useQueryClient();
@@ -78,9 +79,12 @@ export function DailyOrderTotals() {
         ))}
       </div>
       <p className="text-xs text-muted">
-        {d?.missing ? `${d.missing} orders have incomplete costing. ` : ""}Saved
-        recipe estimates, including accepted orders; cancelled orders excluded.
-        Updates on order events and every 10 seconds.
+        {d?.missing ? `${d.missing} orders have incomplete costing. ` : ""}
+        Recipe-based estimates; accepted and delivered orders included,
+        cancellations excluded.
+        {d?.reconstructed
+          ? ` ${d.reconstructed} estimates use current recipes.`
+          : ""}
       </p>
     </section>
   );

@@ -66,6 +66,8 @@ export const itemSchema = z.object({
   addon_ids: z.array(z.string()),
   extras: z.array(extraQuantitySchema).optional(),
   note: z.string().max(500),
+  unit_price_override: z.string().optional(),
+  price_override_reason: z.string().optional(),
 });
 export const paymentSchema = z.object({
   id: z.string().uuid(),
@@ -132,8 +134,22 @@ export function quotePayload(
 ): Record<string, z.infer<ReturnType<typeof z.json>>> {
   return {
     items: draft.items.map(
-      ({ variant_id, quantity, addon_ids, extras, note }) => ({
+      ({
         variant_id,
+        quantity,
+        addon_ids,
+        extras,
+        note,
+        unit_price_override,
+        price_override_reason,
+      }) => ({
+        variant_id,
+        ...(unit_price_override !== undefined && unit_price_override !== ""
+          ? {
+              unit_price_override,
+              price_override_reason: price_override_reason ?? "",
+            }
+          : {}),
         quantity,
         ...(extras ? { extras } : { addon_ids }),
         note,
@@ -196,6 +212,8 @@ export function addDraftItem(items: DraftItem[], next: DraftItem) {
   const match = items.find((item) => {
     if (
       item.variant_id !== next.variant_id ||
+      (item.unit_price_override ?? "") !== (next.unit_price_override ?? "") ||
+      (item.price_override_reason ?? "") !== (next.price_override_reason ?? "") ||
       item.note !== next.note ||
       item.quantity + next.quantity > 999
     )

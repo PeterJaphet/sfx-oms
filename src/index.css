@@ -23,10 +23,10 @@
     --ink: 44 44 44;
     --ink-2: 91 76 64;
     --muted: 100 91 80;
-    --line: 235 226 212;
+    --line: 232 227 222;
     --line-strong: 155 137 118;
     --chip: 243 233 218;
-    --ground: 255 247 235;
+    --ground: 250 248 245;
     --card: 255 255 255;
     --ok: 31 107 69;
     --ok-soft: 227 243 234;
@@ -49,4 +49,11 @@
   a { @apply text-brand-strong; }
   a:hover { @apply text-brand-deep; }
   :focus-visible { @apply outline outline-2 outline-offset-4 outline-brand-strong; }
+}
+
+@layer base {
+  main { font-variant-numeric: tabular-nums; }
+  @media (prefers-reduced-motion: no-preference) {
+    button, a { transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease; }
+  }
 }

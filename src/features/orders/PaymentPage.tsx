@@ -68,6 +68,33 @@ export default function PaymentPage() {
       </header>
       <div className="space-y-4 p-4 sm:p-6">
         <OrderNotices />
+        <Button
+          variant={
+            order.draft.discount.reason === "Staff discount (20%)"
+              ? "default"
+              : "secondary"
+          }
+          disabled={locked}
+          aria-pressed={order.draft.discount.reason === "Staff discount (20%)"}
+          onClick={() =>
+            order.update((d) => ({
+              ...d,
+              discount:
+                d.discount.reason === "Staff discount (20%)"
+                  ? { kind: "none", value: "", reason: "" }
+                  : {
+                      kind: "percent",
+                      value: "20",
+                      reason: "Staff discount (20%)",
+                    },
+            }))
+          }
+        >
+          Staff discount · 20%
+          {order.draft.discount.reason === "Staff discount (20%)"
+            ? " · Applied"
+            : ""}
+        </Button>
         <section
           className="space-y-3 rounded-xl border bg-card p-4"
           aria-label="Order summary"

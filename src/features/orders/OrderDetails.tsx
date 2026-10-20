@@ -328,6 +328,7 @@ export function OrderDetails({
                     {formatMoney(i.line_total, "TRY")}
                   </span>
                 </div>
+                {i.price_override_reason ? <p className="text-xs text-muted">Custom price · {i.price_override_reason} · menu unit price {formatMoney(i.catalogue_unit_price ?? 0,"TRY")}</p> : null}
                 {i.note ? (
                   <p className="break-words text-sm text-muted">{i.note}</p>
                 ) : null}

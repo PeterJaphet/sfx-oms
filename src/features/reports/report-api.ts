@@ -1,6 +1,6 @@
 import { client } from '@/features/menu/menu-api'
 import {
-  dashboardSchema,
+  workspaceSchema,
   findDefinition,
   periodsSchema,
   reportSchema,
@@ -43,10 +43,10 @@ export async function loadReport(
   return parsed
 }
 export async function loadDashboard(range: Range) {
-  const r = await client().rpc('get_dashboard', {
+  const r = await client().rpc('get_workspace_dashboard', {
     p_from: range.from,
     p_to: range.to,
   })
   if (r.error) throw new Error(r.error.message)
-  return dashboardSchema.parse(r.data)
+  return workspaceSchema.parse(r.data)
 }
