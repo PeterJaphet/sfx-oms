@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { client } from '@/features/menu/menu-api'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -347,38 +349,76 @@ export function ReversalForm({
   )
 }
 const defaultRateSchema = z.object({
-  currency: z.enum(['USD', 'NGN']),
+  currency: z.enum(["USD", "NGN"]),
   rate: rateSchema,
-})
+});
 export function RateForm({ onSaved }: { onSaved: () => void }) {
-  const money = useMoney()
-  const data = money.reference.data!
-  const [error, setError] = useState<string>()
+  const money = useMoney();
+  const data = money.reference.data!;
+  const [error, setError] = useState<string>();
+  const [direction, setDirection] = useState<"try_per_unit" | "units_per_try">(
+    "try_per_unit",
+  );
   const form = useForm<z.infer<typeof defaultRateSchema>>({
     resolver: zodResolver(defaultRateSchema),
-    defaultValues: {
-      currency: 'USD',
-      rate: String(
-        data.rates.find((r) => r.currency === 'USD')?.rate_to_try ?? '',
-      ),
+    defaultValues: { currency: "USD", rate: "" },
+  });
+  const currency = form.watch("currency");
+  const rate = form.watch("rate");
+  const valid = rateSchema.safeParse(rate).success;
+  const quote = useQuery({
+    queryKey: ["money", "markup-preview", currency, rate, direction],
+    enabled: valid,
+    retry: false,
+    queryFn: async () => {
+      const result = await client().rpc("quote_marked_up_rate", {
+        p_currency: currency,
+        p_source_rate: Number(rate),
+        p_direction: direction,
+      });
+      if (result.error) throw new Error(result.error.message);
+      return z
+        .object({ rate_to_try: z.string(), customer_units_per_try: z.string() })
+        .parse(result.data);
     },
-  })
+  });
   return (
     <form
       className="space-y-4"
       onSubmit={form.handleSubmit(async (v) => {
-        setError(undefined)
+        if (!quote.data || quote.isFetching || quote.isError) return;
+        setError(undefined);
         try {
-          await money.send('rate', v)
-          onSaved()
+          await money.send("rate", {
+            currency: v.currency,
+            rate: quote.data.rate_to_try,
+            source_rate: v.rate,
+            source_direction: direction,
+            source_url: "https://www.sfxchange.co/rate",
+            markup_percent: 2,
+          });
+          onSaved();
         } catch (e) {
-          setError((e as Error).message)
+          setError((e as Error).message);
         }
       })}
     >
       <p className="text-sm text-muted">
-        Sets the default for business day {data.day}. Earlier ledger entries
-        keep their recorded rates.
+        Set Naira → TL or USD → TL for business day {data.day}. Existing orders
+        and ledger entries keep their saved conversion.
+      </p>
+      <a
+        className="inline-flex min-h-11 items-center font-semibold text-brand-strong underline"
+        href="https://www.sfxchange.co/rate"
+        target="_blank"
+        rel="noreferrer"
+      >
+        Open SFXchange rates
+      </a>
+      <p className="text-sm text-muted">
+        Enter the conversion rate shown by SFXchange for exchanging the
+        customer's currency into TL. Rates are entered manually; they are not
+        automatically refreshed.
       </p>
       <fieldset disabled={money.busy || !!money.pending} className="space-y-4">
         <div>
@@ -386,26 +426,39 @@ export function RateForm({ onSaved }: { onSaved: () => void }) {
             className="mb-2 block text-sm font-semibold"
             htmlFor="rate-currency"
           >
-            Currency
+            Customer pays in
           </label>
           <select
             id="rate-currency"
             className={selectClass}
-            value={form.watch('currency')}
+            value={currency}
             onChange={(e) => {
-              const currency = e.target.value as 'USD' | 'NGN'
-              form.setValue('currency', currency)
-              form.setValue(
-                'rate',
-                String(
-                  data.rates.find((r) => r.currency === currency)
-                    ?.rate_to_try ?? '',
-                ),
-              )
+              form.setValue("currency", e.target.value as "USD" | "NGN");
+              form.setValue("rate", "");
             }}
           >
-            <option value="USD">USD · $</option>
-            <option value="NGN">NGN · ₦</option>
+            <option value="USD">USD · $ → TL</option>
+            <option value="NGN">Naira · ₦ → TL</option>
+          </select>
+        </div>
+        <div>
+          <label
+            className="mb-2 block text-sm font-semibold"
+            htmlFor="rate-direction"
+          >
+            SFXchange rate is quoted as
+          </label>
+          <select
+            id="rate-direction"
+            className={selectClass}
+            value={direction}
+            onChange={(e) => {
+              setDirection(e.target.value as typeof direction);
+              form.setValue("rate", "");
+            }}
+          >
+            <option value="try_per_unit">TL per 1 {currency}</option>
+            <option value="units_per_try">{currency} per 1 TL</option>
           </select>
         </div>
         <div>
@@ -413,13 +466,17 @@ export function RateForm({ onSaved }: { onSaved: () => void }) {
             className="mb-2 block text-sm font-semibold"
             htmlFor="default-rate"
           >
-            ₺ per one unit
+            SFXchange source rate (
+            {direction === "try_per_unit"
+              ? `TL per 1 ${currency}`
+              : `${currency} per 1 TL`}
+            )
           </label>
           <Input
             id="default-rate"
             inputMode="decimal"
             aria-describedby="rate-error"
-            {...form.register('rate')}
+            {...form.register("rate")}
           />
           <FieldError
             id="rate-error"
@@ -427,16 +484,43 @@ export function RateForm({ onSaved }: { onSaved: () => void }) {
           />
         </div>
       </fieldset>
+      <p className="rounded-xl bg-amber-soft p-3 text-sm text-amber-ink">
+        2% markup: customers pay 2% more {currency} for the same TL bill. The
+        markup is already included in the saved rate.
+      </p>
+      {quote.data && valid ? (
+        <p
+          role="status"
+          className="rounded-xl border border-line p-3 font-semibold"
+        >
+          Customer rate: 1 TL = {quote.data.customer_units_per_try} {currency}
+          <br />
+          Saved default: 1 {currency} = {quote.data.rate_to_try} TL
+        </p>
+      ) : null}
+      {quote.error ? (
+        <p role="alert" className="text-brand-strong">
+          {quote.error.message}
+        </p>
+      ) : null}
       <FormNotice error={error} />
-      <Button requiresOnline
+      <Button
+        requiresOnline
         className="w-full"
         type="submit"
-        disabled={money.busy || !!money.pending}
+        disabled={
+          money.busy ||
+          !!money.pending ||
+          !valid ||
+          !quote.data ||
+          quote.isFetching ||
+          quote.isError
+        }
       >
-        Save default rate
+        Save rate with 2% markup
       </Button>
     </form>
-  )
+  );
 }
 const limitSchema = z
   .object({ enabled: z.boolean(), limit: z.string() })

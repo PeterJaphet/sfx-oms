@@ -138,3 +138,11 @@ avoid decorative fake statistics. Put recipe-based profit first, purchase P&L in
 labelled expandable detail. Move reference-only history below operational metrics. Price overrides
 use an optional labelled item-sheet section with unit price and reason; staff discount is a
 44px shortcut at review. Missing-cost and currency-reconciliation notices are actionable.
+
+## M18 rate controls
+
+Extend the existing Admin money sheet using labelled 48px controls, source link,
+quote-direction selector and a customer-rate preview. Clearly state that rates
+are manually entered and that 2% is already included. Checkout uses a contained
+rate card with source date and an explicit “Use saved rate” action; retain the
+editable amount to receive. Keep all controls within phone-width sheets.

@@ -1,3 +1,4 @@
+import { ForeignRateQuote } from "./ForeignRateQuote";
 import { ProfitSummary } from "@/features/costing/ProfitSummary";
 import { useFinancialDay } from "@/features/close/financial-day";
 import { useState } from "react";
@@ -275,6 +276,7 @@ export default function PaymentPage() {
         quote.data &&
         quote.data.total > 0 ? (
           <div className="space-y-2">
+            <ForeignRateQuote account={account.id} disabled={locked} />
             <label htmlFor="settlement-amount" className="block font-semibold">
               Amount to receive ({account.currency})
             </label>

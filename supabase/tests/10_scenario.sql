@@ -1260,4 +1260,33 @@ select expect_fail($$select order_profit_report(current_date,current_date)$$,'M1
 select expect_fail($$select prepare_sfx_try_account(true)$$,'M17 anonymous transition denied');
 reset role;
 
+-- M18: markup is charged to the customer, in either source quotation direction.
+set role authenticated;
+select as_user('00000000-0000-0000-0000-00000000000a');
+select check_eq((quote_marked_up_rate('USD',51,'try_per_unit')->>'rate_to_try')::numeric,50,'M18 USD 2 percent customer markup');
+select check_eq((quote_marked_up_rate('NGN',100,'units_per_try')->>'rate_to_try')::numeric,0.009804,'M18 NGN inverted source with markup');
+select expect_fail($$select quote_marked_up_rate('USD',0,'try_per_unit')$$,'M18 zero source denied');
+select expect_fail($$select quote_marked_up_rate('USD','NaN','try_per_unit')$$,'M18 nonfinite source denied');
+select expect_fail($$select quote_marked_up_rate('TRY',1,'try_per_unit')$$,'M18 unsupported currency denied');
+select expect_fail($$select quote_marked_up_rate('USD',1,'wrong')$$,'M18 invalid direction denied');
+select expect_fail($$select quote_marked_up_rate('USD',null,'try_per_unit')$$,'M18 missing source denied');
+select as_user('00000000-0000-0000-0000-00000000000b');
+select expect_fail($$select quote_marked_up_rate('USD',51,'try_per_unit')$$,'M18 Operations cannot set defaults');
+reset role;
+set role anon;
+select expect_fail($$select quote_marked_up_rate('USD',51,'try_per_unit')$$,'M18 anonymous rate preview denied');
+reset role;
+
+set role authenticated;
+select as_user('00000000-0000-0000-0000-00000000000a');
+select set_fx_rate('USD',50);
+select set_config('sfx.m18.ledger',(select count(*)::text from ledger_entries),true);
+select check_eq((quote_foreign_order_amount(current_setting('sfx.m17.payload')::jsonb,(select id from accounts where currency='USD' and is_active order by id limit 1))->>'amount')::numeric,
+ round((quote_costed_order(current_setting('sfx.m17.payload')::jsonb)->>'total')::numeric/50,2),'M18 checkout uses server total and saved foreign rate');
+select check_eq((select count(*) from ledger_entries),current_setting('sfx.m18.ledger')::numeric,'M18 rate preview never posts money');
+select expect_fail($$select quote_foreign_order_amount(current_setting('sfx.m17.payload')::jsonb,1::smallint)$$,'M18 TRY account is not a foreign conversion');
+select as_user('00000000-0000-0000-0000-00000000000c');
+select expect_fail($$select quote_foreign_order_amount(current_setting('sfx.m17.payload')::jsonb,2::smallint)$$,'M18 Logistics cannot quote orders');
+reset role;
+
 rollback;

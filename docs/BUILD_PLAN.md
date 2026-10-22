@@ -296,3 +296,18 @@ then approves production release. Do not apply the paused WhatsApp migration as 
 - [x] Admin desktop sidebar/dashboard; mobile layouts/accessibility preserved; performance measured.
 - [x] Typecheck, lint, 314 unit tests, 718 database checks, build and local browser checks pass.
 - [ ] Hosted migration, SFx transition, actual count reconciliation and physical phone acceptance (owner).
+
+## M18 — exchange-rate markup
+
+Scope: Admin money rate sheet with source link, both quote directions, fixed 2%
+customer surcharge calculated by SQL; foreign checkout amount calculated by SQL
+from the actual order quote and latest saved default. No automatic source feed.
+
+Done when:
+- [x] Admin can preview and save USD and NGN rates with 2% customer surcharge.
+- [x] Checkout offers the server-calculated amount and shows the default's date.
+- [x] Existing settlements remain unchanged; no money is posted by previews.
+- [x] Typecheck, lint, unit tests, build and local database checks pass.
+
+Deployment: owner applies `supabase/migrations/016_exchange_rate_markup.sql`
+manually before frontend deployment. No hosted database access by the agent.

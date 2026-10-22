@@ -1825,6 +1825,16 @@ export type Database = {
       };
     };
     Functions: {
+      quote_foreign_order_amount: {
+        Args: { p_order: Json; p_account: number };
+        Returns: Json;
+      };
+
+      quote_marked_up_rate: {
+        Args: { p_currency: string; p_source_rate: number; p_direction: string };
+        Returns: Json;
+      };
+
       order_profit_report: {
         Args: { p_from: string; p_to: string };
         Returns: Json;

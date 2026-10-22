@@ -439,3 +439,16 @@ touch targets, accessibility and all existing authorisation guards. Reduce dupli
 and measure bundle/load changes; no new feature areas or WhatsApp work.
 
 Turkey cost input confirmed by owner on 20 October 2026: TRY 250 total per portion. Store as a supplied combined cost, not an invented ingredients/packaging/operating breakdown. Never overwrite an existing recipe without review.
+
+## M18 — customer exchange rates (21 October 2026)
+
+Admin enters the current SFXchange conversion quote for NGN → TL or USD → TL,
+explicitly choosing TL per foreign unit or foreign units per TL. Apply a fixed 2%
+customer surcharge: foreign currency payable for the same TL bill increases by 2%.
+The database computes the six-decimal TL-per-unit default; do not multiply that
+default by 1.02. The public source feed requires signed requests, so this release
+uses manual entry from https://www.sfxchange.co/rate, without copying its signing
+credentials or claiming automatic refresh. Preview before saving through the
+existing Admin money action. Checkout offers a server-calculated foreign amount
+using that saved default, with its date; staff confirm before accepting. Existing
+accepted orders and ledger records retain their saved amounts and implied rates.
