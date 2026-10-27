@@ -1,6 +1,6 @@
 # M19 review and rollout
 
-Ready locally. Hosted migration and frontend release are pending owner confirmation.
+Owner reported successful application of migration 017. Frontend release is authorised; deployment verification is performed separately.
 
 ## Included
 
