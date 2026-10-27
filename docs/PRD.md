@@ -488,3 +488,20 @@ today's totals, recorded expenses and compact nonzero balances. Replace period
 button groups with one selector; hide deeper audit/history/calculation controls
 behind More financial details. Keep exports in full reports and mobile secondary
 navigation behind one Workspace tools disclosure. No new stack or WhatsApp work.
+
+## M20 — purchase deletion and visible inventory picking
+
+Admin may delete a mistaken purchase through `reverse_purchase`, with a reason.
+Delete means an audited, retry-safe reversal: remove it from expense and item-spend
+reports; restore the recorded direct-account balance or advance remaining amount;
+cancel unpaid supplier debt. Preserve original lines, receipt and ledger entries.
+If supplier payments exist, refuse deletion until those payments are reversed.
+The RPC remains Admin-only and retains financial-day locks and closed-day guards.
+Hide deleted purchases by default; Show deleted purchases reveals their history.
+
+Log supplies shows Choose from inventory directly in the Items section, followed
+by Add selected inventory item. Open the existing quantity/unit/total-line-cost
+sheet with that item's catalogue id/name/default unit. Adding a prefilled item
+appends a new line; editing an existing line replaces only that line. Keep an
+explicit Add other item path for purchases outside the catalogue. Never infer
+quantities/costs or change menu/recipe prices from purchase entry.

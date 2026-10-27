@@ -328,3 +328,14 @@ Done when:
 Local tests do not certify uninspected hosted data. Owner's no-hosted-database-access
 restriction remains. Apply `supabase/migrations/017_inventory_expenses.sql` manually
 before releasing the frontend. M15 WhatsApp stays paused and unmerged.
+
+## M20 — purchase deletion and inventory selection
+
+- [x] Admin purchase Delete action, reason and funding-impact confirmation.
+- [x] Retry-safe account/advance/credit reversal; paid supplier debts protected; original records retained.
+- [x] Deleted purchases hidden by default and available in history; affected reports/balances invalidated.
+- [x] Prominent grouped inventory selection on Log supplies; prefilling appends correctly and line editing remains correct.
+- [x] Typecheck, lint, 794 local database checks, 316 unit tests, build and SQL-backed browser checks pass.
+- [ ] Owner applies migration 018, then frontend released and phone acceptance reviewed.
+
+No hosted database execution by the agent. WhatsApp remains paused.

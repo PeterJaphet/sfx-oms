@@ -124,6 +124,7 @@ export async function refreshLogistics(qc: QueryClient) {
   await Promise.all(
     [
       'logistics',
+      'inventory',
       'money',
       'advances',
       'account-balances',

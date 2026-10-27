@@ -9,10 +9,12 @@ import { itemSchema } from "./purchase-model";
 export type PurchaseItem = z.infer<typeof itemSchema>;
 export default function PurchaseItems({
   item,
+  editing = !!item,
   onSave,
   onClose,
 }: {
   item?: PurchaseItem;
+  editing?: boolean;
   onSave: (item: PurchaseItem) => void;
   onClose: () => void;
 }) {
@@ -32,7 +34,7 @@ export default function PurchaseItems({
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
-      title={item ? "Edit item" : "Add item"}
+      title={editing ? "Edit item" : "Add item"}
       description="Enter the total line amount, not a unit price. The database totals all lines."
     >
       <form className="space-y-4" onSubmit={form.handleSubmit(onSave)}>
@@ -58,7 +60,9 @@ export default function PurchaseItems({
               }
             }}
           >
-            <option value="">Other item / unlinked purchase</option>
+            <option value="">
+              Select inventory item or enter another description
+            </option>
             {catalogue.data
               ?.filter((i) => i.is_active)
               .map((i) => (

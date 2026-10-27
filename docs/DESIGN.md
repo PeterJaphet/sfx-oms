@@ -162,3 +162,14 @@ expense/balance cards. Show attention links only when actionable. Group deeper
 financial details in one disclosure and keep CSV/PDF tools in full reports. Phone
 workspace navigation is one disclosure; bottom role navigation remains visible.
 Use existing tokens, typography and 44px targets; no decorative fake trends.
+
+## M20 purchase corrections and inventory selection
+
+Use the existing purchase sheet. Put Admin Delete purchase below the purchased
+lines, revealing an inline confirmation with supplier/amount, funding impact,
+mandatory reason and Keep purchase / Confirm delete purchase actions. Keep the
+historical record accessible under Show deleted purchases; do not nest sheets.
+
+In the supplies Items section put a labelled, grouped inventory selector and Add
+selected inventory item before draft lines. Reuse the current item editor for
+quantity, unit and total line cost. Keep Add other item visually secondary.
