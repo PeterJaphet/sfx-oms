@@ -146,3 +146,19 @@ quote-direction selector and a customer-rate preview. Clearly state that rates
 are manually entered and that 2% is already included. Checkout uses a contained
 rate card with source date and an explicit “Use saved rate” action; retain the
 editable amount to receive. Keep all controls within phone-width sheets.
+
+## M19 — inventory and focused overview
+
+Reuse LogPurchase's item sheet with an Inventory item selector; choosing an item
+locks its description to the catalogue and leaves actual quantity/unit/line amount
+editable. Inventory uses labelled search/group controls, a contained catalogue list,
+an Admin item editor and a Delete confirmation explaining preserved history. The
+expense table has dates, unit-separated quantities and TRY totals. Create/edit
+metadata never implies a financial transaction or on-hand stock adjustment.
+
+Dashboard keeps M17's desktop sidebar and four-card KPI hierarchy. Use one period
+selector, a dominant revenue chart, a compact five-row best-seller table and short
+expense/balance cards. Show attention links only when actionable. Group deeper
+financial details in one disclosure and keep CSV/PDF tools in full reports. Phone
+workspace navigation is one disclosure; bottom role navigation remains visible.
+Use existing tokens, typography and 44px targets; no decorative fake trends.

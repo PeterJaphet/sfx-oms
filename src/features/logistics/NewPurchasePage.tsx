@@ -102,6 +102,7 @@ export default function NewPurchasePage() {
         >
           Purchase history
         </Link>
+        <Link className="flex min-h-11 items-center font-semibold text-brand-strong" to="/inventory">Inventory & item expenses</Link>
       </div>
       <form
         className="space-y-4"

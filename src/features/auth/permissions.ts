@@ -11,6 +11,12 @@ export const homeRoutes: Record<Role, string> = {
   admin: "/dashboard",
 };
 export const pages = [
+  {
+    path: "/inventory",
+    label: "Inventory",
+    icon: "supplies",
+    roles: ["admin", "logistics"],
+  },
   { path: "/costing", label: "Costing", icon: "supplies", roles: ["admin"] },
   {
     path: "/order",
@@ -125,8 +131,8 @@ const navPaths: Record<Role, readonly string[]> = {
   admin: ["/dashboard", "/order", "/orders", "/money", "/staff"],
 };
 export function navigationFor(role: Role) {
-  return navPaths[role].map((path) =>
-    pages.find((page) => page.path === path)!,
+  return navPaths[role].map(
+    (path) => pages.find((page) => page.path === path)!,
   );
 }
 export function canVisit(role: Role, path: string): boolean {

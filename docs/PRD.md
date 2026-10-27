@@ -452,3 +452,39 @@ credentials or claiming automatic refresh. Preview before saving through the
 existing Admin money action. Checkout offers a server-calculated foreign amount
 using that saved default, with its date; staff confirm before accepting. Existing
 accepted orders and ledger records retain their saved amounts and implied rates.
+
+## M19 — inventory expenses and dashboard clarity (owner requested 27 October 2026)
+
+Use the supplied SFx Burger Inventory Checklist as a catalogue of 76 named items in
+seven groups. Its quantity and notes columns are blank; do not invent stock, units,
+prices or historical expenses. Admin creates/edits/removes catalogue items; removal
+means deactivation and can be restored. Logistics reads the catalogue and logs its
+purchases. Posted financial records are never deleted or overwritten.
+
+Purchase lines optionally reference catalogue items, with server-validated active
+ids and immutable name/group snapshots. Capture actual quantity, unit and total line
+amount; never multiply a line total by quantity again. The database sums purchases.
+Summarise expenses per item and unit in TRY at the purchase's stored FX rate. Allocate
+rounding across lines so their TRY amounts sum to the recorded purchase total. Keep
+unknown quantities unknown and different units separate. Reversals disappear from
+expense totals while originals remain available. Unlinked historical purchase lines
+stay visible; do not infer catalogue matches. This scope is purchasing attribution,
+not on-hand stock tracking or automatic recipe-cost replacement.
+
+New Payroll entries are operational expenses. Preserve old fixed Payroll entries and
+pending requests by retiring the old category with its original kind and adding a
+new operational category. Fresh databases seed Payroll as operational. This does
+not change the independently configured recipe/planning payroll allocation.
+
+Rename displayed Net revenue to Revenue, retaining the meaning (gross sales less
+discounts) and the existing API keys. Keep recipe estimates distinct from actual
+purchase-based P&L to avoid double-counting. Add Admin read-only reconciliation for
+revenue, order arithmetic, completed payments, purchase lines, FX conversion, item
+allocation, and recipe gross/net formulas. Missing recipe costs remain incomplete,
+not zero. Existing data discrepancies are flagged for review, never silently fixed.
+
+Simplify the overview to a four-card KPI row, revenue chart, five best sellers,
+today's totals, recorded expenses and compact nonzero balances. Replace period
+button groups with one selector; hide deeper audit/history/calculation controls
+behind More financial details. Keep exports in full reports and mobile secondary
+navigation behind one Workspace tools disclosure. No new stack or WhatsApp work.

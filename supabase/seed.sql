@@ -20,8 +20,8 @@ update settings set withdrawal_approval_limit_try = 2000;
 
 -- Expense categories, split the same way as the Weekly P&L tab:
 --   cogs        = ingredients + packaging
---   operational = electricity, water, gas, transport, cleaning
---   fixed       = rent, payroll and other weekly overheads
+--   operational = electricity, water, gas, transport, cleaning, payroll
+--   fixed       = rent and other weekly overheads
 insert into expense_categories (name, kind, sort_order) values
   ('Meat, chicken & offal',        'cogs',  1),   -- chicken, liver, shaki and ponmo, sausages
   ('Rice, flour & grains',         'cogs',  2),
@@ -38,7 +38,7 @@ insert into expense_categories (name, kind, sort_order) values
   ('Transport — deliveries',       'operational', 24),
   ('Cleaning supplies',            'operational', 25),
   ('Rent',                         'fixed', 40),
-  ('Payroll',                      'fixed', 41),
+  ('Payroll',                      'operational', 41),
   ('Marketing & promotions',       'fixed', 42),
   ('Phone & internet',             'fixed', 43),
   ('Equipment maintenance',        'fixed', 44),

@@ -14,6 +14,48 @@ export type Database = {
   };
   public: {
     Tables: {
+      inventory_items: {
+        Row: {
+          default_unit: string;
+          id: string;
+          is_active: boolean;
+          item_group: string;
+          name: string;
+          revision: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          default_unit?: string;
+          id?: string;
+          is_active?: boolean;
+          item_group: string;
+          name: string;
+          revision?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          default_unit?: string;
+          id?: string;
+          is_active?: boolean;
+          item_group?: string;
+          name?: string;
+          revision?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       historical_sales_records: {
         Row: {
           id: string;
@@ -1318,14 +1360,19 @@ export type Database = {
           amount: number;
           description: string;
           id: number;
+          inventory_group_snapshot: string | null;
+          inventory_item_id: string | null;
           purchase_id: string;
           quantity: number | null;
           unit: string | null;
         };
+        ComputedFields: never;
         Insert: {
           amount: number;
           description: string;
           id?: never;
+          inventory_group_snapshot?: string | null;
+          inventory_item_id?: string | null;
           purchase_id: string;
           quantity?: number | null;
           unit?: string | null;
@@ -1334,11 +1381,20 @@ export type Database = {
           amount?: number;
           description?: string;
           id?: never;
+          inventory_group_snapshot?: string | null;
+          inventory_item_id?: string | null;
           purchase_id?: string;
           quantity?: number | null;
           unit?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "purchase_items_inventory_item_id_fkey";
+            columns: ["inventory_item_id"];
+            isOneToOne: false;
+            referencedRelation: "inventory_items";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "purchase_items_purchase_id_fkey";
             columns: ["purchase_id"];
@@ -1585,6 +1641,46 @@ export type Database = {
       };
     };
     Views: {
+      v_purchase_item_expenses: {
+        Row: {
+          amount: number | null;
+          amount_try: number | null;
+          business_date: string | null;
+          description: string | null;
+          id: number | null;
+          inventory_group_snapshot: string | null;
+          inventory_item_id: string | null;
+          logged_by: string | null;
+          purchase_id: string | null;
+          quantity: number | null;
+          supplier: string | null;
+          unit: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "purchase_items_inventory_item_id_fkey";
+            columns: ["inventory_item_id"];
+            isOneToOne: false;
+            referencedRelation: "inventory_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "purchase_items_purchase_id_fkey";
+            columns: ["purchase_id"];
+            isOneToOne: false;
+            referencedRelation: "purchases";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "purchases_logged_by_fkey";
+            columns: ["logged_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       v_account_balances: {
         Row: {
           balance: number | null;
@@ -1825,6 +1921,16 @@ export type Database = {
       };
     };
     Functions: {
+      list_inventory_items: { Args: Record<PropertyKey, never>; Returns: Json };
+      review_financial_calculations: {
+        Args: { p_from: string; p_to: string };
+        Returns: Json;
+      };
+      inventory_expense_report: {
+        Args: { p_from: string; p_to: string };
+        Returns: Json;
+      };
+      save_inventory_item: { Args: { p: Json }; Returns: Json };
       quote_foreign_order_amount: {
         Args: { p_order: Json; p_account: number };
         Returns: Json;

@@ -80,6 +80,7 @@ export function AppShell() {
                   "/money",
                   "/debts",
                   "/purchases",
+                  "/inventory",
                   "/deliveries",
                   "/advances",
                 ],
@@ -180,44 +181,43 @@ export function AppShell() {
             </Button>
           </div>
           {profile.role === "admin" || canVisit(profile.role, "/menu") ? (
-            <nav
-              aria-label="Workspace tools"
+            <details
               className={cn(
-                "mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 pb-3 sm:px-6",
+                "mx-auto max-w-7xl px-4 pb-2 sm:px-6",
                 profile.role === "admin" && "lg:hidden",
               )}
+              key={path}
             >
-              {profile.role === "admin" ? (
-                <Button
-                  asChild
-                  variant="secondary"
-                  size="secondary"
-                  className="px-4 text-sm"
-                >
-                  <NavLink to="/deliveries">Deliveries</NavLink>
-                </Button>
-              ) : null}
-              {profile.role === "admin" ? (
-                <Button
-                  asChild
-                  variant="secondary"
-                  size="secondary"
-                  className="px-4 text-sm"
-                >
-                  <NavLink to="/costing">Costing</NavLink>
-                </Button>
-              ) : null}
-              {canVisit(profile.role, "/menu") ? (
-                <Button
-                  asChild
-                  variant="secondary"
-                  size="secondary"
-                  className="px-4 text-sm"
-                >
-                  <NavLink to="/menu">Menu</NavLink>
-                </Button>
-              ) : null}
-            </nav>
+              <summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold text-brand-strong">
+                Workspace tools ▾
+              </summary>
+              <nav
+                aria-label="Workspace tools"
+                className="grid grid-cols-2 gap-2 pb-3"
+              >
+                {[
+                  "/inventory",
+                  "/purchases",
+                  "/deliveries",
+                  "/costing",
+                  "/menu",
+                  "/reports",
+                  "/money/tools",
+                  "/debts",
+                  "/setup",
+                ]
+                  .filter((route) => canVisit(profile.role, route))
+                  .map((route) => (
+                    <NavLink
+                      key={route}
+                      className="flex min-h-11 items-center rounded-lg border bg-card px-3 text-sm font-semibold"
+                      to={route}
+                    >
+                      {pages.find((p) => p.path === route)?.label}
+                    </NavLink>
+                  ))}
+              </nav>
+            </details>
           ) : null}
           <nav
             aria-label="Main"

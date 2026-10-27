@@ -21,12 +21,22 @@ export const lineAmountSchema = z
     (v) => Number(v) >= 0 && Number(v) <= 999999999999.99,
     'Enter a non-negative amount',
   )
-export const itemSchema = z.object({
-  description: z.string().trim().min(1, 'Describe this item').max(200),
-  quantity: quantitySchema,
-  unit: z.string().trim().max(40),
-  amount: lineAmountSchema,
-})
+export const itemSchema = z
+  .object({
+    inventory_item_id: z.string().uuid().optional(),
+    description: z.string().trim().min(1, "Describe this item").max(200),
+    quantity: quantitySchema,
+    unit: z.string().trim().max(40),
+    amount: lineAmountSchema,
+  })
+  .superRefine((v, c) => {
+    if (v.inventory_item_id && !v.unit.trim())
+      c.addIssue({
+        code: "custom",
+        path: ["unit"],
+        message: "Enter the purchase unit for this inventory item",
+      });
+  });
 export const purchaseSchema = z
   .object({
     funding: z.enum(['advance', 'account', 'credit']),

@@ -12,9 +12,9 @@ export default function RevenueChart({ rows }: { rows: ReportRow[] }) {
   return (
     <section
       className="min-w-0 space-y-3 rounded-xl border bg-card p-4"
-      aria-label="Net revenue by day"
+      aria-label="Revenue by day"
     >
-      <h2 className="text-lg font-bold">Net revenue by day</h2>
+      <h2 className="text-lg font-bold">Revenue by day</h2>
       <div className="h-56 w-full min-w-0">
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={rows} accessibilityLayer>
@@ -26,7 +26,7 @@ export default function RevenueChart({ rows }: { rows: ReportRow[] }) {
             />
             <YAxis width={55} tick={{ fontSize: 12 }} />
             <Tooltip
-              formatter={(v) => [formatMoney(Number(v), 'TRY'), 'Net revenue']}
+              formatter={(v) => [formatMoney(Number(v), 'TRY'), 'Revenue']}
               labelFormatter={(v) => String(v)}
             />
             <Bar

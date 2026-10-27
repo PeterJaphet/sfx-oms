@@ -311,3 +311,20 @@ Done when:
 
 Deployment: owner applies `supabase/migrations/016_exchange_rate_markup.sql`
 manually before frontend deployment. No hosted database access by the agent.
+
+## M19 — inventory expenses, calculation review and dashboard cleanup
+
+Done when:
+- [x] All 76 checklist items and seven groups loaded without inventing units, stock or costs.
+- [x] Admin create/edit/delete (archive) and restore; roles, stale edits and history protected.
+- [x] Purchase lines select catalogue items, record actual quantities/units/line totals and preserve snapshots.
+- [x] Item expense totals reconcile to recorded TRY purchases across FX rounding; different units and unknown quantities remain distinct; reversed purchases excluded.
+- [x] New Payroll is operational; old fixed classification retained on upgrade.
+- [x] Revenue labels updated; SQL reconciliation checks and missing-cost behaviour verified.
+- [x] Simplified desktop and phone overview; controls consolidated; full reports retain exports and reconciliation.
+- [x] Typecheck, lint, 316 unit tests, 770 database checks, build and local browser scenarios pass.
+- [ ] Owner applies migration 017, frontend deployed, live calculation results and physical-phone acceptance reviewed.
+
+Local tests do not certify uninspected hosted data. Owner's no-hosted-database-access
+restriction remains. Apply `supabase/migrations/017_inventory_expenses.sql` manually
+before releasing the frontend. M15 WhatsApp stays paused and unmerged.

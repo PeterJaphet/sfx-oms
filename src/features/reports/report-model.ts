@@ -85,7 +85,7 @@ export const definitions: ReportDefinition[] = [
       qty('cancelled_orders', 'Cancelled'),
       money('gross_sales', 'Gross sales'),
       money('discounts', 'Discounts'),
-      money('net_revenue', 'Net revenue'),
+      money('net_revenue', 'Revenue'),
       money('average_order', 'Average order'),
     ],
   },
@@ -157,7 +157,7 @@ export const definitions: ReportDefinition[] = [
     columns: [
       c(key, label),
       qty('orders', 'Orders'),
-      money('net_revenue', 'Net revenue'),
+      money('net_revenue', 'Revenue'),
     ],
   })),
   {

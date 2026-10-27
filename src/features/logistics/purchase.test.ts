@@ -246,3 +246,16 @@ describe('M6 RPC recovery', () => {
     }
   })
 })
+
+// Inventory attribution must survive validation before money reaches the RPC.
+describe('inventory purchase attribution', () => {
+  it('preserves the inventory id on validated purchase lines', () => {
+    const id = '00000000-0000-4000-8000-000000000001'
+    const result = itemSchema.parse({ inventory_item_id: id, description: 'Rice', quantity: '2', unit: 'kg', amount: '100' })
+    expect(result.inventory_item_id).toBe(id)
+    expect(result.amount).toBe('100')
+  })
+  it('requires actual purchase units for linked items', () => {
+    expect(itemSchema.safeParse({ inventory_item_id: '00000000-0000-4000-8000-000000000001', description: 'Rice', quantity: '2', unit: '', amount: '100' }).success).toBe(false)
+  })
+})

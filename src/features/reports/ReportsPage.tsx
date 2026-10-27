@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -105,7 +105,7 @@ function Detail({
             ["Orders", "orders"],
             ["Gross sales", "gross_sales"],
             ["Discounts", "discounts"],
-            ["Net revenue", "net_revenue"],
+            ["Revenue", "net_revenue"],
             ["Average order", "average_order"],
           ].map(([label, key]) => (
             <article
@@ -206,7 +206,8 @@ export default function ReportsPage() {
     refetchInterval: 60000,
     retry: false,
   });
-  const period = params.get("period") ?? (profile?.role === "admin" ? "month" : "week");
+  const period =
+    params.get("period") ?? (profile?.role === "admin" ? "month" : "week");
   const name = params.get("view") ?? "dashboard";
   const view = findDefinition(name) ? name : "dashboard";
   const search = params.get("search") ?? "";
@@ -267,7 +268,7 @@ export default function ReportsPage() {
     );
   return (
     <section className="min-w-0 space-y-5">
-      <header className="space-y-3 lg:flex lg:items-end lg:justify-between lg:gap-4 lg:space-y-0">
+      <header className="space-y-3 lg:flex lg:flex-wrap lg:items-end lg:justify-between lg:gap-4 lg:space-y-0">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-muted">
             {current
@@ -281,37 +282,34 @@ export default function ReportsPage() {
               ? "Business overview"
               : findDefinition(view)!.title}
           </h1>
-          {profile!.role === "admin" ? (
-            <Button asChild variant="secondary" className="mt-3 lg:hidden">
-              <Link to="/costing">Costing & weekly forecast</Link>
-            </Button>
-          ) : null}
           {profile!.role === "operations" ? (
             <p className="text-sm text-muted">Read-only reports</p>
           ) : null}
         </div>
         {!current ? (
           <>
-            <div className="flex flex-wrap gap-2" aria-label="Report period">
-              {periods.map(([value, label]) => (
-                <Button
-                  key={value}
-                  variant={period === value ? "default" : "secondary"}
-                  size="secondary"
-                  className="px-3 text-sm"
-                  aria-pressed={period === value}
-                  onClick={() => {
-                    if (value === "custom") {
-                      setFrom(range?.from ?? reference.data!.week.from);
-                      setTo(range?.to ?? reference.data!.week.to);
-                    }
-                    change({ period: value, offset: undefined });
-                  }}
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
+            <label className="block text-sm font-semibold">
+              Period
+              <select
+                aria-label="Report period"
+                className="mt-1 block h-12 w-full rounded-xl border border-line-strong bg-card px-3 sm:min-w-48"
+                value={period}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "custom") {
+                    setFrom(range?.from ?? reference.data!.week.from);
+                    setTo(range?.to ?? reference.data!.week.to);
+                  }
+                  change({ period: value, offset: undefined });
+                }}
+              >
+                {periods.map(([value, label]) => (
+                  <option value={value} key={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
           </>
         ) : (
           <p
@@ -324,7 +322,7 @@ export default function ReportsPage() {
         )}
         {!current && period === "custom" ? (
           <form
-            className="flex flex-wrap items-end gap-3"
+            className="flex w-full flex-wrap items-end gap-3"
             onSubmit={(e) => {
               e.preventDefault();
               const parsed = rangeSchema.safeParse({ from, to });
@@ -362,36 +360,6 @@ export default function ReportsPage() {
             ) : null}
           </form>
         ) : null}
-        {view !== "dashboard" ? <div className="flex flex-wrap gap-2">
-          <Button
-            variant="secondary"
-            className="px-3 text-sm"
-            onClick={() =>
-              change({
-                view: "items",
-                period: "last_week",
-                search: "BBQ Burger",
-                offset: undefined,
-              })
-            }
-          >
-            BBQ Burger last week
-          </Button>
-          <Button
-            variant="secondary"
-            className="px-3 text-sm"
-            onClick={() =>
-              change({
-                view: "extras",
-                period: "month",
-                search: "Swallow",
-                offset: undefined,
-              })
-            }
-          >
-            Swallow this month
-          </Button>
-        </div> : null}
       </header>
       <label
         className="flex flex-wrap items-center gap-3 text-sm font-semibold"
