@@ -1,6 +1,7 @@
 # M20 purchase delete and inventory picker review
 
-Ready locally; migration 018 and frontend release await owner confirmation.
+Owner reported successful application of migration 018 on 28 October 2026.
+Frontend release authorised; deployment verified separately.
 
 ## Changes
 
