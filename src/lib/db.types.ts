@@ -14,6 +14,36 @@ export type Database = {
   };
   public: {
     Tables: {
+      costing_imports: {
+        Row: {
+          applied_at: string;
+          applied_by: string;
+          import_key: string;
+          result: NonNullable<Json>;
+        };
+        ComputedFields: never;
+        Insert: {
+          applied_at?: string;
+          applied_by: string;
+          import_key: string;
+          result: NonNullable<Json>;
+        };
+        Update: {
+          applied_at?: string;
+          applied_by?: string;
+          import_key?: string;
+          result?: NonNullable<Json>;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "costing_imports_applied_by_fkey";
+            columns: ["applied_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       inventory_items: {
         Row: {
           default_unit: string;
@@ -1921,6 +1951,10 @@ export type Database = {
       };
     };
     Functions: {
+      october_costing_update: {
+        Args: { p_apply?: boolean; p_new_price?: number; p_token?: string };
+        Returns: Json;
+      };
       list_inventory_items: { Args: Record<PropertyKey, never>; Returns: Json };
       review_financial_calculations: {
         Args: { p_from: string; p_to: string };

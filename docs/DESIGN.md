@@ -173,3 +173,13 @@ historical record accessible under Show deleted purchases; do not nest sheets.
 In the supplies Items section put a labelled, grouped inventory selector and Add
 selected inventory item before draft lines. Reuse the current item editor for
 quantity, unit and total line cost. Keep Add other item visually secondary.
+
+## M21 workbook costing review
+
+Extend the existing Admin Costing screen with Review updated food costing. Reuse
+its recipe-sheet styling for four old/new full-cost rows, published prices marked
+unchanged, a new-item selling-price field used only when Special is absent, and
+one Apply costing update · keep menu prices action. Warn about the two text-labelled
+costs omitted by Excel. Explain preserved historical snapshots and planning inputs.
+After application show Already applied and disable further applications. Preserve
+44px controls and contained phone-width sheets; do not redesign other screens.

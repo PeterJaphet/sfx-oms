@@ -1,3 +1,4 @@
+import { OctoberCostingUpdate } from "./OctoberCostingUpdate";
 import { HistorySnapshot } from "./HistorySnapshot";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -351,6 +352,7 @@ export default function CostingPage() {
           orders keep their own saved estimates.
         </p>
         <div className="flex flex-wrap gap-2">
+          <OctoberCostingUpdate />
           <Button asChild variant="secondary">
             <Link to="/menu">Menu &amp; extras</Link>
           </Button>

@@ -505,3 +505,30 @@ sheet with that item's catalogue id/name/default unit. Adding a prefilled item
 appends a new line; editing an existing line replaces only that line. Keep an
 explicit Add other item path for purchases outside the catalogue. Never infer
 quantities/costs or change menu/recipe prices from purchase entry.
+
+## M21 — 30 October recipe workbook update
+
+Import only the updated food costs/yields for Jollof Rice, Native Rice (Village Rice
+in the workbook) and Vegetable Soup, plus SFx Special Shawarma. Use the supplied
+numeric recipe inputs rather than stale workbook notes. Jollof full batch cost is
+1537 TRY / 12 servings; Native Rice is 1392 / 7; Vegetable Soup is 778 / 5.
+The Special contains text-labelled Plantain 30tl and Maggie 3tl that Excel SUM omits;
+normalize those costs to numbers: ingredients 1018, packaging 100, full batch 1118
+for four units, or 279.50 each. Do not import unrelated workbook changes or its
+incomplete Menu Summary/weekly forecasts.
+
+Existing menu variants and extras keep their published prices. If Special already
+exists, keep its current selling price and recipe link; otherwise Admin must enter
+its selling price explicitly when applying the update. Do not treat the workbook's
+550 suggested price or the corrected 560 suggestion as owner-confirmed menu prices.
+Add a preview/apply action to Admin Costing that shows old/new full costs and the
+unchanged menu prices. Apply once with stale-preview protection, real Admin audit
+identity, recipe history and an immutable import receipt. Retry must not overwrite
+later recipe edits or create duplicates.
+
+Update ingredient lines, packaging, recipe overhead and yield only. Preserve existing
+planned batches, multipliers, rounding and cost-plan inputs. New Special planned
+batches start at zero. Computed forecasts may change as costs/yields change, without
+publishing menu prices. Keep all saved order snapshots and ledger entries unchanged;
+incomplete estimates already labelled current-recipe reconstructions may reflect
+these new inputs. Hosted database execution remains owner-only.

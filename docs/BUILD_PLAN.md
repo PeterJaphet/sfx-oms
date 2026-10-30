@@ -339,3 +339,17 @@ before releasing the frontend. M15 WhatsApp stays paused and unmerged.
 - [ ] Owner applies migration 018, then frontend released and phone acceptance reviewed.
 
 No hosted database execution by the agent. WhatsApp remains paused.
+
+## M21 — updated rice/soup costing and SFx Special Shawarma
+
+- [x] Extracted and independently reconciled the four recipe inputs/yields; normalized Special's two text costs (33 TL) instead of accepting Excel's understated SUM.
+- [x] Preview/apply imports only requested recipes; unrelated recipes/planning inputs, all existing menu/extra prices, saved estimates and ledger entries preserved.
+- [x] Special added only if absent, with explicitly entered selling price; existing Special price preserved; no forecast quantity invented.
+- [x] Admin audit/history, immutable receipt, stale-state checks and safe retries verified.
+- [x] Local SQL-backed browser import, old-price equality, replay prevention and 360/390/430/1280 layouts verified.
+- [x] Typecheck, lint, 316 unit tests, 830 local database checks and production build passed.
+- [ ] Owner migration 019, frontend release, Admin application of the update and phone acceptance.
+
+Migration adds the guarded importer; it does not alter live costs or prices on its
+own. After frontend deployment the owner applies it from Costing, reviewing the new
+item selling price if necessary. WhatsApp remains paused.
