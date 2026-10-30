@@ -20,8 +20,8 @@ The Special's Plantain B182 = "30tl" and Maggie B190 = "3tl" are text, excluded
 from SUM(B180:B197). Counting both gives ingredients 1018 instead of 985; full batch
 cost 1118 instead of 1085; cost per unit 279.50 instead of 271.25. Its calculated
 suggestion would be 560 TL after rounding, rather than the sheet's 550 TL. Neither
-suggestion is automatically published. The new item's selling price remains an
-explicit Admin input unless the item already exists, in which case its price stays.
+suggestion is automatically published. Owner confirmed 550 TL for the new item. The Admin review prefills that price;
+if the item already exists, its current price stays unchanged.
 
 Only the three requested existing recipes and the Special are imported. Other
 recipes, including previously corrected Classic Shawarma, are left alone. Stale
@@ -40,7 +40,7 @@ payments, inventory expenses or balances are posted by the import.
    no live recipe/menu data is changed by running the migration.
 2. Release the frontend, then sign in as Admin → Costing → Review updated food costing.
 3. Review the four costs and existing published prices. If Special is missing, enter
-   its selling price explicitly. If it exists, its selling price is preserved.
+   the confirmed 550 TL selling price (prefilled). If it exists, its selling price is preserved.
 4. Apply costing update · keep menu prices. This saves four audited recipe versions,
    adding the Special menu item only if missing, and records a single import receipt.
    Do not use Apply price; that is a separate existing menu-price action.

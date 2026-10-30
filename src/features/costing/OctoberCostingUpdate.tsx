@@ -24,7 +24,7 @@ const schema = z.object({
 });
 export function OctoberCostingUpdate() {
   const [open, setOpen] = useState(false);
-  const [newPrice, setNewPrice] = useState("");
+  const [newPrice, setNewPrice] = useState("550");
   const validPrice =
     /^\d+(\.\d{1,2})?$/.test(newPrice) &&
     Number(newPrice) > 0 &&

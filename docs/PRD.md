@@ -532,3 +532,6 @@ batches start at zero. Computed forecasts may change as costs/yields change, wit
 publishing menu prices. Keep all saved order snapshots and ledger entries unchanged;
 incomplete estimates already labelled current-recipe reconstructions may reflect
 these new inputs. Hosted database execution remains owner-only.
+
+Owner clarification: SFx Special Shawarma starts at 550 TL if newly created. Prefill
+550 in the import review; retain any existing Special selling price unchanged.
