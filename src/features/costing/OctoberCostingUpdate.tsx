@@ -31,7 +31,6 @@ export function OctoberCostingUpdate() {
     Number(newPrice) <= 9999999999.99;
   const preview = useQuery({
     queryKey: ["costing", "october-update", newPrice],
-    enabled: open,
     retry: false,
     queryFn: async () => {
       const r = await client().rpc("october_costing_update", {
@@ -59,9 +58,38 @@ export function OctoberCostingUpdate() {
   const needsPrice = preview.data?.rows.some((r) => r.needs_new_item);
   return (
     <>
-      <Button variant="secondary" onClick={() => setOpen(true)}>
-        Review updated food costing
-      </Button>
+      <section
+        className="space-y-3 rounded-xl border bg-card p-4"
+        aria-label="Workbook recipe update"
+      >
+        <h2 className="font-bold">
+          {preview.data?.already_applied
+            ? "Updated food costing applied"
+            : "Updated food costing"}
+        </h2>
+        {preview.isPending ? (
+          <p role="status">Checking recipe update…</p>
+        ) : null}
+        {preview.error ? <p role="alert">{preview.error.message}</p> : null}
+        {preview.data ? (
+          <p className="text-sm text-muted">
+            {preview.data.already_applied
+              ? "The October workbook update has been applied. Native Rice is listed as Village Rice, linked to its menu item."
+              : "Pending: Jollof Rice, Native Rice (Village Rice), Vegetable Soup and SFx Special Shawarma. Review and apply to save the recipes and add Special Shawarma at 550 TL if absent. Existing menu prices stay unchanged."}
+          </p>
+        ) : null}
+        <Button
+          variant={preview.data?.already_applied ? "secondary" : "default"}
+          onClick={() => setOpen(true)}
+        >
+          Review updated food costing
+        </Button>
+        {preview.error ? (
+          <Button variant="secondary" onClick={() => void preview.refetch()}>
+            Retry recipe update check
+          </Button>
+        ) : null}
+      </section>
       {open ? (
         <Sheet
           open

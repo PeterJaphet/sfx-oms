@@ -181,7 +181,9 @@ function WeeklyPlan({
         </p>
       </section>
       <section className="min-w-0 space-y-3 rounded-xl border bg-card p-4">
-        <h2 className="break-words text-xl font-bold">Forecast profit &amp; loss</h2>
+        <h2 className="break-words text-xl font-bold">
+          Forecast profit &amp; loss
+        </h2>
         <dl className="space-y-2">
           {[
             ["Revenue", "revenue"],
@@ -211,7 +213,9 @@ function WeeklyPlan({
         </p>
       </section>
       <section className="min-w-0 space-y-3 rounded-xl border bg-card p-4">
-        <h2 className="break-words text-xl font-bold">Fixed overheads and break-even</h2>
+        <h2 className="break-words text-xl font-bold">
+          Fixed overheads and break-even
+        </h2>
         <dl className="space-y-2">
           {[
             ["Rent per week", "rent_weekly"],
@@ -240,7 +244,9 @@ function WeeklyPlan({
         ) : null}
       </section>
       <section className="min-w-0 space-y-3 rounded-xl border bg-card p-4">
-        <h2 className="break-words text-xl font-bold">Operational overhead comparison</h2>
+        <h2 className="break-words text-xl font-bold">
+          Operational overhead comparison
+        </h2>
         <p className="text-sm text-muted">
           Actual recorded expenses for {context.from}–{context.to}, compared
           with the weekly recipe plan.
@@ -272,7 +278,9 @@ function WeeklyPlan({
         </p>
       </section>
       <section className="min-w-0 space-y-3 rounded-xl border bg-card p-4">
-        <h2 className="break-words text-xl font-bold">What if the lira moves?</h2>
+        <h2 className="break-words text-xl font-bold">
+          What if the lira moves?
+        </h2>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[500px] text-sm">
             <thead>
@@ -352,7 +360,6 @@ export default function CostingPage() {
           orders keep their own saved estimates.
         </p>
         <div className="flex flex-wrap gap-2">
-          <OctoberCostingUpdate />
           <Button asChild variant="secondary">
             <Link to="/menu">Menu &amp; extras</Link>
           </Button>
@@ -395,6 +402,7 @@ export default function CostingPage() {
       </div>
       {tab === "recipes" ? (
         <>
+          <OctoberCostingUpdate />
           <div className="flex gap-2">
             <Input
               id="recipe-search"
@@ -414,16 +422,34 @@ export default function CostingPage() {
           ) : (
             <div className="grid gap-3 lg:grid-cols-2">
               {c.recipes
-                .filter((r) =>
-                  r.name.toLowerCase().includes(search.toLowerCase()),
-                )
+                .filter((r) => {
+                  const variant = menu.data.variants.find(
+                    (v) => v.id === r.variant_id,
+                  );
+                  const product = menu.data.products.find(
+                    (p) => p.id === variant?.product_id,
+                  );
+                  const extra = menu.data.extras.find(
+                    (a) => a.id === r.addon_id,
+                  );
+                  return [
+                    r.name,
+                    product?.name,
+                    variant?.name,
+                    extra?.name,
+                  ].some((name) =>
+                    name?.toLowerCase().includes(search.trim().toLowerCase()),
+                  );
+                })
                 .map((r) => (
                   <article
                     key={r.id}
                     className="min-w-0 space-y-3 rounded-xl border bg-card p-4"
                   >
                     <div>
-                      <h2 className="break-words text-xl font-bold">{r.name}</h2>
+                      <h2 className="break-words text-xl font-bold">
+                        {r.name}
+                      </h2>
                       <p className="text-xs text-muted">
                         {r.variant_id
                           ? `${menu.data.products.find((p) => p.id === menu.data.variants.find((v) => v.id === r.variant_id)?.product_id)?.name ?? "Dish"} · ${menu.data.variants.find((v) => v.id === r.variant_id)?.name ?? "Variant"}`
@@ -514,7 +540,9 @@ export default function CostingPage() {
         </>
       ) : (
         <section className="space-y-3">
-          <h2 className="break-words text-xl font-bold">Recent costing changes</h2>
+          <h2 className="break-words text-xl font-bold">
+            Recent costing changes
+          </h2>
           <p className="text-sm text-muted">
             Last 50 changes. Every version is retained in the database.
           </p>

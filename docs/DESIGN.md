@@ -183,3 +183,7 @@ one Apply costing update · keep menu prices action. Warn about the two text-lab
 costs omitted by Excel. Explain preserved historical snapshots and planning inputs.
 After application show Already applied and disable further applications. Preserve
 44px controls and contained phone-width sheets; do not redesign other screens.
+
+M21 visibility correction: show the workbook update status inside Recipes on load,
+with a prominent review action when pending. Recipe search includes linked menu
+product/variant and extra names so Native Rice finds the Village Rice recipe.
