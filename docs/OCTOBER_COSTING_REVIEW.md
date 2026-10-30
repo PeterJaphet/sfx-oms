@@ -2,8 +2,8 @@
 
 Local checks passed: typecheck, lint, 316 unit tests, all 830 database checks and build.
 SQL-backed browser import verified all old prices unchanged, the new 279.50 TL cost,
-repeat-application protection and four phone/desktop widths. Hosted migration and
-Admin application are pending.
+repeat-application protection and four phone/desktop widths. Owner reported successful application of migration 019. Frontend release is
+authorised; Admin application of the recipe update is still pending.
 
 Source: SFx_Burger_Menu_Costing_and_PL EDITTED NEW.xlsx. The extracted inputs, source
 ranges and original file SHA-256 are in `docs/data/costing-update-2026-10-30.json`.
