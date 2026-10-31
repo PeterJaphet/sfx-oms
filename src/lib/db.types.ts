@@ -1951,6 +1951,10 @@ export type Database = {
       };
     };
     Functions: {
+      october31_costing_update: {
+        Args: { p_apply?: boolean; p_token?: string };
+        Returns: Json;
+      };
       october_costing_update: {
         Args: { p_apply?: boolean; p_new_price?: number; p_token?: string };
         Returns: Json;

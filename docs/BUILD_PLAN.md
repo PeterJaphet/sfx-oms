@@ -353,3 +353,17 @@ No hosted database execution by the agent. WhatsApp remains paused.
 Migration adds the guarded importer; it does not alter live costs or prices on its
 own. After frontend deployment the owner applies it from Costing, reviewing the new
 item selling price if necessary. WhatsApp remains paused.
+
+## M22 — 31 October costing follow-up
+
+- [x] Compared every workbook cell; Jollof chicken changed to 700, Chicken Lap added; appended Zinger matches existing source.
+- [x] Verified batch/portion maths independently: Jollof 2137/12, Chicken Lap 974/4 (direct 894/4, overhead 80/4).
+- [x] Admin preview/apply updates only two verified recipes; links Chicken Lap to the existing Chicken extra; prior import required.
+- [x] All published menu/extra prices, unrelated recipes, ledger, saved estimates and existing planning settings preserved; audited receipt and retry protection.
+- [x] Typecheck, lint, 316 unit tests, 855 local database checks and build pass.
+- [x] SQL-backed local browser applies both recipes, verifies all prices, refresh/search and replay prevention; 360/390/430/1280 layouts pass.
+- [ ] Owner clarification of eight repeated burger recipes in Extras; those remain excluded.
+- [ ] Owner runs migration 020, then frontend release and Admin application; live phone acceptance pending.
+
+No hosted database access. M15 WhatsApp remains paused. This milestone is prepared,
+not live; migration installation and applying the import are separate owner steps.

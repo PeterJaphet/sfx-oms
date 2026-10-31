@@ -1,0 +1,150 @@
+{
+  "source_file": "SFx_Burger_Menu_Costing_and_PL EDITTED NEW (1).xlsx",
+  "sha256": "69a8e016a71eef0e422a3d1e41e517d0bd5becef3273af6241966d04df72b9c4",
+  "recipes": [
+    {
+      "name": "Jollof Rice",
+      "menu_name": "Jollof Rice + Chicken",
+      "source_sheet": "Rice & Soup",
+      "source_range": "A67:B97",
+      "inputs": {
+        "ingredients": [
+          {
+            "name": "Rice (2.8Kg)",
+            "cost": 258.0
+          },
+          {
+            "name": "Red long bell pepper",
+            "cost": 345.0
+          },
+          {
+            "name": "Hot pepper",
+            "cost": 60.0
+          },
+          {
+            "name": "Green bell pepper",
+            "cost": 10.0
+          },
+          {
+            "name": "Onions",
+            "cost": 10.0
+          },
+          {
+            "name": "Oil",
+            "cost": 70.0
+          },
+          {
+            "name": "Sweet Pepper paste",
+            "cost": 63.0
+          },
+          {
+            "name": "Hot pepper paste",
+            "cost": 63.0
+          },
+          {
+            "name": "Tomato paste",
+            "cost": 50.0
+          },
+          {
+            "name": "Ginger and garlic paste",
+            "cost": 250.0
+          },
+          {
+            "name": "Curry",
+            "cost": 50.0
+          },
+          {
+            "name": "Tuzzot",
+            "cost": 15.0
+          },
+          {
+            "name": "Thyme",
+            "cost": 10.0
+          },
+          {
+            "name": "Maggie",
+            "cost": 63.0
+          },
+          {
+            "name": "Black Pepper",
+            "cost": 20.0
+          },
+          {
+            "name": "Chicken",
+            "cost": 700
+          }
+        ],
+        "packaging": 100,
+        "overhead": 0,
+        "yield": 12,
+        "multiplier": 2,
+        "rounding": 10,
+        "planned_batches": 0
+      },
+      "addon": false
+    },
+    {
+      "name": "Chicken Lap",
+      "menu_name": "Chicken",
+      "addon": true,
+      "source_sheet": "Extras",
+      "source_range": "A1:B26",
+      "inputs": {
+        "ingredients": [
+          {
+            "name": "Chicken",
+            "cost": 700
+          },
+          {
+            "name": "Garlic and ginger paste",
+            "cost": 10
+          },
+          {
+            "name": "Curry",
+            "cost": 10
+          },
+          {
+            "name": "Black pepper",
+            "cost": 5
+          },
+          {
+            "name": "Bayleaf",
+            "cost": 7
+          },
+          {
+            "name": "Maggi",
+            "cost": 15
+          },
+          {
+            "name": "Thyme",
+            "cost": 3
+          },
+          {
+            "name": "Salt",
+            "cost": 10
+          },
+          {
+            "name": "Lezzet Bizim",
+            "cost": 14
+          }
+        ],
+        "packaging": 120,
+        "overhead": 80,
+        "yield": 4,
+        "multiplier": 2,
+        "rounding": 10,
+        "planned_batches": 0
+      }
+    }
+  ],
+  "withheld_extras": [
+    "Egg",
+    "Fish",
+    "Ponmo",
+    "Shaki",
+    "Puff-puff",
+    "Salad",
+    "Swallow",
+    "Turkey"
+  ]
+}

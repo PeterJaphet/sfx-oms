@@ -1,3 +1,4 @@
+import { October31CostingUpdate } from "./October31CostingUpdate";
 import { OctoberCostingUpdate } from "./OctoberCostingUpdate";
 import { HistorySnapshot } from "./HistorySnapshot";
 import { useState } from "react";
@@ -402,6 +403,7 @@ export default function CostingPage() {
       </div>
       {tab === "recipes" ? (
         <>
+          <October31CostingUpdate />
           <OctoberCostingUpdate />
           <div className="flex gap-2">
             <Input

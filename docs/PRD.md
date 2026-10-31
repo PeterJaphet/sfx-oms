@@ -535,3 +535,19 @@ these new inputs. Hosted database execution remains owner-only.
 
 Owner clarification: SFx Special Shawarma starts at 550 TL if newly created. Prefill
 550 in the import review; retain any existing Special selling price unchanged.
+
+## M22 — 31 October workbook follow-up
+
+Import the verified Jollof chicken input of 700 TRY per batch (full batch 2137,
+12 portions) and Chicken Lap from Extras A1:B26 (ingredients 774, packaging 120,
+overhead 80, four portions). Link Chicken Lap to the existing Chicken extra;
+reuse an existing linked recipe if present. Keep all menu/extra selling prices,
+saved order estimates, ledger records and existing planning settings unchanged.
+The appended Zinger Burger block matches its previously supplied costing.
+
+Do not import the repeated Zinger Burger ingredients under Egg, Fish, Ponmo,
+Shaki, Puff-puff, Salad, Swallow and Turkey without owner clarification.
+Preview/apply must retain Admin-only access, stale-state checks, an immutable
+receipt, safe retries and audited recipe history. Require the 30 October import
+first so an older unapplied import cannot later restore the older Jollof cost.
+No hosted database execution by the agent.

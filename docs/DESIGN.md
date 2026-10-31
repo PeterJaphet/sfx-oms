@@ -187,3 +187,9 @@ After application show Already applied and disable further applications. Preserv
 M21 visibility correction: show the workbook update status inside Recipes on load,
 with a prominent review action when pending. Recipe search includes linked menu
 product/variant and extra names so Native Rice finds the Village Rice recipe.
+
+M22: put a dated 31 October costing card before the existing workbook update in
+Recipes. Name the two included changes and the eight excluded extras, show the
+actual database prerequisite/error when needed, and reuse the existing sheet for
+old/new full costs and unchanged selling prices. Apply once; refresh recipe cards
+and menu/costing queries after success. Keep 44px targets and phone-width controls.
