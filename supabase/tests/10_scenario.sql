@@ -1620,4 +1620,9 @@ set role anon;
 select expect_fail($$select november_dishes_costing_update(false)$$,'M24 anonymous denied');
 reset role;
 
+select check_eq((to_regprocedure('public.november_extras_costing_update(boolean,text)') is not null)::int,1,'RPC repair extras signature installed');
+select check_eq((to_regprocedure('public.november_dishes_costing_update(boolean,text,numeric)') is not null)::int,1,'RPC repair dishes signature installed');
+select check_eq(has_function_privilege('anon','public.november_extras_costing_update(boolean,text)','execute')::int,0,'RPC repair anonymous extras denied');
+select check_eq(has_function_privilege('authenticated','public.november_extras_costing_update(boolean,text)','execute')::int,1,'RPC repair authenticated extras callable with Admin guard');
+
 rollback;

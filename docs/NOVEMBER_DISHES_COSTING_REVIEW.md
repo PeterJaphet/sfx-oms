@@ -38,3 +38,17 @@ Incomplete current-recipe reconstructions can reflect new costs. Actual expenses
 are not posted by recipe imports.
 
 This approval supersedes the additional-dish scope question in the extras review.
+
+## API schema-cache repair
+
+If the deployed app reports that november_extras_costing_update(p_apply) cannot be
+found in the schema cache, owner runs the entire
+`supabase/migrations/023_repair_costing_rpc_cache.sql` in project
+`lnolchqycicixjikolfi`. This rerunnable repair installs/replaces both current RPCs,
+restores the same guarded grants/obsolete-import protections, and issues
+`NOTIFY pgrst, 'reload schema'` at commit. It applies no recipe imports and needs no
+frontend release. Wait a few seconds, then Retry in Costing. Missing migration,
+wrong target project or stale cache cannot be distinguished from that API message
+alone; no hosted database inspection was performed by the agent.
+
+Local verification: all 908 database checks pass; repair executed twice successfully.
