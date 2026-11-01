@@ -205,3 +205,10 @@ latest extras review alongside it and remove the obsolete 31 October card from
 Recipes. Reuse the reviewed sheet, four old/new cost rows, unchanged prices and
 550 TL new-Special field. Explain condensed milk and normalization of the two text
 costs. Existing cards refresh after save; retries cannot overwrite later edits.
+
+Costing cleanup: Recipes and History are the only sections. Use existing menu
+category names/order as headings above two-column desktop/one-column phone recipe
+cards. Extras have their own section; unlinked records remain visible at the end.
+Search includes category names. Keep import reviews inside one collapsed details
+control. Remove weekly planning/forecast tools and planned-batch form controls.
+Keep existing price confirmation sheet, accessible labels and 44px controls.

@@ -592,3 +592,15 @@ No previous recipe import needs to be applied first. Block still-unapplied older
 Already-applied older imports remain harmless no-ops. Show only current extras and
 dish review cards in Recipes. Old migration files remain unchanged; all new logic
 belongs to migration 022. Hosted execution remains owner-only.
+
+## Costing screen cleanup — owner requested
+
+Group recipes by their linked menu category, in menu category/display order. Put
+extra-linked recipes together under Extras, and retain unlinked recipes separately
+so saved costs are not hidden or discarded. Search matches recipe/menu/extra names
+and category. Remove Weekly plan, production-volume inputs, weekly forecast exports,
+rate scenarios and the old workbook starting-values loader from the user interface.
+Keep recipe editing, suggested/published prices, guarded Apply price, recipe audit
+history and links to actual reports. Preserve saved planning inputs internally;
+this UI cleanup must not reset existing inputs or alter calculation/RPC rules.
+Collapse one-off workbook imports under Recipe updates · review and apply.

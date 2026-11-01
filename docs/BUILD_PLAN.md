@@ -394,3 +394,16 @@ M15 stays paused. No hosted database execution.
 
 M23's additional-dish question is resolved. No hosted database execution. WhatsApp
 remains paused. Prepared implementation is not a claim that live recipes changed.
+
+## Costing menu categories and cleanup
+
+- [x] Recipe cards grouped by actual menu category/order, with Extras and unlinked sections; recipe, menu-alias and category search retained.
+- [x] Removed Weekly plan, weekly forecast exports, rate scenarios, planned-batch controls and old workbook starting-values action from the interface.
+- [x] Kept guarded recipe/price edits, recipe audit history and actual-report links; workbook reviews collapsed and fetched only on opening.
+- [x] Local SQL-backed browser verifies category order, aliases/category search, empty state, history, hidden-field preservation on save and 360/390/430/1280 layouts.
+- [x] Typecheck, lint, 316 unit tests, 904 database checks and build pass. No database changes or hosted database access.
+- [ ] Production Pages deployment and login verification.
+
+The separately prepared migration 023 repair remains on its own branch and is not
+required for this layout release. Existing import RPC installation/cache issue is
+not represented as solved by a frontend-only change.
