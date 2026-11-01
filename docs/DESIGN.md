@@ -212,3 +212,10 @@ cards. Extras have their own section; unlinked records remain visible at the end
 Search includes category names. Keep import reviews inside one collapsed details
 control. Remove weekly planning/forecast tools and planned-batch form controls.
 Keep existing price confirmation sheet, accessible labels and 44px controls.
+
+Dated money out: use the existing Withdraw.dc.html form. Place Date money was taken
+out below the withdrawal-type selector. Use a labelled native date input, current
+business-day max, Admin-editable past date, Operations read-only current day, inline
+error and brief 06:00–05:59 help. Show the chosen date in the server balance preview.
+Keep withdrawal history's business-day date and confirmation status visible; existing
+receipt and recovery controls stay intact. No browser-derived business dates.

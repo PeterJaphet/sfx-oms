@@ -19,6 +19,7 @@ const values = {
   account_id: '1',
   amount: '2,500.50',
   purpose: 'Buy ingredients',
+  withdrawal_date: '2026-11-02',
   category_id: '1',
   recipient_id: '00000000-0000-4000-8000-000000000001',
   rate: '',
@@ -29,6 +30,16 @@ const attempt = {
   payload: { amount: '2500.50' },
 }
 describe('M5 staff input and roles', () => {
+  it('validates real withdrawal dates and sends the chosen date unchanged', () => {
+    for (const withdrawal_date of ['', '2026-02-30', 'not-a-date']) {
+      expect(
+        withdrawalSchema.safeParse({ ...values, withdrawal_date }).success,
+      ).toBe(false)
+    }
+    expect(
+      withdrawalPayload(withdrawalSchema.parse(values)).withdrawal_date,
+    ).toBe('2026-11-02')
+  })
   it('requires category for advances as well as expenses', () => {
     for (const kind of ['advance', 'direct_expense'] as const)
       expect(
@@ -160,7 +171,9 @@ describe('M5 RPC confirmation', () => {
         data: null,
         error: { code, message: 'Retry after sign in' },
       })
-      await expect(runMoney(attempt)).rejects.toMatchObject({ uncertain: true })
+      await expect(runMoney(attempt)).rejects.toMatchObject({
+        uncertain: true,
+      })
     },
   )
   it('retains a request when fetch rejects', async () => {
@@ -178,7 +191,9 @@ describe('M5 RPC confirmation', () => {
       { action: 'withdraw', id: 'saved' },
     ]) {
       rpc.mockResolvedValue({ data, error: null })
-      await expect(runMoney(attempt)).rejects.toMatchObject({ uncertain: true })
+      await expect(runMoney(attempt)).rejects.toMatchObject({
+        uncertain: true,
+      })
     }
   })
 })

@@ -24,6 +24,7 @@ export const signedAmountSchema = z
 export const withdrawalSchema = z
   .object({
     kind: z.enum(['advance', 'direct_expense']),
+    withdrawal_date: z.iso.date({ error: 'Choose a valid date' }),
     account_id: z.string().min(1, 'Choose an account'),
     amount: amountSchema,
     purpose: z
@@ -72,6 +73,7 @@ export type MoneyAttempt = z.infer<typeof attemptSchema>
 export function withdrawalPayload(v: WithdrawalValues) {
   return {
     kind: v.kind,
+    withdrawal_date: v.withdrawal_date,
     account_id: Number(v.account_id),
     amount: v.amount,
     purpose: v.purpose,

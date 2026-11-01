@@ -407,3 +407,16 @@ remains paused. Prepared implementation is not a claim that live recipes changed
 The separately prepared migration 023 repair remains on its own branch and is not
 required for this layout release. Existing import RPC installation/cache issue is
 not represented as solved by a frontend-only change.
+
+## Dated withdrawals
+
+- [x] Required labelled date field with server business-day default, Admin historical selection and Operations current-day restriction; future dates rejected.
+- [x] Date-aware quote, guarded creation/approval and private ledger posting preserve receipt/category/rate/funds validation and all day locks/role guards.
+- [x] Effective date reaches withdrawal, ledger, advance aging, actual expense reports and audit; requested_at stays truthful; legacy pending behavior retained.
+- [x] Request replay/date-change preview protection verified, with no duplicate posting.
+- [x] 926 local SQL checks, 317 unit tests and SQL-backed browser default/date/save/report/history checks at 360/390/430/1280 pass.
+- [x] Final typecheck, lint and production build pass.
+- [ ] Owner runs migration 024; frontend release and live acceptance.
+
+No hosted database execution. This feature is prepared, not live. Migration 023's
+separate costing-RPC repair is not a prerequisite for this feature.

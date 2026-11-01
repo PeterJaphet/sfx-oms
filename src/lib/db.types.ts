@@ -1572,6 +1572,7 @@ export type Database = {
           amount: number;
           amount_try: number;
           business_date: string;
+          taken_out_date: string | null;
           category_id: number | null;
           decided_at: string | null;
           decided_by: string | null;
@@ -1591,6 +1592,7 @@ export type Database = {
           amount: number;
           amount_try: number;
           business_date?: string;
+          taken_out_date?: string | null;
           category_id?: number | null;
           decided_at?: string | null;
           decided_by?: string | null;
@@ -1610,6 +1612,7 @@ export type Database = {
           amount?: number;
           amount_try?: number;
           business_date?: string;
+          taken_out_date?: string | null;
           category_id?: number | null;
           decided_at?: string | null;
           decided_by?: string | null;
@@ -2294,6 +2297,10 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      create_dated_withdrawal: {
+        Args: { p: Json };
+        Returns: Database["public"]["Tables"]["withdrawals"]["Row"];
+      };
       create_withdrawal: {
         Args: {
           p_account: number;
@@ -2310,6 +2317,7 @@ export type Database = {
           amount: number;
           amount_try: number;
           business_date: string;
+          taken_out_date: string | null;
           category_id: number | null;
           decided_at: string | null;
           decided_by: string | null;
@@ -2339,6 +2347,7 @@ export type Database = {
           amount: number;
           amount_try: number;
           business_date: string;
+          taken_out_date: string | null;
           category_id: number | null;
           decided_at: string | null;
           decided_by: string | null;

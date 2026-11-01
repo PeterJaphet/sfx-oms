@@ -604,3 +604,22 @@ Keep recipe editing, suggested/published prices, guarded Apply price, recipe aud
 history and links to actual reports. Preserve saved planning inputs internally;
 this UI cleanup must not reset existing inputs or alter calculation/RPC rules.
 Collapse one-off workbook imports under Recipe updates · review and apply.
+
+## Dated money-out entry
+
+Take money out includes a required date, defaulting to the database business day
+(06:00–05:59 Europe/Nicosia). Admin may enter earlier dates; Operations stays on the
+current business day, matching existing historical-order permissions. Reject future
+and malformed dates in the database. Preserve requested_at as the actual entry time.
+
+Quotes, new withdrawal business_date, explicit taken_out_date, ledger postings and
+expense reports use the selected effective day. Advances remain non-expense money
+movements until purchases are logged, with age measured from the selected day.
+Approval still posts no money until approved, at the recorded rate and selected day.
+Existing legacy pending withdrawals with no explicit taken_out_date retain their
+original approval-day posting behavior. Existing records are not rewritten.
+
+Retain amount/category/recipient/receipt validation, approval limits, current-balance
+checks, day locking and closed-day role guards. Admin historical/closed-day writes
+remain audited. Idempotent request replay retains its original date and never posts
+twice; changing a date invalidates its preview. All writes stay behind guarded RPCs.

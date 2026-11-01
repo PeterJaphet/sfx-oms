@@ -30,6 +30,7 @@ export default function WithdrawPage() {
     resolver: zodResolver(withdrawalSchema),
     defaultValues: {
       kind: 'advance',
+      withdrawal_date: '',
       account_id: '1',
       amount: '',
       purpose: '',
@@ -38,6 +39,14 @@ export default function WithdrawPage() {
       rate: '',
     },
   })
+  useEffect(() => {
+    if (
+      reference.data?.day &&
+      (profile?.role !== 'admin' || !form.getValues('withdrawal_date'))
+    ) {
+      form.setValue('withdrawal_date', reference.data.day)
+    }
+  }, [reference.data?.day, profile?.role, form])
   const values = form.watch()
   const parsed = withdrawalSchema.safeParse(values)
   const payload = parsed.success ? withdrawalPayload(parsed.data) : null
@@ -103,7 +112,12 @@ export default function WithdrawPage() {
         onSubmit={form.handleSubmit(async (submitted) => {
           setError(undefined)
           setSaved(false)
-          if (!quote.data || quote.isFetching) {
+          if (
+            !quote.data ||
+            quote.isFetching ||
+            quote.isError ||
+            quote.data.business_date !== submitted.withdrawal_date
+          ) {
             setError('Wait for the current balance preview')
             return
           }
@@ -156,6 +170,34 @@ export default function WithdrawPage() {
                 {typeNames[kind]}
               </button>
             ))}
+          </div>
+          <div>
+            <label
+              htmlFor="withdraw-date"
+              className="mb-2 block text-sm font-semibold"
+            >
+              Date money was taken out
+            </label>
+            <Input
+              id="withdraw-date"
+              type="date"
+              max={reference.data.day}
+              min={profile?.role === 'admin' ? undefined : reference.data.day}
+              readOnly={profile?.role !== 'admin'}
+              aria-invalid={!!form.formState.errors.withdrawal_date}
+              aria-describedby="withdraw-date-help withdraw-date-error"
+              {...form.register('withdrawal_date')}
+            />
+            <p id="withdraw-date-help" className="mt-2 text-sm text-muted">
+              Business day runs from 06:00 to 05:59.{' '}
+              {profile?.role === 'admin'
+                ? 'Choose the day the money was taken out, including earlier days.'
+                : 'Ask Admin to record an earlier day.'}
+            </p>
+            <FieldError
+              id="withdraw-date-error"
+              message={form.formState.errors.withdrawal_date?.message}
+            />
           </div>
           <fieldset>
             <legend className="mb-2 text-sm font-bold">From account</legend>
@@ -382,6 +424,10 @@ export default function WithdrawPage() {
         ) : quote.data ? (
           <div className="space-y-2 rounded-xl bg-amber-soft p-4 text-sm text-amber-ink">
             <p>
+              Date money was taken out:{' '}
+              <strong>{quote.data.business_date}</strong>
+            </p>
+            <p>
               {quote.data.needs_approval
                 ? 'Waiting for Admin: balance stays'
                 : 'Balance after withdrawal:'}{' '}
@@ -421,7 +467,8 @@ export default function WithdrawPage() {
             {error}
           </p>
         ) : null}
-        <Button requiresOnline
+        <Button
+          requiresOnline
           className="w-full"
           type="submit"
           disabled={locked || !quote.data || quote.isFetching || !!quote.error}
