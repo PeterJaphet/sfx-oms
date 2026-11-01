@@ -1417,6 +1417,12 @@ select set_config('sfx.m21.plan',(select to_jsonb(t)::text from cost_plan t),tru
 select set_config('sfx.m21.others',(select jsonb_object_agg(id::text,to_jsonb(t))::text from cost_recipes t where name not in('Village Rice','Jollof Rice','Vegetable Soup','SFx Special Shawarma')),true);
 select set_config('sfx.m21.settings',(select jsonb_object_agg(id::text,jsonb_build_object('multiplier',inputs->'multiplier','rounding',inputs->'rounding','planned_batches',inputs->'planned_batches'))::text from cost_recipes),true);
 select expect_fail($$select october31_costing_update(false)$$,'M22 older workbook must be applied before newer update');
+savepoint m24_older_guard;
+select november_dishes_costing_update(true,november_dishes_costing_update(false,null,550)->>'token',550);
+select check_eq((select pv.price from product_variants pv join products p on p.id=pv.product_id where p.name='SFx Special Shawarma'),550,'M24 missing Special added at confirmed price');
+select expect_fail($$select october_costing_update(false)$$,'M24 pending older rice import cannot overwrite latest');
+select expect_fail($$select october31_costing_update(false)$$,'M24 pending older Jollof import cannot overwrite latest');
+rollback to savepoint m24_older_guard;
 select set_config('sfx.m21.preview',october_costing_update(false,null,550)::text,true);
 select check_eq(jsonb_array_length(current_setting('sfx.m21.preview')::jsonb->'rows'),4,'M21 exactly four recipes in import');
 select check_eq((select count(*)from costing_imports),0,'M21 preview never applies costs');
@@ -1576,6 +1582,42 @@ select expect_fail($$select november_extras_costing_update(true)$$,'M23 Logistic
 reset role;
 set role anon;
 select expect_fail($$select november_extras_costing_update(false)$$,'M23 anonymous preview denied');
+reset role;
+
+-- M24 latest approved dish recipes, no price publication.
+set role authenticated;
+select as_user('00000000-0000-0000-0000-00000000000a');
+select set_config('sfx.m24.prices',(select jsonb_object_agg(id::text,price)::text from product_variants),true);
+select set_config('sfx.m24.extras',(select jsonb_object_agg(id::text,price)::text from addons),true);
+select set_config('sfx.m24.saved',(select coalesce(jsonb_agg(to_jsonb(t)order by order_id),'[]')::text from order_cost_snapshots t),true);
+select set_config('sfx.m24.ledger',(select coalesce(jsonb_agg(to_jsonb(t)order by id),'[]')::text from ledger_entries t),true);
+select set_config('sfx.m24.plan',(select to_jsonb(t)::text from cost_plan t),true);
+select set_config('sfx.m24.others',(select jsonb_object_agg(id::text,to_jsonb(t))::text from cost_recipes t where name not in('Village Rice','Jollof Rice','Vegetable Soup','SFx Special Shawarma')),true);
+select set_config('sfx.m24.preview',november_dishes_costing_update(false,null,550)::text,true);
+select check_eq(jsonb_array_length(current_setting('sfx.m24.preview')::jsonb->'rows'),4,'M24 four latest dish recipes');
+select check_eq((select count(*)from activity_log where entity_id='2026-11-01-dishes'),0,'M24 preview no writes');
+select check_eq((select (x->>'new_unit_cost')::numeric from jsonb_array_elements(current_setting('sfx.m24.preview')::jsonb->'rows')x where x->>'menu_name'='Native Rice + Chicken'),231,'M24 Native chicken 225 and packaging 200');
+select check_eq((select (x->>'new_unit_cost')::numeric from jsonb_array_elements(current_setting('sfx.m24.preview')::jsonb->'rows')x where x->>'menu_name'='Jollof Rice + Chicken'),2047::numeric/12,'M24 Jollof chicken 350 and packaging 360');
+select check_eq((select (x->>'new_unit_cost')::numeric from jsonb_array_elements(current_setting('sfx.m24.preview')::jsonb->'rows')x where x->>'menu_name'='Vegetable Soup'),158.6,'M24 soup packaging 115');
+select check_eq((select (x->>'new_unit_cost')::numeric from jsonb_array_elements(current_setting('sfx.m24.preview')::jsonb->'rows')x where x->>'menu_name'='SFx Special Shawarma'),284.5,'M24 Special condensed milk and text costs included');
+select expect_fail($$select november_dishes_costing_update(true,'stale',550)$$,'M24 stale preview denied');
+select november_dishes_costing_update(true,current_setting('sfx.m24.preview')::jsonb->>'token',550);
+select check_eq(((select jsonb_object_agg(id::text,price)from product_variants)=current_setting('sfx.m24.prices')::jsonb)::int,1,'M24 existing menu prices unchanged');
+select check_eq(((select jsonb_object_agg(id::text,price)from addons)=current_setting('sfx.m24.extras')::jsonb)::int,1,'M24 extra prices unchanged');
+select check_eq(((select coalesce(jsonb_agg(to_jsonb(t)order by order_id),'[]')from order_cost_snapshots t)=current_setting('sfx.m24.saved')::jsonb)::int,1,'M24 saved estimates unchanged');
+select check_eq(((select coalesce(jsonb_agg(to_jsonb(t)order by id),'[]')from ledger_entries t)=current_setting('sfx.m24.ledger')::jsonb)::int,1,'M24 ledger unchanged');
+select check_eq(((select to_jsonb(t)from cost_plan t)=current_setting('sfx.m24.plan')::jsonb)::int,1,'M24 plan unchanged');
+select check_eq(((select jsonb_object_agg(id::text,to_jsonb(t))from cost_recipes t where name not in('Village Rice','Jollof Rice','Vegetable Soup','SFx Special Shawarma'))=current_setting('sfx.m24.others')::jsonb)::int,1,'M24 all corrected extras unchanged');
+select set_config('sfx.m24.history',(select count(*)::text from costing_history),true);
+select november_dishes_costing_update(true,null,999);
+select check_eq((select count(*)from costing_history),current_setting('sfx.m24.history')::numeric,'M24 retry does not overwrite later changes');
+select as_user('00000000-0000-0000-0000-00000000000b');
+select expect_fail($$select november_dishes_costing_update(false)$$,'M24 Operations preview denied');
+select as_user('00000000-0000-0000-0000-00000000000c');
+select expect_fail($$select november_dishes_costing_update(true)$$,'M24 Logistics apply denied');
+reset role;
+set role anon;
+select expect_fail($$select november_dishes_costing_update(false)$$,'M24 anonymous denied');
 reset role;
 
 rollback;

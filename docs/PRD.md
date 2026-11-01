@@ -574,3 +574,21 @@ unapplied 31 October import that would restore older Chicken Lap costs. An alrea
 applied older import remains an idempotent no-op. Keep the supplied rice/shawarma
 changes outside this extras update pending owner clarification of that scope.
 Hosted database execution remains owner-only. Do not edit old migration files.
+
+## M24 — latest dish costs approved by owner
+
+Owner confirmed that the additional non-extra changes in the 1 November workbook
+must also be imported, preserving selling prices. Use Native Rice chicken 225 and
+packaging 200 (full 1617 / 7); Jollof chicken 350 and packaging 360 (full 2047 / 12);
+Vegetable Soup packaging 115 (full 793 / 5); Special Shawarma condensed milk 20
+plus the previously normalized text costs (full 1138 / 4). Zinger's shifted block
+has unchanged inputs. Keep unrelated recipes, all corrected extras, existing
+planning settings, saved order estimates and financial entries intact.
+
+Use an independent Admin preview/apply receipt for the latest four dishes. Create
+Special only if absent at the confirmed 550 TL; an existing price is preserved.
+No previous recipe import needs to be applied first. Block still-unapplied older
+30/31 October imports after the newer dishes are saved, preventing cost downgrade.
+Already-applied older imports remain harmless no-ops. Show only current extras and
+dish review cards in Recipes. Old migration files remain unchanged; all new logic
+belongs to migration 022. Hosted execution remains owner-only.

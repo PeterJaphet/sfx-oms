@@ -30,10 +30,10 @@ export function OctoberCostingUpdate() {
     Number(newPrice) > 0 &&
     Number(newPrice) <= 9999999999.99;
   const preview = useQuery({
-    queryKey: ["costing", "october-update", newPrice],
+    queryKey: ["costing", "november-dishes-update", newPrice],
     retry: false,
     queryFn: async () => {
-      const r = await client().rpc("october_costing_update", {
+      const r = await client().rpc("november_dishes_costing_update", {
         p_apply: false,
         ...(validPrice ? { p_new_price: Number(newPrice) } : {}),
       });
@@ -45,7 +45,7 @@ export function OctoberCostingUpdate() {
     async () => {
       if (!preview.data || preview.isFetching)
         throw new Error("Wait for the current costing preview");
-      const r = await client().rpc("october_costing_update", {
+      const r = await client().rpc("november_dishes_costing_update", {
         p_apply: true,
         p_token: preview.data.token,
         ...(validPrice ? { p_new_price: Number(newPrice) } : {}),
@@ -64,8 +64,8 @@ export function OctoberCostingUpdate() {
       >
         <h2 className="font-bold">
           {preview.data?.already_applied
-            ? "Updated food costing applied"
-            : "Updated food costing"}
+            ? "1 November dish costing applied"
+            : "1 November dish costing"}
         </h2>
         {preview.isPending ? (
           <p role="status">Checking recipe update…</p>
@@ -74,7 +74,7 @@ export function OctoberCostingUpdate() {
         {preview.data ? (
           <p className="text-sm text-muted">
             {preview.data.already_applied
-              ? "The October workbook update has been applied. Native Rice is listed as Village Rice, linked to its menu item."
+              ? "The 1 November dish update has been applied. Native Rice is listed as Village Rice, linked to its menu item."
               : "Pending: Jollof Rice, Native Rice (Village Rice), Vegetable Soup and SFx Special Shawarma. Review and apply to save the recipes and add Special Shawarma at 550 TL if absent. Existing menu prices stay unchanged."}
           </p>
         ) : null}
@@ -82,7 +82,7 @@ export function OctoberCostingUpdate() {
           variant={preview.data?.already_applied ? "secondary" : "default"}
           onClick={() => setOpen(true)}
         >
-          Review updated food costing
+          Review 1 November dish costing
         </Button>
         {preview.error ? (
           <Button variant="secondary" onClick={() => void preview.refetch()}>
@@ -93,17 +93,18 @@ export function OctoberCostingUpdate() {
       {open ? (
         <Sheet
           open
-          title="Updated food costing"
-          description="30 October workbook: Jollof Rice, Native Rice, Vegetable Soup and SFx Special Shawarma. Existing menu prices stay unchanged."
+          title="1 November dish costing"
+          description="1 November workbook: Jollof Rice, Native Rice, Vegetable Soup and SFx Special Shawarma. Existing menu prices stay unchanged."
           onOpenChange={(v) => {
             if (!v && !save.isPending) setOpen(false);
           }}
         >
           <div className="space-y-4">
             <p className="rounded-xl bg-amber-soft p-3 text-sm text-amber-ink">
-              SFx Special Shawarma includes Plantain 30 TL and Maggie 3 TL,
-              which the workbook's SUM omits as text. Its full cost is 279.50 TL
-              per unit. This update does not apply suggested menu prices.
+              SFx Special Shawarma includes Condensed milk 20 TL, Plantain 30 TL
+              and Maggie 3 TL, including the two text-labelled costs omitted by
+              the workbook’s SUM. Its full cost is 284.50 TL per unit. This
+              update does not apply suggested menu prices.
             </p>
             {preview.isPending ? (
               <p role="status">Loading recipe update…</p>

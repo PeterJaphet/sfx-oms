@@ -404,7 +404,6 @@ export default function CostingPage() {
       {tab === "recipes" ? (
         <>
           <October31CostingUpdate extras />
-          <October31CostingUpdate />
           <OctoberCostingUpdate />
           <div className="flex gap-2">
             <Input

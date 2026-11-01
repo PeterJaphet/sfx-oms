@@ -381,3 +381,16 @@ not live; migration installation and applying the import are separate owner step
 
 This supersedes M22's unresolved extras source question and Chicken Lap inputs.
 M15 stays paused. No hosted database execution.
+
+## M24 — approved latest dish changes
+
+- [x] Owner approved additional rice, soup and Special changes; extracted/independently reconciled four updated costs, including text-labelled costs.
+- [x] Guarded Admin preview/apply preserves existing prices, settings, all corrected extras, snapshots, ledger and fixed plan; missing Special uses confirmed 550 TL.
+- [x] Independent current imports; pending obsolete October imports blocked after latest dishes, with already-applied older receipts remaining no-ops.
+- [x] Current Recipes screen shows only latest extras and dish reviews.
+- [x] Typecheck, lint, 316 unit tests, 904 local database checks and production build pass.
+- [x] Local SQL-backed browser applies four latest dishes; existing prices unchanged, absent Special created at 550 TL, Native Rice searchable, replay disabled and 360/390/430/1280 layouts verified.
+- [ ] Owner installs migration 022 after 020/021 if needed; frontend release, both current imports applied and live acceptance.
+
+M23's additional-dish question is resolved. No hosted database execution. WhatsApp
+remains paused. Prepared implementation is not a claim that live recipes changed.

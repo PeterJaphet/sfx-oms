@@ -199,3 +199,9 @@ M23: reuse the workbook review card and sheet for the corrected extras. Label it
 portion separately, and mark selling prices unchanged. Mark absent Puff-puff as
 Planning only with no created price. Keep older review cards dated and their
 errors visible. No excluded-extras warning remains after the corrected attachment.
+
+M24: replace the old October dish card with 1 November dish costing. Keep the
+latest extras review alongside it and remove the obsolete 31 October card from
+Recipes. Reuse the reviewed sheet, four old/new cost rows, unchanged prices and
+550 TL new-Special field. Explain condensed milk and normalization of the two text
+costs. Existing cards refresh after save; retries cannot overwrite later edits.

@@ -44,3 +44,7 @@ The file also changes Native/Jollof chicken and packaging, Vegetable Soup packag
 and adds condensed milk to Special Shawarma. These changes are outside this extras
 import, pending the owner's answer about including them. Existing recipes stay as
 saved; a prior unapplied update is not evidence of current hosted recipe values.
+
+Owner subsequently approved the additional dish changes. Use the current two-import
+workflow in NOVEMBER_DISHES_COSTING_REVIEW.md; the obsolete October imports no longer
+need to be applied before these current updates.

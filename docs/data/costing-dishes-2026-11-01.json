@@ -1,0 +1,294 @@
+{
+  "source_file": "SFx_Burger_Menu_Costing_and_PL EDITTED NEW (2).xlsx",
+  "sha256": "eb99cdea45e583b736108afed35af35d811227a3815764b7e94d2023a785a2b7",
+  "recipes": [
+    {
+      "name": "Village Rice",
+      "menu_name": "Native Rice + Chicken",
+      "source_sheet": "Rice & Soup",
+      "source_range": "A38:B63",
+      "inputs": {
+        "ingredients": [
+          {
+            "name": "Rice (1.5Kg)",
+            "cost": 138
+          },
+          {
+            "name": "Red long bell pepper",
+            "cost": 400
+          },
+          {
+            "name": "Hot pepper",
+            "cost": 40
+          },
+          {
+            "name": "Palm oil",
+            "cost": 100
+          },
+          {
+            "name": "Onions",
+            "cost": 10
+          },
+          {
+            "name": "Spinach",
+            "cost": 74
+          },
+          {
+            "name": "Tuzzot",
+            "cost": 20
+          },
+          {
+            "name": "Crayfish",
+            "cost": 100
+          },
+          {
+            "name": "Maggie",
+            "cost": 10
+          },
+          {
+            "name": "Chicken",
+            "cost": 225
+          },
+          {
+            "name": "Shaki and ponmo",
+            "cost": 300
+          }
+        ],
+        "packaging": 200,
+        "overhead": 0,
+        "yield": 7,
+        "multiplier": 2.14,
+        "rounding": 10,
+        "planned_batches": 0
+      }
+    },
+    {
+      "name": "Jollof Rice",
+      "menu_name": "Jollof Rice + Chicken",
+      "source_sheet": "Rice & Soup",
+      "source_range": "A67:B97",
+      "inputs": {
+        "ingredients": [
+          {
+            "name": "Rice (2.8Kg)",
+            "cost": 258
+          },
+          {
+            "name": "Red long bell pepper",
+            "cost": 345
+          },
+          {
+            "name": "Hot pepper",
+            "cost": 60
+          },
+          {
+            "name": "Green bell pepper",
+            "cost": 10
+          },
+          {
+            "name": "Onions",
+            "cost": 10
+          },
+          {
+            "name": "Oil",
+            "cost": 70
+          },
+          {
+            "name": "Sweet Pepper paste",
+            "cost": 63
+          },
+          {
+            "name": "Hot pepper paste",
+            "cost": 63
+          },
+          {
+            "name": "Tomato paste",
+            "cost": 50
+          },
+          {
+            "name": "Ginger and garlic paste",
+            "cost": 250
+          },
+          {
+            "name": "Curry",
+            "cost": 50
+          },
+          {
+            "name": "Tuzzot",
+            "cost": 15
+          },
+          {
+            "name": "Thyme",
+            "cost": 10
+          },
+          {
+            "name": "Maggie",
+            "cost": 63
+          },
+          {
+            "name": "Black Pepper",
+            "cost": 20
+          },
+          {
+            "name": "Chicken",
+            "cost": 350
+          }
+        ],
+        "packaging": 360,
+        "overhead": 0,
+        "yield": 12,
+        "multiplier": 2,
+        "rounding": 10,
+        "planned_batches": 0
+      }
+    },
+    {
+      "name": "Vegetable Soup",
+      "menu_name": "Vegetable Soup",
+      "source_sheet": "Rice & Soup",
+      "source_range": "A101:B125",
+      "inputs": {
+        "ingredients": [
+          {
+            "name": "Red long bell pepper",
+            "cost": 230
+          },
+          {
+            "name": "Hot pepper",
+            "cost": 40
+          },
+          {
+            "name": "Onions",
+            "cost": 10
+          },
+          {
+            "name": "Palm oil",
+            "cost": 100
+          },
+          {
+            "name": "Spinach",
+            "cost": 75
+          },
+          {
+            "name": "Tuzzot",
+            "cost": 15
+          },
+          {
+            "name": "Maggie",
+            "cost": 8
+          },
+          {
+            "name": "Shaki and ponmo",
+            "cost": 150
+          },
+          {
+            "name": "Crayfish",
+            "cost": 50
+          },
+          {
+            "name": "Chicken",
+            "cost": 0
+          }
+        ],
+        "packaging": 115,
+        "overhead": 0,
+        "yield": 5,
+        "multiplier": 2.15,
+        "rounding": 10,
+        "planned_batches": 0
+      }
+    },
+    {
+      "name": "SFx Special Shawarma",
+      "menu_name": "SFx Special Shawarma",
+      "source_sheet": "Fast Food",
+      "source_range": "A180:B213",
+      "inputs": {
+        "ingredients": [
+          {
+            "name": "Chicken",
+            "cost": 300
+          },
+          {
+            "name": "Sweet pepper",
+            "cost": 7
+          },
+          {
+            "name": "Plantain",
+            "cost": 30.0
+          },
+          {
+            "name": "Garlic and ginger paste",
+            "cost": 200
+          },
+          {
+            "name": "Mustard",
+            "cost": 20
+          },
+          {
+            "name": "Black pepper",
+            "cost": 5
+          },
+          {
+            "name": "Red long bell pepper",
+            "cost": 10
+          },
+          {
+            "name": "Green bell pepper",
+            "cost": 10
+          },
+          {
+            "name": "Hot pepper powder",
+            "cost": 7
+          },
+          {
+            "name": "Onions powder",
+            "cost": 5
+          },
+          {
+            "name": "Maggie",
+            "cost": 3.0
+          },
+          {
+            "name": "Salt",
+            "cost": 10
+          },
+          {
+            "name": "Condensed milk",
+            "cost": 20
+          },
+          {
+            "name": "Onion, cabbage and carrot",
+            "cost": 65
+          },
+          {
+            "name": "Mayonnaise",
+            "cost": 250
+          },
+          {
+            "name": "Ketchup",
+            "cost": 0
+          },
+          {
+            "name": "Milk",
+            "cost": 14
+          },
+          {
+            "name": "Oil",
+            "cost": 10
+          },
+          {
+            "name": "Shawarma bread",
+            "cost": 72
+          }
+        ],
+        "packaging": 100,
+        "overhead": 0,
+        "yield": 4,
+        "multiplier": 2,
+        "rounding": 10,
+        "planned_batches": 0
+      }
+    }
+  ]
+}
