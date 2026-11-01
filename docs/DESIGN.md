@@ -193,3 +193,9 @@ Recipes. Name the two included changes and the eight excluded extras, show the
 actual database prerequisite/error when needed, and reuse the existing sheet for
 old/new full costs and unchanged selling prices. Apply once; refresh recipe cards
 and menu/costing queries after success. Keep 44px targets and phone-width controls.
+
+M23: reuse the workbook review card and sheet for the corrected extras. Label it
+1 November extras, list nine recipes, show direct COGS, overhead and full cost per
+portion separately, and mark selling prices unchanged. Mark absent Puff-puff as
+Planning only with no created price. Keep older review cards dated and their
+errors visible. No excluded-extras warning remains after the corrected attachment.

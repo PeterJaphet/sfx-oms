@@ -1,0 +1,343 @@
+{
+  "source_file": "SFx_Burger_Menu_Costing_and_PL EDITTED NEW (2).xlsx",
+  "sha256": "eb99cdea45e583b736108afed35af35d811227a3815764b7e94d2023a785a2b7",
+  "recipes": [
+    {
+      "name": "Chicken Lap",
+      "menu_name": "Chicken",
+      "addon": true,
+      "source_sheet": "Extras",
+      "source_range": "A1:B26",
+      "inputs": {
+        "ingredients": [
+          {
+            "name": "Chicken",
+            "cost": 700
+          },
+          {
+            "name": "Garlic and ginger paste",
+            "cost": 100
+          },
+          {
+            "name": "Curry",
+            "cost": 10
+          },
+          {
+            "name": "Black pepper",
+            "cost": 5
+          },
+          {
+            "name": "Bayleaf",
+            "cost": 15
+          },
+          {
+            "name": "Maggi",
+            "cost": 5
+          },
+          {
+            "name": "Thyme",
+            "cost": 3
+          },
+          {
+            "name": "Salt",
+            "cost": 10
+          },
+          {
+            "name": "Lezzet Bizim",
+            "cost": 14
+          }
+        ],
+        "packaging": 0,
+        "overhead": 80,
+        "yield": 11,
+        "multiplier": 2,
+        "rounding": 10,
+        "planned_batches": 0
+      }
+    },
+    {
+      "name": "Egg",
+      "menu_name": "Egg",
+      "addon": true,
+      "source_sheet": "Extras",
+      "source_range": "A29:B46",
+      "inputs": {
+        "ingredients": [
+          {
+            "name": "Eggs",
+            "cost": 200
+          }
+        ],
+        "packaging": 0,
+        "overhead": 80,
+        "yield": 30,
+        "multiplier": 2,
+        "rounding": 10,
+        "planned_batches": 0
+      }
+    },
+    {
+      "name": "Fish",
+      "menu_name": "Fish",
+      "addon": true,
+      "source_sheet": "Extras",
+      "source_range": "A49:B72",
+      "inputs": {
+        "ingredients": [
+          {
+            "name": "Fish",
+            "cost": 300
+          },
+          {
+            "name": "Onions",
+            "cost": 10
+          },
+          {
+            "name": "Curry",
+            "cost": 10
+          },
+          {
+            "name": "Salt",
+            "cost": 5
+          },
+          {
+            "name": "Maggie",
+            "cost": 5
+          },
+          {
+            "name": "Green Bell pepper",
+            "cost": 10
+          },
+          {
+            "name": "Salt",
+            "cost": 10
+          }
+        ],
+        "packaging": 0,
+        "overhead": 80,
+        "yield": 6,
+        "multiplier": 2,
+        "rounding": 10,
+        "planned_batches": 0
+      }
+    },
+    {
+      "name": "Ponmo",
+      "menu_name": "Ponmo",
+      "addon": true,
+      "source_sheet": "Extras",
+      "source_range": "A75:B94",
+      "inputs": {
+        "ingredients": [
+          {
+            "name": "ponmo",
+            "cost": 200
+          },
+          {
+            "name": "Maggie",
+            "cost": 5
+          },
+          {
+            "name": "Bizim lezzet",
+            "cost": 15
+          }
+        ],
+        "packaging": 0,
+        "overhead": 80,
+        "yield": 8,
+        "multiplier": 2,
+        "rounding": 10,
+        "planned_batches": 0
+      }
+    },
+    {
+      "name": "Shaki",
+      "menu_name": "Shaki",
+      "addon": true,
+      "source_sheet": "Extras",
+      "source_range": "A97:B116",
+      "inputs": {
+        "ingredients": [
+          {
+            "name": "Shaki",
+            "cost": 200
+          },
+          {
+            "name": "Maggie",
+            "cost": 5
+          },
+          {
+            "name": "Bizim Lezzet",
+            "cost": 15
+          }
+        ],
+        "packaging": 0,
+        "overhead": 80,
+        "yield": 8,
+        "multiplier": 2,
+        "rounding": 10,
+        "planned_batches": 0
+      }
+    },
+    {
+      "name": "Puff-puff",
+      "menu_name": "Puff-puff",
+      "addon": true,
+      "source_sheet": "Extras",
+      "source_range": "A118:B140",
+      "inputs": {
+        "ingredients": [
+          {
+            "name": "Flour",
+            "cost": 210
+          },
+          {
+            "name": "Sugar",
+            "cost": 68
+          },
+          {
+            "name": "Nutmeg",
+            "cost": 10
+          },
+          {
+            "name": "Yeast",
+            "cost": 75
+          },
+          {
+            "name": "Salt",
+            "cost": 30
+          },
+          {
+            "name": "Oil",
+            "cost": 200
+          }
+        ],
+        "packaging": 120,
+        "overhead": 80,
+        "yield": 50,
+        "multiplier": 2,
+        "rounding": 10,
+        "planned_batches": 0
+      }
+    },
+    {
+      "name": "Salad",
+      "menu_name": "Salad",
+      "addon": true,
+      "source_sheet": "Extras",
+      "source_range": "A142:B165",
+      "inputs": {
+        "ingredients": [
+          {
+            "name": "Cabbage",
+            "cost": 70
+          },
+          {
+            "name": "Carrot",
+            "cost": 15
+          },
+          {
+            "name": "Mayonnaise",
+            "cost": 70
+          },
+          {
+            "name": "Milk",
+            "cost": 20
+          },
+          {
+            "name": "Condensed milk",
+            "cost": 20
+          },
+          {
+            "name": "Black pepper",
+            "cost": 5
+          },
+          {
+            "name": "lemon sauce",
+            "cost": 10
+          }
+        ],
+        "packaging": 50,
+        "overhead": 80,
+        "yield": 10,
+        "multiplier": 2,
+        "rounding": 10,
+        "planned_batches": 0
+      }
+    },
+    {
+      "name": "Swallow",
+      "menu_name": "Swallow",
+      "addon": true,
+      "source_sheet": "Extras",
+      "source_range": "A167:B184",
+      "inputs": {
+        "ingredients": [
+          {
+            "name": "Semu",
+            "cost": 100
+          }
+        ],
+        "packaging": 20,
+        "overhead": 80,
+        "yield": 10,
+        "multiplier": 2,
+        "rounding": 10,
+        "planned_batches": 0
+      }
+    },
+    {
+      "name": "Turkey",
+      "menu_name": "Turkey",
+      "addon": true,
+      "source_sheet": "Extras",
+      "source_range": "A186:B211",
+      "inputs": {
+        "ingredients": [
+          {
+            "name": "Turkey",
+            "cost": 550
+          },
+          {
+            "name": "Garlic and ginger paste",
+            "cost": 40
+          },
+          {
+            "name": "Curry",
+            "cost": 5
+          },
+          {
+            "name": "Black pepper",
+            "cost": 5
+          },
+          {
+            "name": "Bayleaf",
+            "cost": 5
+          },
+          {
+            "name": "Maggi",
+            "cost": 5
+          },
+          {
+            "name": "Thyme",
+            "cost": 3
+          },
+          {
+            "name": "Salt",
+            "cost": 5
+          },
+          {
+            "name": "Lezzet Bizim",
+            "cost": 10
+          }
+        ],
+        "packaging": 0,
+        "overhead": 80,
+        "yield": 3,
+        "multiplier": 2,
+        "rounding": 10,
+        "planned_batches": 0
+      }
+    }
+  ]
+}

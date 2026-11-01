@@ -367,3 +367,17 @@ item selling price if necessary. WhatsApp remains paused.
 
 No hosted database access. M15 WhatsApp remains paused. This milestone is prepared,
 not live; migration installation and applying the import are separate owner steps.
+
+## M23 — corrected extras costing
+
+- [x] Corrected attachment resolves eight copied-recipe concerns; independently summed all nine extras and verified direct/overhead/full-cost split.
+- [x] Reuses existing extra recipes and names; existing Puff-puff extra matched or absent recipe saved as planning only, with no invented price.
+- [x] Admin-only, audited, stale-state protected and retry-safe importer; pending older Chicken import blocked after newer costs applied.
+- [x] 884 local SQL checks pass, including price/snapshot/ledger preservation, all nine costs, existing Puff-puff and older-import guard.
+- [x] Typecheck, lint, 316 unit tests and production build pass.
+- [x] SQL-backed local browser applies nine recipes, verifies unchanged prices, separate COGS/overhead, planning-only Puff-puff, Turkey search and replay prevention at 360/390/430/1280 widths.
+- [ ] Owner installs migration 021 (020 first if needed), frontend release and Admin application; live acceptance pending.
+- [ ] Owner answer about additional rice/shawarma changes; those remain outside this extras-only import.
+
+This supersedes M22's unresolved extras source question and Chicken Lap inputs.
+M15 stays paused. No hosted database execution.

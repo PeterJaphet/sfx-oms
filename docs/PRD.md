@@ -551,3 +551,26 @@ Preview/apply must retain Admin-only access, stale-state checks, an immutable
 receipt, safe retries and audited recipe history. Require the 30 October import
 first so an older unapplied import cannot later restore the older Jollof cost.
 No hosted database execution by the agent.
+
+## M23 — corrected extras workbook (1 November)
+
+Owner supplied corrected Extras recipes for Chicken Lap, Egg, Fish, Ponmo, Shaki,
+Puff-puff, Salad, Swallow and Turkey. This resolves the M22 copied-recipe concern.
+Use the numeric ingredient rows, packaging, overhead and yields from the new file;
+Chicken Lap now has ingredients 862, no packaging, overhead 80 and yield 11.
+Turkey now uses the supplied recipe instead of the earlier 250 TRY estimate.
+Fish has two distinct salt rows (5 and 10): retain both as supplied.
+
+Admin preview/apply must show direct COGS separately from overhead/full cost and
+preserve every selling price. Reuse existing recipe links/names/settings; new
+recipes have zero planned batches. When Puff-puff is absent from the menu, save its
+recipe unlinked for planning rather than inventing a selling price or menu item.
+Match an existing Puff-puff extra or single standalone menu variant when present.
+Reject ambiguous/mismatched links. Audit each recipe plus an immutable import
+receipt; reject stale previews and protect saved orders and ledger entries.
+
+The extras import needs no previous recipe import. After it is applied, refuse an
+unapplied 31 October import that would restore older Chicken Lap costs. An already
+applied older import remains an idempotent no-op. Keep the supplied rice/shawarma
+changes outside this extras update pending owner clarification of that scope.
+Hosted database execution remains owner-only. Do not edit old migration files.
