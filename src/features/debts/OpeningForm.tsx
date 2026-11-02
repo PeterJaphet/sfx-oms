@@ -23,7 +23,7 @@ export default function OpeningForm({
     resolver: zodResolver(openingSchema),
     defaultValues: {
       amount: '',
-      reason: 'Opening balance at go-live',
+      reason: 'Confirmed balance at go-live',
       rate: '',
     },
   })
@@ -53,7 +53,12 @@ export default function OpeningForm({
       className="space-y-4"
       onSubmit={form.handleSubmit(async (v) => {
         setError(undefined)
-        if (!quote.data || quote.isFetching) {
+        if (
+          !quote.data ||
+          quote.isFetching ||
+          quote.isError ||
+          quote.data.balance_after !== Number(v.amount)
+        ) {
           setError('Wait for the updated opening preview')
           return
         }
@@ -74,13 +79,14 @@ export default function OpeningForm({
       })}
     >
       <p className="text-sm text-muted">
-        Each account takes one opening. Zero marks setup complete without a
-        ledger entry. Later corrections use Admin adjustments.
+        Enter the money currently held, including zero. The database adjusts the
+        ledger to this balance and preserves the full transaction history. Later
+        sales and spending change it normally.
       </p>
       <fieldset disabled={state.busy || !!state.pending} className="space-y-4">
         {(
           [
-            ['amount', `Opening amount (${account.currency})`],
+            ['amount', `Current amount held (${account.currency})`],
             ['reason', 'Reason'],
           ] as const
         ).map(([name, label]) => (
@@ -127,16 +133,18 @@ export default function OpeningForm({
             {formatMoney(quote.data.balance_before, account.currency)}
           </p>
           <p>
-            After opening:{' '}
+            Confirmed balance after save:{' '}
             <strong>
               {formatMoney(quote.data.balance_after, account.currency)}
             </strong>
           </p>
-          <p>Opening TRY value: {formatMoney(quote.data.amount_try, 'TRY')}</p>
+          <p>
+            Confirmed TRY value: {formatMoney(quote.data.amount_try, 'TRY')}
+          </p>
           {quote.data.balance_before !== 0 ? (
             <p>
-              Existing entries are retained. The opening amount is added to this
-              balance; review test adjustments and payments before go-live.
+              Existing entries are retained. The database posts only the
+              difference needed to reach your confirmed balance.
             </p>
           ) : null}
         </div>
@@ -151,7 +159,8 @@ export default function OpeningForm({
           Close this form and retry the pending opening confirmation.
         </p>
       ) : null}
-      <Button requiresOnline
+      <Button
+        requiresOnline
         type="submit"
         className="w-full"
         disabled={

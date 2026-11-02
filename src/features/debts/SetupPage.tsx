@@ -1,3 +1,4 @@
+import { BalanceReconciliation } from './BalanceReconciliation'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -45,15 +46,15 @@ export default function SetupPage() {
     <section className="space-y-5">
       <div className="space-y-2">
         <p className="text-xs font-bold uppercase tracking-wider text-muted">
-          Admin · one time, on go-live day
+          Admin · confirmed balances and opening debts
         </p>
         <h1 className="text-[26px] font-extrabold sm:text-[34px]">
-          Start fresh: balances and debts
+          Confirmed balances and debts
         </h1>
         <p className="max-w-3xl text-ink-2">
-          Enter each account’s opening amount in its own currency, then record
-          outstanding debts. Each opening saves separately and is kept
-          permanently.
+          Enter the amount currently held in each account, in its own currency,
+          then record outstanding debts. Each opening saves separately and is
+          kept permanently.
         </p>
         <Link
           to="/debts"
@@ -62,9 +63,10 @@ export default function SetupPage() {
           Back to Debts
         </Link>
       </div>
+      <BalanceReconciliation />
       <div className="grid gap-5 lg:grid-cols-2">
         <section className="space-y-4 rounded-xl border bg-card p-4">
-          <h2 className="text-xl font-bold">1 · Opening balances</h2>
+          <h2 className="text-xl font-bold">1 · Confirmed account balances</h2>
           {setup.data.accounts.map((a) => (
             <div
               key={a.id}
@@ -75,11 +77,11 @@ export default function SetupPage() {
                   {a.name} · {a.currency}
                 </p>
                 <p className="text-xs text-muted">
-                  Current ledger balance {formatMoney(a.balance, a.currency)}
+                  Current balance {formatMoney(a.balance, a.currency)}
                 </p>
                 {a.opened ? (
                   <p className="text-sm text-ok">
-                    Opening recorded:{' '}
+                    Confirmed balance recorded:{' '}
                     {formatMoney(a.opening_amount!, a.currency)} ·{' '}
                     {a.opening_date}
                   </p>

@@ -420,3 +420,16 @@ not represented as solved by a frontend-only change.
 
 No hosted database execution. This feature is prepared, not live. Migration 023's
 separate costing-RPC repair is not a prerequisite for this feature.
+
+## Confirmed balances and active account cleanup
+
+- [x] Owner confirmed amounts are snapshots at entry time, preserving later transactions.
+- [x] Existing additive openings get an Admin preview/audited adjustment; account/run receipts prevent repeated correction; new openings post only target minus current balance.
+- [x] Legacy SFx/Crypto retired from current views; old currency/history retained; Redot USD archived and one active TL account prepared for owner input.
+- [x] Pending orders/withdrawals/open advances block retirement atomically; stale previews, reversed openings, private tables and role/day locks protected.
+- [x] 958 local database checks, 317 unit tests, typecheck, lint and build pass.
+- [x] SQL-backed browser verifies later movement preservation, account cleanup, Redot TL entry, consistent Money balances and 360/390/430/1280 layouts.
+- [ ] Owner runs migration 025, frontend release, review/apply reconciliation and Redot TL amount entry; live acceptance.
+
+No hosted inspection or mutation by the agent. Historic ledger rows and all P&L
+sources are preserved. Applying the migration alone does not change live balances.

@@ -2486,6 +2486,10 @@ export type Database = {
       };
       quote_close: { Args: { p: Json }; Returns: Json };
       quote_debt_settlement: { Args: { p: Json }; Returns: Json };
+      reconcile_go_live_balances: {
+        Args: { p_apply?: boolean; p_token?: string };
+        Returns: Json;
+      };
       quote_opening: { Args: { p: Json }; Returns: Json };
       quote_order: { Args: { p_order: Json }; Returns: Json };
       quote_purchase: { Args: { p: Json }; Returns: Json };

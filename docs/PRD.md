@@ -623,3 +623,32 @@ Retain amount/category/recipient/receipt validation, approval limits, current-ba
 checks, day locking and closed-day role guards. Admin historical/closed-day writes
 remain audited. Idempotent request replay retains its original date and never posts
 twice; changing a date invalidates its preview. All writes stay behind guarded RPCs.
+
+## Confirmed go-live balances and active account cleanup
+
+Owner confirms Go live amounts are the money held at entry time; preserve later
+transactions. Treat future opening amounts as target balances rather than adding
+them to prior ledger balances. Post only the database-calculated difference, with
+a one-time immutable opening marker and reconciliation receipt. Retain ordinary
+Admin signed adjustments and all closed-day, role and financial-lock protections.
+
+For existing additive opening records, preview each saved count, current balance,
+correction and resulting current balance. Remove the ledger balance preceding the
+saved opening entry; preserve subsequent recorded ledger movements. Zero openings
+with no ledger entry use their recorded timestamp. Skip counts already reconciled;
+never reconcile them again after later activity. Use audited adjustment entries,
+not edits to immutable ledger rows; create no sales or actual expenses. Reject
+reversed openings, stale previews and unsafe duplicate account names. Preview and
+apply are Admin-only; retries return the saved result and cannot post twice.
+
+Remove Crypto and legacy SFx from active account lists/current totals. Preserve
+their historical account IDs, currency and transactions. Retire Redot's USD account
+and create one active RedotPay in TRY if necessary; never reinterpret old dollar
+amounts as lira. Owner will enter the new Redot TL amount. Do not archive accounts
+with pending orders, pending withdrawals or unsettled advances; show the counts
+and stop atomically. Existing historical reports keep archived account records.
+
+Go live gets a visible review/apply reconciliation card. After application,
+invalidate all affected balances, setup, dashboard/report and account-picker
+queries. The database views remain the source of every current balance. No hosted
+database execution by the agent; owner installs and applies the reviewed update.

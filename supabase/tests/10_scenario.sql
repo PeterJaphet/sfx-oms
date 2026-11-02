@@ -1672,4 +1672,106 @@ select expect_fail($$select create_dated_withdrawal(current_setting('sfx.wdate.p
 reset role;
 rollback to savepoint withdrawal_approval_dates;
 
+-- Go-live amounts are current balance snapshots; archived currencies keep history.
+savepoint go_live_reconciliation_fixture;
+reset role;
+select as_user('00000000-0000-0000-0000-00000000000a');
+-- Keep unrelated prior scenario obligations outside this isolated account cleanup.
+update accounts set is_active=false where id in
+ (select account_id from v_advances where state in('open','owed_to_staff') union
+  select account_id from withdrawals where status='pending_approval' union
+  select (settlement->>'account_id')::smallint from orders where status not in('completed','cancelled') and settlement is not null);
+insert into accounts(name,currency,sort_order) values('Counted bank fixture','TRY',20),('Zero count fixture','TRY',21),('New count fixture','TRY',22),('Zero target fixture','TRY',23),('Dollar balance fixture','USD',24),('SFx fixture legacy','USD',99);
+insert into ledger_entries(account_id,entry_type,amount,rate_to_try,amount_try,note,created_by,created_at)
+select id,'adjustment',100,1,100,'Before recorded count','00000000-0000-0000-0000-00000000000a',now()-interval '2 hours' from accounts where name='Counted bank fixture';
+with e as (
+ insert into ledger_entries(account_id,entry_type,amount,rate_to_try,amount_try,note,created_by,created_at)
+ select id,'opening_balance',500,1,500,'Legacy additive count','00000000-0000-0000-0000-00000000000a',now()-interval '1 hour' from accounts where name='Counted bank fixture'
+ returning id,account_id
+) insert into account_openings(account_id,amount,rate_to_try,ledger_entry_id,reason,created_by,created_at)
+ select account_id,500,1,id,'Confirmed count fixture','00000000-0000-0000-0000-00000000000a',now()-interval '1 hour' from e;
+insert into ledger_entries(account_id,entry_type,amount,rate_to_try,amount_try,note,created_by,created_at)
+select id,'adjustment',25,1,25,'After recorded count','00000000-0000-0000-0000-00000000000a',now()-interval '30 minutes' from accounts where name='Counted bank fixture';
+insert into ledger_entries(account_id,entry_type,amount,rate_to_try,amount_try,note,created_by,created_at)
+select id,'adjustment',40,1,40,'Before zero count','00000000-0000-0000-0000-00000000000a',now()-interval '2 hours' from accounts where name='Zero count fixture';
+insert into account_openings(account_id,amount,rate_to_try,reason,created_by,created_at)
+select id,0,1,'Confirmed zero count','00000000-0000-0000-0000-00000000000a',now()-interval '1 hour' from accounts where name='Zero count fixture';
+insert into ledger_entries(account_id,entry_type,amount,rate_to_try,amount_try,note,created_by,created_at)
+select id,'adjustment',7,1,7,'After zero count','00000000-0000-0000-0000-00000000000a',now()-interval '30 minutes' from accounts where name='Zero count fixture';
+insert into ledger_entries(account_id,entry_type,amount,rate_to_try,amount_try,note,created_by)
+select id,'adjustment',100,47.9,4790,'Before dollar count','00000000-0000-0000-0000-00000000000a'from accounts where name='Dollar balance fixture';
+with e as(insert into ledger_entries(account_id,entry_type,amount,rate_to_try,amount_try,note,created_by)
+select id,'opening_balance',50,47.9,2395,'Legacy dollar count','00000000-0000-0000-0000-00000000000a'from accounts where name='Dollar balance fixture'returning id,account_id)
+insert into account_openings(account_id,amount,rate_to_try,ledger_entry_id,reason,created_by)
+select account_id,50,47.9,id,'Confirmed dollar count','00000000-0000-0000-0000-00000000000a'from e;
+insert into ledger_entries(account_id,entry_type,amount,rate_to_try,amount_try,note,created_by)
+select id,'adjustment',10,47.9,479,'After dollar count','00000000-0000-0000-0000-00000000000a'from accounts where name='Dollar balance fixture';
+set role authenticated;
+select as_user('00000000-0000-0000-0000-00000000000a');
+select create_dated_withdrawal(jsonb_build_object('kind','direct_expense','account_id',(select id from accounts where name='Counted bank fixture'),'amount',20,'purpose','After count spending','category_id',cat('Electricity'),'withdrawal_date',business_date()));
+select set_config('sfx.snapshot.saved',(select coalesce(jsonb_agg(to_jsonb(t)order by order_id),'[]')::text from order_cost_snapshots t),true);
+select set_config('sfx.snapshot.sales',(get_report('pnl',business_date()-3,business_date(),0,0))::text,true);
+select set_config('sfx.snapshot.ledger',(select jsonb_object_agg(id::text,to_jsonb(t))::text from ledger_entries t),true);
+select set_config('sfx.snapshot.preview',reconcile_go_live_balances(false)::text,true);
+select check_eq((select (x->>'ledger_delta')::numeric from jsonb_array_elements(current_setting('sfx.snapshot.preview')::jsonb->'rows')x where x->>'name'='Counted bank fixture'),-100,'Snapshot reconciliation removes only pre-count balance');
+select check_eq((select (x->>'balance_after')::numeric from jsonb_array_elements(current_setting('sfx.snapshot.preview')::jsonb->'rows')x where x->>'name'='Counted bank fixture'),505,'Snapshot preserves later receipt 25 and expense 20');
+select check_eq((select (x->>'balance_after')::numeric from jsonb_array_elements(current_setting('sfx.snapshot.preview')::jsonb->'rows')x where x->>'name'='Zero count fixture'),7,'Snapshot zero count preserves later activity');
+select check_eq((select balance from v_account_balances where name='Counted bank fixture'),605,'Snapshot preview posts no money');
+select expect_fail($$select reconcile_go_live_balances(true,'stale')$$,'Snapshot stale token denied');
+savepoint pending_retirement_fixture;
+reset role;
+insert into withdrawals(kind,account_id,amount,rate_to_try,amount_try,purpose,category_id,status,requested_by)
+select 'direct_expense',id,1,1,1,'Pending retirement fixture',cat('Electricity'),'pending_approval','00000000-0000-0000-0000-00000000000b'from accounts where name='SFx fixture legacy';
+set role authenticated;
+select expect_fail($$select reconcile_go_live_balances(true,reconcile_go_live_balances(false)->>'token')$$,'Snapshot pending obligations block retirement atomically');
+select check_eq((select balance from v_account_balances where name='Counted bank fixture'),605,'Snapshot blocked cleanup applies no corrections');
+rollback to savepoint pending_retirement_fixture;
+
+savepoint stale_snapshot_fixture;
+select adjust_balance((select id from accounts where name='Counted bank fixture'),1,'Concurrent balance change',false);
+select expect_fail($$select reconcile_go_live_balances(true,current_setting('sfx.snapshot.preview')::jsonb->>'token')$$,'Snapshot concurrent entry forces review');
+rollback to savepoint stale_snapshot_fixture;
+select reconcile_go_live_balances(true,current_setting('sfx.snapshot.preview')::jsonb->>'token');
+select check_eq((select balance from v_account_balances where name='Counted bank fixture'),505,'Snapshot active balance matches count plus later net movement');
+select check_eq((select balance from v_account_balances where name='Zero count fixture'),7,'Snapshot zero reconciliation applied correctly');
+select check_eq((select balance from v_account_balances where name='Dollar balance fixture'),60,'Snapshot foreign balance reconciles in native currency');
+select check_eq((select amount_try from ledger_entries where account_id=(select id from accounts where name='Dollar balance fixture')and note='Reconcile confirmed go-live balance; later movements preserved'),-4790,'Snapshot foreign correction retains recorded rate');
+select check_eq((select count(*)from v_account_balances where lower(name)='crypto' or(lower(name)like'sfx%'and lower(name)like'%legacy%')),0,'Snapshot retired accounts removed from current balances');
+select check_eq((select count(*)from accounts where is_active and lower(name) in('redot','redotpay') and currency='TRY'),1,'Snapshot one TL Redot account');
+select check_eq((select count(*)from accounts where is_active and lower(name)like'redot%'and currency<>'TRY'),0,'Snapshot old Redot USD archived');
+select check_eq((select count(*)from accounts where lower(name)like'redotpay (legacy usd%'and currency='USD'),1,'Snapshot Redot USD currency/history never relabelled');
+select check_eq((select count(*)from jsonb_array_elements(get_setup_accounts()->'accounts')x where x->>'name'='RedotPay' and x->>'currency'='TRY' and (x->>'opened')::boolean=false),1,'Snapshot new Redot awaits owner TL amount');
+select check_eq((select count(*)from ledger_entries l join jsonb_each(current_setting('sfx.snapshot.ledger')::jsonb)x on l.id::text=x.key where to_jsonb(l)<>x.value),0,'Snapshot existing ledger rows byte-for-byte preserved');
+select check_eq(((get_report('pnl',business_date()-3,business_date(),0,0))=current_setting('sfx.snapshot.sales')::jsonb)::int,1,'Snapshot adjustment is neither revenue nor expense');
+select check_eq(((select coalesce(jsonb_agg(to_jsonb(t)order by order_id),'[]')from order_cost_snapshots t)=current_setting('sfx.snapshot.saved')::jsonb)::int,1,'Snapshot saved order estimates unchanged');
+select set_config('sfx.snapshot.count',(select count(*)::text from ledger_entries),true);
+select reconcile_go_live_balances(true,current_setting('sfx.snapshot.preview')::jsonb->>'token');
+select check_eq((select count(*)from ledger_entries),current_setting('sfx.snapshot.count')::numeric,'Snapshot retry never posts twice');
+select reconcile_go_live_balances(true,reconcile_go_live_balances(false)->>'token');
+select check_eq((select count(*)from ledger_entries),current_setting('sfx.snapshot.count')::numeric,'Snapshot fresh reapply never reconciles old amounts again');
+
+select adjust_balance((select id from accounts where name='Zero target fixture'),15,'Before new zero count',false);
+select adjust_balance((select id from accounts where name='Zero target fixture'),0,'Confirmed zero with prior balance',true);
+select check_eq((select balance from v_account_balances where name='Zero target fixture'),0,'New zero count resets existing balance with audited difference');
+select check_eq((select count(*)from go_live_balance_receipts),0,'Snapshot receipt table remains private to browser Admin');
+select adjust_balance((select id from accounts where name='New count fixture'),20,'New account prior movement',false);
+select check_eq((quote_opening(jsonb_build_object('account_id',(select id from accounts where name='New count fixture'),'amount',50,'reason','Confirmed current count'))->>'balance_after')::numeric,50,'New snapshot preview uses target rather than adding');
+select adjust_balance((select id from accounts where name='New count fixture'),50,'Confirmed current count',true);
+select check_eq((select balance from v_account_balances where name='New count fixture'),50,'New snapshot posts difference 30 rather than full 50');
+select adjust_balance((select id from accounts where name='New count fixture'),5,'Later movement after new count',false);
+select reconcile_go_live_balances(true,reconcile_go_live_balances(false)->>'token');
+select check_eq((select balance from v_account_balances where name='New count fixture'),55,'New snapshot receipt preserves subsequent movement');
+select adjust_balance((select id from accounts where name='RedotPay'and is_active),300,'Confirmed Redot TL count',true);
+select check_eq((select balance from v_account_balances where name='RedotPay'),300,'Redot balance entered in TL');
+select as_user('00000000-0000-0000-0000-00000000000b');
+select expect_fail($$select reconcile_go_live_balances(false)$$,'Snapshot Operations preview denied');
+select expect_fail($$select reconcile_go_live_balances(true)$$,'Snapshot Operations apply denied');
+select as_user('00000000-0000-0000-0000-00000000000c');
+select expect_fail($$select reconcile_go_live_balances(false)$$,'Snapshot Logistics denied');
+reset role;
+set role anon;
+select expect_fail($$select reconcile_go_live_balances(false)$$,'Snapshot anonymous denied');
+reset role;
+rollback to savepoint go_live_reconciliation_fixture;
+
 rollback;

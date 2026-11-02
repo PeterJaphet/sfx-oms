@@ -219,3 +219,13 @@ business-day max, Admin-editable past date, Operations read-only current day, in
 error and brief 06:00–05:59 help. Show the chosen date in the server balance preview.
 Keep withdrawal history's business-day date and confirmation status visible; existing
 receipt and recovery controls stay intact. No browser-derived business dates.
+
+Confirmed balances: retain Setup.dc.html's existing account/debt cards, adding one
+visible Use confirmed balances review section before them. Show each saved amount
+and recorded time, current/resulting balance and the correction in its native
+currency. List active accounts to retire with preserved historical balances and
+pending-obligation blockers. Explain RedotPay TL starts without an entered count.
+Use one Apply confirmed balances & account changes action, refresh control and
+plain database errors. On success, refetch setup and global balance/account data.
+Opening form asks Current amount held and previews the target balance; remove the
+old additive-opening explanation. Keep 44px controls and mobile-safe wrapping.
